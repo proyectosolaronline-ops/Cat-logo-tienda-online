@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Tiendas</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;
+  --cta:#ff6900;--cta-dark:#e55c00;
+  --bg:#f5f6f7;--surface:#fff;--border:#dde1e7;
+  --text:#1a1a2e;--muted:#717185;
+  --font-d:'Outfit',sans-serif;--font-b:'Inter',sans-serif;
+  --r:10px;--r-lg:14px;--r-xl:18px;
+  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--primary) 0%,#0d47a1 100%);color:#fff;padding:48px 20px 56px;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E")}
+.header-logo{width:56px;height:56px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2)}
+.header-logo svg{width:28px;height:28px}
+.header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;backdrop-filter:blur(6px)}
+.header h1{font-family:var(--font-d);font-size:clamp(24px,5vw,42px);font-weight:800;line-height:1.1;margin-bottom:12px;letter-spacing:-.02em}
+.header h1 span{color:#ffd54f}
+.header p{font-size:15px;color:rgba(255,255,255,.8);max-width:500px;margin:0 auto;line-height:1.6}
+
+/* SEARCH */
+.search-wrap{max-width:520px;margin:-28px auto 0;padding:0 16px;position:relative;z-index:2}
+.search-box{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow-lg);display:flex;align-items:center;overflow:hidden;border:1.5px solid var(--border)}
+.search-box input{flex:1;padding:14px 16px;border:none;outline:none;font-size:14px;font-family:var(--font-b);color:var(--text)}
+.search-box input::placeholder{color:var(--muted)}
+.search-btn{padding:12px 16px;background:none;border:none;cursor:pointer;color:var(--muted)}
+.search-btn svg{width:18px;height:18px}
+
+/* FILTERS */
+.filters-wrap{padding:24px 16px 8px;max-width:960px;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:6px 16px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s}
+.chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* GRID */
+.dir-wrap{max-width:960px;margin:0 auto;padding:16px 16px 60px}
+.dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.store-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-xl);overflow:hidden;cursor:pointer;transition:all .22s;display:flex;flex-direction:column}
+.store-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--primary)}
+.store-banner{height:90px;background:var(--primary);background-size:cover;background-position:center;position:relative;flex-shrink:0}
+.store-logo{width:52px;height:52px;border-radius:12px;border:3px solid #fff;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.15);position:absolute;bottom:-22px;left:16px;flex-shrink:0}
+.store-logo img{width:100%;height:100%;object-fit:cover}
+.store-body{padding:30px 16px 16px;flex:1;display:flex;flex-direction:column}
+.store-name{font-family:var(--font-d);font-size:16px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.store-desc{font-size:12px;color:var(--muted);line-height:1.5;flex:1;margin-bottom:12px}
+.store-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.store-tag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--primary-light);color:var(--primary)}
+.store-tag.mayorista{background:#f3e8ff;color:#7c3aed}
+.store-foot{display:flex;gap:8px}
+.btn-visit{flex:1;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:all .15s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-visit:hover{background:var(--primary-dark)}
+.btn-qr{width:40px;height:40px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.btn-qr:hover{border-color:var(--primary);background:var(--primary-light)}
+.btn-qr svg{width:18px;height:18px;color:var(--muted)}
+
+/* POPUP detalle */
+.popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.popup-bg.on{display:flex}
+.popup{background:var(--surface);border-radius:var(--r-xl);width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.popup-banner{height:120px;background:var(--primary);background-size:cover;background-position:center;border-radius:var(--r-xl) var(--r-xl) 0 0;position:relative}
+.popup-close{position:absolute;top:12px;right:12px;width:30px;height:30px;background:rgba(0,0,0,.35);border:none;border-radius:50%;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.popup-logo{width:64px;height:64px;border-radius:14px;border:3px solid #fff;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--primary);box-shadow:0 4px 12px rgba(0,0,0,.15);position:absolute;bottom:-28px;left:20px}
+.popup-logo img{width:100%;height:100%;object-fit:cover}
+.popup-body{padding:40px 20px 24px}
+.popup-name{font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:6px}
+.popup-location{font-size:12px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:4px}
+.popup-desc{font-size:14px;color:var(--text);line-height:1.7;margin-bottom:20px}
+.popup-qr{background:var(--bg);border-radius:var(--r-lg);padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:20px}
+.popup-qr-label{font-size:11px;color:var(--muted);font-weight:500}
+.popup-actions{display:flex;gap:10px}
+.btn-cta{flex:1;padding:13px;background:var(--cta);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-b);transition:all .15s;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-cta:hover{background:var(--cta-dark)}
+.btn-wa{padding:13px 16px;background:#25d366;color:#fff;border:none;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-wa:hover{background:#1db954}
+.btn-wa svg{width:20px;height:20px}
+
+/* QR modal */
+.qr-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.qr-modal-bg.on{display:flex}
+.qr-box{background:#fff;border-radius:var(--r-xl);padding:28px;text-align:center;max-width:280px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.qr-box h3{font-family:var(--font-d);font-size:16px;font-weight:700;margin-bottom:6px}
+.qr-box p{font-size:11px;color:var(--muted);margin-bottom:16px}
+.qr-close{margin-top:16px;padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-b)}
+
+/* EMPTY / LOADING */
+.empty{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty-ico{font-size:52px;margin-bottom:16px;opacity:.4}
+.empty h3{font-family:var(--font-d);font-size:20px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;margin:60px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.count-badge{font-size:12px;color:var(--muted);margin-bottom:16px}
+
+@media(max-width:480px){
+  .dir-grid{grid-template-columns:1fr 1fr}
+  .store-card{font-size:13px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+  </div>
+  <div class="header-badge">🌐 Directorio de tiendas</div>
+  <h1>Todo en un solo lugar —<br><span>productos y servicios</span></h1>
+  <p>disponibles a tu necesidad</p>
+</div>
+
+<!-- SEARCH -->
+<div class="search-wrap">
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Buscar tienda, producto o servicio..." oninput="filterDir()">
+    <button class="search-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-wrap" id="filters-wrap">
+  <div class="chip on" onclick="setFilter('',this)">Todas</div>
+  <div class="chip" onclick="setFilter('mayorista',this)">★ Mayoristas</div>
+</div>
+
+<!-- GRID -->
+<div class="dir-wrap">
+  <div class="count-badge" id="count-badge"></div>
+  <div class="dir-grid" id="dir-grid">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- POPUP detalle -->
+<div class="popup-bg" id="popup-bg" onclick="if(event.target===this)closePopup()">
+  <div class="popup" id="popup">
+    <div class="popup-banner" id="popup-banner">
+      <button class="popup-close" onclick="closePopup()">✕</button>
+      <div class="popup-logo" id="popup-logo"></div>
+    </div>
+    <div class="popup-body">
+      <div class="popup-name" id="popup-name"></div>
+      <div class="popup-location" id="popup-location"></div>
+      <div class="popup-desc" id="popup-desc"></div>
+      <div class="popup-qr">
+        <div id="popup-qr-code"></div>
+        <div class="popup-qr-label">Escanea para visitar la tienda</div>
+      </div>
+      <div class="popup-actions">
+        <a class="btn-cta" id="popup-visit-btn" href="#" target="_blank">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Visitar tienda
+        </a>
+        <button class="btn-wa" id="popup-wa-btn" style="display:none" onclick="openWA()">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR modal rápido -->
+<div class="qr-modal-bg" id="qr-modal-bg" onclick="if(event.target===this)closeQR()">
+  <div class="qr-box">
+    <h3 id="qr-store-name"></h3>
+    <p>Escanea para visitar la tienda</p>
+    <div id="qr-code-small"></div>
+    <button class="qr-close" onclick="closeQR()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+var params     = new URLSearchParams(location.search);
+var BACKEND    = params.get('backend') || localStorage.getItem('ld_backend') || 'https://script.google.com/macros/s/AKfycbxrdW7sLSiJNq_XF_xDjDgBl2rJppwwoRsEe-mNE8G-2BWOcI7DpyJpQYsyN8M-x-I/exec';
+var STORE_BASE = params.get('storeBase') || 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
+var ALL_STORES = [];
+var activeFilter = '';
+var currentWA = '';
+
+function fixImgUrl(url) {
+  if (!url) return '';
+  var m = url.match(/[?&]id=([\w-]+)/);
+  if (m) return 'https://lh3.googleusercontent.com/d/' + m[1];
+  var m2 = url.match(/\/d\/([\w-]+)/);
+  if (m2) return 'https://lh3.googleusercontent.com/d/' + m2[1];
+  return url;
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function buildStoreUrl(storeId) {
+  return STORE_BASE + '?backend=' + encodeURIComponent(BACKEND) + '&store=' + encodeURIComponent(storeId);
+}
+
+window.addEventListener('load', async function() {
+  if (!BACKEND) {
+    document.getElementById('dir-grid').innerHTML = '<div class="empty"><div class="empty-ico">⚙️</div><h3>Configuración requerida</h3><p>Agrega ?backend=TU_URL a la URL</p></div>';
+    return;
+  }
+  try {
+    var r = await fetch(BACKEND + '?action=stores.directory');
+    var text = await r.text();
+    var d;
+    try { d = JSON.parse(text); } catch(e) { throw new Error('Error de servidor'); }
+    var stores = (d.stores || []).map(function(s) {
+      var cfg = (typeof s.config === 'string') ? JSON.parse(s.config) : (s.config || {});
+      s.config = cfg;
+      return s;
+    });
+    ALL_STORES = stores;
+    renderDir(stores);
+  } catch(e) {
+    document.getElementById('dir-grid').innerHTML = '<div class="empty"><div class="empty-ico">😕</div><h3>Error al cargar</h3><p>' + e.message + '</p></div>';
+  }
+});
+
+function renderDir(stores) {
+  var g = document.getElementById('dir-grid');
+  var badge = document.getElementById('count-badge');
+  badge.textContent = stores.length + ' tienda' + (stores.length !== 1 ? 's' : '') + ' disponible' + (stores.length !== 1 ? 's' : '');
+  if (!stores.length) {
+    g.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-ico">🏪</div><h3>Sin tiendas disponibles</h3><p>Pronto habrá más tiendas en el directorio</p></div>';
+    return;
+  }
+  g.innerHTML = stores.map(function(s) {
+    var cfg = s.config || {};
+    var ini = (s.name||'?')[0].toUpperCase();
+    var logoSrc = fixImgUrl(cfg.logo || cfg.logoUrl || '');
+    var bannerSrc = fixImgUrl(cfg.bannerUrl || '');
+    var esMayorista = cfg.businessType === 'mayorista';
+    var logoHTML = logoSrc
+      ? '<img src="' + esc(logoSrc) + '" onerror="this.parentNode.textContent=\'' + ini + '\'">'
+      : ini;
+    return '<div class="store-card" onclick="openPopup(\'' + s.storeId + '\')">' +
+      '<div class="store-banner" style="' + (bannerSrc ? 'background-image:url(' + bannerSrc + ')' : 'background:var(--primary)') + '">' +
+        '<div class="store-logo">' + logoHTML + '</div>' +
+      '</div>' +
+      '<div class="store-body">' +
+        '<div class="store-name">' + esc(s.name) + '</div>' +
+        '<div class="store-desc">' + esc((cfg.description || 'Visita nuestra tienda').slice(0, 80)) + '</div>' +
+        '<div class="store-tags">' +
+          (cfg.storeLocation ? '<span class="store-tag">📍 ' + esc(cfg.storeLocation) + '</span>' : '') +
+          (esMayorista ? '<span class="store-tag mayorista">★ Mayorista</span>' : '') +
+        '</div>' +
+        '<div class="store-foot">' +
+          '<button class="btn-visit">Ver tienda →</button>' +
+          '<div class="btn-qr" onclick="event.stopPropagation();openQR(\'' + s.storeId + '\')">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 20h3M20 17v3"/></svg>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('on'); });
+  el.classList.add('on');
+  filterDir();
+}
+
+function filterDir() {
+  var q = (document.getElementById('search-input').value || '').toLowerCase();
+  var list = ALL_STORES.filter(function(s) {
+    var cfg = s.config || {};
+    var matchQ = !q || (s.name||'').toLowerCase().includes(q) || (cfg.description||'').toLowerCase().includes(q) || (cfg.storeLocation||'').toLowerCase().includes(q);
+    var matchF = !activeFilter || (activeFilter === 'mayorista' && cfg.businessType === 'mayorista');
+    return matchQ && matchF;
+  });
+  renderDir(list);
+}
+
+function openPopup(storeId) {
+  var s = ALL_STORES.find(function(x) { return x.storeId === storeId; });
+  if (!s) return;
+  var cfg = s.config || {};
+  var logoSrc = fixImgUrl(cfg.logo || cfg.logoUrl || '');
+  var bannerSrc = fixImgUrl(cfg.bannerUrl || '');
+  var ini = (s.name||'?')[0].toUpperCase();
+  var url = buildStoreUrl(storeId);
+  currentWA = cfg.whatsapp || '';
+
+  document.getElementById('popup-banner').style.background = bannerSrc
+    ? 'url(' + bannerSrc + ') center/cover no-repeat' : 'var(--primary)';
+  document.getElementById('popup-logo').innerHTML = logoSrc
+    ? '<img src="' + esc(logoSrc) + '" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.textContent=\'' + ini + '\'">'
+    : ini;
+  document.getElementById('popup-name').textContent = s.name || '';
+  document.getElementById('popup-location').innerHTML = cfg.storeLocation
+    ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> ' + esc(cfg.storeLocation) : '';
+  document.getElementById('popup-desc').textContent = cfg.description || 'Visita nuestra tienda y descubre todos nuestros productos y servicios.';
+  document.getElementById('popup-visit-btn').href = url;
+
+  var waBtn = document.getElementById('popup-wa-btn');
+  waBtn.style.display = currentWA ? 'flex' : 'none';
+
+  // QR
+  var qrEl = document.getElementById('popup-qr-code');
+  qrEl.innerHTML = '';
+  if (url) {
+    try {
+      new QRCode(qrEl, { text: url, width: 140, height: 140, colorDark: '#1a1a2e', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H });
+    } catch(e) {}
+  }
+
+  document.getElementById('popup-bg').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePopup() {
+  document.getElementById('popup-bg').classList.remove('on');
+  document.body.style.overflow = '';
+}
+
+function openWA() {
+  if (currentWA) window.open('https://wa.me/' + currentWA.replace(/\D/g,''), '_blank');
+}
+
+function openQR(storeId) {
+  var s = ALL_STORES.find(function(x) { return x.storeId === storeId; });
+  if (!s) return;
+  var url = buildStoreUrl(storeId);
+  document.getElementById('qr-store-name').textContent = s.name || '';
+  var qrEl = document.getElementById('qr-code-small');
+  qrEl.innerHTML = '';
+  try {
+    new QRCode(qrEl, { text: url || location.href, width: 180, height: 180, colorDark: '#1a1a2e', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H });
+  } catch(e) {}
+  document.getElementById('qr-modal-bg').classList.add('on');
+}
+
+function closeQR() { document.getElementById('qr-modal-bg').classList.remove('on'); }
+</script>
+</body>
+</html>
