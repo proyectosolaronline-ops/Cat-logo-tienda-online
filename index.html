@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directorio de Ecosistema</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a73e8; --cta: #ff6900; --bg: #f5f6f7;
+            --text: #1a1a2e; --muted: #717185; --border: #dde1e7;
+            --font-d: 'Outfit', sans-serif; --r: 16px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+
+        /* Estilo Hero basado en tu Tienda */
+        .hero { background: var(--primary); color: #fff; padding: 60px 20px; text-align: center; }
+        .hero h1 { font-family: var(--font-d); font-size: 36px; margin-bottom: 10px; }
+
+        .container { max-width: 1100px; margin: -30px auto 40px; padding: 0 20px; }
+        
+        /* Grid de Tarjetas */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+
+        /* Card con diseño de "Tienda Pública" */
+        .card { 
+            background: #fff; border-radius: var(--r); overflow: hidden; 
+            border: 1px solid var(--border); transition: 0.3s; cursor: pointer;
+            display: flex; flex-direction: column;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); border-color: var(--primary); }
+
+        /* Contenedor de Banner y Logo */
+        .card-header { height: 130px; position: relative; background: #eee; }
+        .card-banner { width: 100%; height: 100%; object-fit: cover; }
+        .card-logo-vessel { 
+            position: absolute; bottom: -25px; left: 20px; 
+            width: 65px; height: 65px; background: #fff; 
+            border-radius: 12px; padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .card-logo { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+
+        .card-body { padding: 40px 20px 20px; flex: 1; }
+        .card-title { font-family: var(--font-d); font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .card-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 15px; }
+        
+        .card-footer { padding: 15px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .badge { background: #e8f0fe; color: var(--primary); font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 99px; text-transform: uppercase; }
+        .btn-go { background: var(--cta); color: #fff; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; }
+
+        /* Modal */
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-bg.active { display: flex; }
+        .modal { background: #fff; width: 100%; max-width: 400px; border-radius: 20px; overflow: hidden; text-align: center; padding: 30px; }
+        #qr-code { background: #f9f9f9; padding: 15px; border-radius: 15px; display: inline-block; margin-bottom: 20px; border: 1px solid #eee; }
+        
+        .btn-wa { display: block; background: #25d366; color: #fff; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: 700; margin-top: 10px; }
+
+        #loading { text-align: center; padding: 100px; font-weight: 600; color: var(--muted); }
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <h1>Directorio Oficial</h1>
+    <p>Selecciona una tienda para comenzar tu compra</p>
+</header>
+
+<div class="container">
+    <div id="loading">Sincronizando Tiendas...</div>
+    <div class="grid" id="grid"></div>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this) closeModal()">
+    <div class="modal">
+        <h2 id="m-name" style="font-family: var(--font-d); margin-bottom: 15px;"></h2>
+        <div id="qr-code"></div>
+        <p style="font-size: 12px; color: var(--muted); margin-bottom: 20px;">Escanea para ver el catálogo móvil</p>
+        <a href="" id="m-url" class="btn-go" style="display:block; padding:14px; font-size:15px;">Entrar a la Tienda</a>
+        <a href="" id="m-wa" class="btn-wa" target="_blank">Contactar WhatsApp</a>
+    </div>
+</div>
+
+<script>
+    const API = 'https://script.google.com/macros/s/AKfycbxrdW7sLSiJNq_XF_xDjDgBl2rJppwwoRsEe-mNE8G-2BWOcI7DpyJpQYsyN8M-x-I/exec';
+    const TIENDA_URL = 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
+    
+    let DATA = [];
+
+    async function init() {
+        try {
+            const r = await fetch(`${API}?action=stores.directory`);
+            const json = await r.json();
+            
+            DATA = (json.stores || []).map(s => {
+                let c = {};
+                try { c = typeof s.config === 'string' ? JSON.parse(s.config) : s.config; } catch(e){}
+                return { ...s, config: c };
+            });
+
+            document.getElementById('loading').style.display = 'none';
+            draw(DATA);
+        } catch (e) {
+            document.getElementById('loading').textContent = "Error al conectar con la base de datos.";
+        }
+    }
+
+    function draw(items) {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+
+        items.forEach(s => {
+            const c = s.config;
+            const link = `${TIENDA_URL}?backend=${encodeURIComponent(API)}&store=${s.storeId}`;
+            
+            // Aquí es donde tomo tus imágenes reales
+            const imgBanner = c.bannerUrl || 'https://via.placeholder.com/400x150?text=Banner';
+            const imgLogo = c.logo || 'https://via.placeholder.com/100?text=Logo';
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.onclick = () => openModal(s, link);
+            card.innerHTML = `
+                <div class="card-header">
+                    <img src="${imgBanner}" class="card-banner" onerror="this.style.display='none'">
+                    <div class="card-logo-vessel">
+                        <img src="${imgLogo}" class="card-logo" onerror="this.src='https://via.placeholder.com/65'">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">${s.name}</h3>
+                    <p class="card-desc">${c.description || 'Bienvenido a nuestra tienda oficial.'}</p>
+                </div>
+                <div class="card-footer">
+                    <span class="badge">${c.businessType || 'Comercio'}</span>
+                    <a href="${link}" class="btn-go" target="_blank" onclick="event.stopPropagation()">Ver Catálogo</a>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function openModal(s, link) {
+        document.getElementById('m-name').textContent = s.name;
+        document.getElementById('m-url').href = link;
+        document.getElementById('m-wa').href = `https://wa.me/${(s.config.whatsapp || '').replace(/\D/g,'')}`;
+        
+        const qrCtn = document.getElementById('qr-code');
+        qrCtn.innerHTML = '';
+        new QRCode(qrCtn, { text: link, width: 160, height: 160 });
+
+        document.getElementById('modal-bg').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('modal-bg').classList.remove('active');
+    }
+
+    init();
+</script>
+</body>
+</html>
