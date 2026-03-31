@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directorio Maestro | Ecosistema de Tiendas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* Sincronizado con tu Tienda Pública */
+        :root {
+            --primary: #1a73e8; --primary-dark: #1557b0; --primary-light: #e8f0fe;
+            --cta: #ff6900; --cta-dark: #e55c00;
+            --bg: #f5f6f7; --surface: #fff; --border: #dde1e7;
+            --text: #1a1a2e; --muted: #717185;
+            --font-d: 'Outfit', sans-serif; --font-b: 'Inter', sans-serif;
+            --r-lg: 12px; --r-xl: 16px;
+            --shadow-lg: 0 8px 28px rgba(0,0,0,.12);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-b); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+        /* HEADER ESTILO ECOSISTEMA */
+        .header { background: linear-gradient(135deg, var(--primary) 0%, #0d47a1 100%); color: #fff; padding: 60px 20px; text-align: center; position: relative; overflow: hidden; }
+        .header::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='40' cy='40' r='2'/%3E%3C/g%3E%3C/svg%3E"); }
+        
+        .header-content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+        .badge-eco { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.3); }
+
+        h1 { font-family: var(--font-d); font-size: clamp(28px, 6vw, 48px); font-weight: 800; line-height: 1.1; margin-bottom: 15px; }
+        h1 span { color: #ffd54f; }
+
+        /* BUSCADOR INTEGRADO */
+        .search-container { max-width: 600px; margin: -30px auto 0; padding: 0 20px; position: relative; z-index: 10; }
+        .search-bar { background: #fff; display: flex; padding: 5px; border-radius: var(--r-lg); box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
+        .search-bar input { flex: 1; border: none; padding: 15px; outline: none; font-family: var(--font-b); font-size: 15px; }
+        .search-bar button { background: var(--primary); color: #fff; border: none; padding: 0 25px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .search-bar button:hover { background: var(--primary-dark); }
+
+        /* GRID DE TIENDAS COMPATIBLE */
+        .main-content { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .filter-tags { display: flex; gap: 10px; margin-bottom: 30px; overflow-x: auto; padding-bottom: 10px; }
+        .tag { background: #fff; padding: 8px 20px; border-radius: 99px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; white-space: nowrap; }
+        .tag.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        
+        /* CARD EVOLUCIONADA */
+        .card { background: #fff; border-radius: var(--r-xl); overflow: hidden; border: 1px solid var(--border); transition: 0.3s; position: relative; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+        
+        .card-banner { height: 120px; background: #eee; background-size: cover; background-position: center; position: relative; }
+        .card-logo { width: 70px; height: 70px; border-radius: 12px; border: 4px solid #fff; position: absolute; bottom: -35px; left: 20px; background: #fff; box-shadow: var(--shadow-lg); object-fit: cover; }
+        
+        .card-body { padding: 45px 20px 20px; flex: 1; }
+        .store-type { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--primary); margin-bottom: 8px; display: block; }
+        .store-name { font-family: var(--font-d); font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+        .store-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* INDICADORES DE SERVICIOS (Detectados en tu HTML de Tienda) */
+        .service-dots { display: flex; gap: 5px; margin-bottom: 15px; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
+        .dot.active { background: var(--success, #00a650); }
+
+        .card-footer { padding: 15px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .btn-enter { background: var(--primary-light); color: var(--primary); padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; transition: 0.2s; }
+        .btn-enter:hover { background: var(--primary); color: #fff; }
+
+        .distance-badge { font-size: 11px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+
+        /* MODAL DE DETALLES COMPLETO */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 20px; overflow: hidden; position: relative; animation: slideUp 0.3s ease; }
+        
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .modal-header { height: 180px; background-size: cover; position: relative; }
+        .close-modal { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+        
+        .modal-body { padding: 30px; text-align: center; }
+        .modal-qr { margin: 20px auto; padding: 15px; background: #f9f9f9; border-radius: 15px; display: inline-block; }
+        
+        .action-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
+        .btn-main { background: var(--cta); color: #fff; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: 700; }
+        .btn-wa { background: #25d366; color: #fff; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: 700; }
+
+        #loader { text-align: center; padding: 50px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-content">
+            <div class="badge-eco">Ecosistema Digital Conectado</div>
+            <h1>Encuentra la tienda perfecta <span>cerca de ti</span></h1>
+            <p>Accede a productos, servicios y atención mayorista en un solo clic.</p>
+        </div>
+    </header>
+
+    <div class="search-container">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="¿Qué estás buscando hoy?" oninput="handleSearch()">
+            <button onclick="handleSearch()">Buscar</button>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <div class="filter-tags" id="filterTags">
+            <div class="tag active" onclick="filterBy('')">Todas</div>
+            <div class="tag" onclick="filterBy('mayorista')">Mayoristas</div>
+            <div class="tag" onclick="filterBy('servicios')">Servicios</div>
+        </div>
+
+        <div id="loader"><div class="spinner"></div><p style="margin-top:15px; color:var(--muted)">Sincronizando con el ecosistema...</p></div>
+        <div class="store-grid" id="storeGrid"></div>
+    </main>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal-content">
+            <div class="modal-header" id="modalHeader">
+                <button class="close-modal" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <h2 id="modalName" class="store-name" style="font-size: 24px;"></h2>
+                <p id="modalDesc" class="store-desc" style="-webkit-line-clamp: unset;"></p>
+                
+                <div class="modal-qr" id="modalQr"></div>
+                <p style="font-size: 11px; color: var(--muted);">Escanea para abrir en tu móvil</p>
+
+                <div class="action-group">
+                    <a href="#" id="modalLink" class="btn-main" target="_blank">Entrar a Tienda</a>
+                    <a href="#" id="modalWa" class="btn-wa" target="_blank">WhatsApp</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            BACKEND: 'https://script.google.com/macros/s/AKfycbxrdW7sLSiJNq_XF_xDjDgBl2rJppwwoRsEe-mNE8G-2BWOcI7DpyJpQYsyN8M-x-I/exec',
+            STORE_ROOT: 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html'
+        };
+
+        let STORES_DATA = [];
+        let userLocation = null;
+
+        // Inicialización
+        async function init() {
+            try {
+                // Obtener ubicación para la lógica de cercanía
+                navigator.geolocation.getCurrentPosition(pos => {
+                    userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    loadStores();
+                }, () => loadStores());
+            } catch (e) { loadStores(); }
+        }
+
+        async function loadStores() {
+            try {
+                const response = await fetch(`${CONFIG.BACKEND}?action=stores.directory`);
+                const data = await response.json();
+                STORES_DATA = (data.stores || []).map(s => ({
+                    ...s,
+                    config: typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {})
+                }));
+                
+                document.getElementById('loader').style.display = 'none';
+                renderStores(STORES_DATA);
+            } catch (e) {
+                console.error("Error cargando ecosistema", e);
+            }
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; 
+            const dLat = (lat2-lat1) * Math.PI / 180;
+            const dLon = (lon2-lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        }
+
+        function renderStores(stores) {
+            const grid = document.getElementById('storeGrid');
+            
+            // Ordenar por cercanía si tenemos GPS
+            if(userLocation) {
+                stores.sort((a,b) => {
+                    const distA = a.config.lat ? calculateDistance(userLocation.lat, userLocation.lng, a.config.lat, a.config.lng) : 9999;
+                    const distB = b.config.lat ? calculateDistance(userLocation.lat, userLocation.lng, b.config.lat, b.config.lng) : 9999;
+                    return distA - distB;
+                });
+            }
+
+            grid.innerHTML = stores.map(s => {
+                const cfg = s.config;
+                const dist = (userLocation && cfg.lat) ? calculateDistance(userLocation.lat, userLocation.lng, cfg.lat, cfg.lng).toFixed(1) + ' km' : '';
+                const storeUrl = `${CONFIG.STORE_ROOT}?backend=${encodeURIComponent(CONFIG.BACKEND)}&store=${s.storeId}`;
+                
+                return `
+                    <div class="card" onclick="openModal('${s.storeId}')">
+                        <div class="card-banner" style="background-image: url('${cfg.bannerUrl || ''}')">
+                            <img src="${cfg.logo || ''}" class="card-logo" onerror="this.src='https://via.placeholder.com/70'">
+                        </div>
+                        <div class="card-body">
+                            <span class="store-type">${cfg.businessType || 'Comercio'}</span>
+                            <h3 class="store-name">${s.name}</h3>
+                            <p class="store-desc">${cfg.description || 'Descubre nuestros productos y servicios exclusivos.'}</p>
+                            
+                            <div class="service-dots">
+                                <div class="dot active"></div>
+                                <div class="dot active"></div>
+                                <div class="dot ${cfg.hasServices ? 'active' : ''}"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="distance-badge">📍 ${dist || cfg.storeLocation || 'Online'}</span>
+                            <a href="${storeUrl}" class="btn-enter" onclick="event.stopPropagation()">Abrir Tienda</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function handleSearch() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = STORES_DATA.filter(s => 
+                s.name.toLowerCase().includes(term) || 
+                (s.config.description || '').toLowerCase().includes(term)
+            );
+            renderStores(filtered);
+        }
+
+        function filterBy(type) {
+            document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if(!type) return renderStores(STORES_DATA);
+            
+            const filtered = STORES_DATA.filter(s => {
+                if(type === 'mayorista') return s.config.businessType === 'mayorista';
+                if(type === 'servicios') return s.config.hasServices === true;
+                return true;
+            });
+            renderStores(filtered);
+        }
+
+        function openModal(id) {
+            const s = STORES_DATA.find(x => x.storeId === id);
+            const cfg = s.config;
+            const url = `${CONFIG.STORE_ROOT}?backend=${encodeURIComponent(CONFIG.BACKEND)}&store=${id}`;
+
+            document.getElementById('modalName').textContent = s.name;
+            document.getElementById('modalDesc').textContent = cfg.description;
+            document.getElementById('modalHeader').style.backgroundImage = `url('${cfg.bannerUrl}')`;
+            document.getElementById('modalLink').href = url;
+            document.getElementById('modalWa').href = `https://wa.me/${cfg.whatsapp?.replace(/\D/g,'')}`;
+            
+            const qrBox = document.getElementById('modalQr');
+            qrBox.innerHTML = '';
+            new QRCode(qrBox, { text: url, width: 150, height: 150 });
+
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        init();
+    </script>
+</body>
+</html>
