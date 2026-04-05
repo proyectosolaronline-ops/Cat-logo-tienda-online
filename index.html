@@ -194,9 +194,9 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-fo
   <div class="header-logo">
     <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
   </div>
-  <div class="header-badge">🌐 Directorio de tiendas</div>
+  <div class="header-badge">🌐 Directorio de tiendas, cerca de ti !!! </div>
   <!-- Cadena 2: ubicaciones como texto, sin botones -->
-  <p class="header-loc-title" id="header-loc-title" style="display:none">📍 Selecciona tu ciudad</p>
+  <p class="header-loc-title" id="header-loc-title" style="display:none">📍 Donde Estas ? </p>
   <div class="header-locs" id="header-locs"></div>
 </div>
 
@@ -204,7 +204,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-fo
 <div class="promo-section" id="promo-section" style="display:none">
   <div class="promo-label">
     <span>🔥</span>
-    Promociones destacadas
+    Promociones para ti !!!
   </div>
   <div class="promo-scroll" id="promo-scroll"></div>
 </div>
@@ -212,7 +212,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-fo
 <!-- SEARCH — debajo del carrusel de promos -->
 <div class="search-wrap">
   <div class="search-box">
-    <input type="text" id="search-input" placeholder="Buscar tienda, producto, servicio o ciudad..." oninput="filterDir()">
+    <input type="text" id="search-input" placeholder="buscador en directorio ..." oninput="filterDir()">
     <button class="search-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
@@ -223,7 +223,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-fo
 <div class="filters-section">
   <div class="filter-section-label">
     <span class="filter-chain-1">🛍</span>
-    Cadena 1 — Productos y Servicios
+    Selecciona lo que necesitas --- 
   </div>
   <div class="chips-row" id="chips-cat">
     <div class="chip on-cat" onclick="setCatFilter('',this)">Todos</div>
@@ -261,7 +261,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-fo
       <div class="popup-desc" id="popup-desc"></div>
       <div class="popup-qr">
         <div id="popup-qr-code"></div>
-        <div class="popup-qr-label">Escanea para visitar la tienda</div>
+        <div class="popup-qr-label">Escanea y vamos ala tienda</div>
       </div>
       <div class="popup-actions">
         <a class="btn-cta" id="popup-visit-btn" href="#" target="_blank">
@@ -282,12 +282,12 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-fo
     <button class="promo-popup-close" onclick="closePromoPopup()">✕</button>
     <div id="promo-popup-img-wrap"></div>
     <div class="promo-popup-body">
-      <div class="promo-popup-badge">🔥 Promoción</div>
+      <div class="promo-popup-badge">🔥 Promoción para ti ..</div>
       <div class="promo-popup-name" id="promo-popup-name"></div>
       <div class="promo-popup-store" id="promo-popup-store"></div>
       <div class="promo-popup-desc" id="promo-popup-desc"></div>
       <div class="promo-popup-actions">
-        <button class="btn-cta" id="promo-popup-btn">Ir a la tienda →</button>
+        <button class="btn-cta" id="promo-popup-btn">Vamos a la tienda →</button>
       </div>
     </div>
   </div>
@@ -297,7 +297,7 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-fo
 <div class="qr-modal-bg" id="qr-modal-bg" onclick="if(event.target===this)closeQR()">
   <div class="qr-box">
     <h3 id="qr-store-name"></h3>
-    <p>Escanea para visitar la tienda</p>
+    <p>Escanea y vamos la tienda !!!</p>
     <div id="qr-code-small"></div>
     <button class="qr-close" onclick="closeQR()">Cerrar</button>
   </div>
@@ -487,7 +487,7 @@ function setCatFilter(f, el) {
     c.style.background = ''; c.style.color = ''; c.style.borderColor = '';
   });
   el.classList.add('on-cat');
-  if (f === 'mayorista') {
+  if (f === 'mayoreo !!!') {
     el.style.background = '#7c3aed'; el.style.color = '#fff'; el.style.borderColor = '#7c3aed';
   }
   updateActiveFiltersUI();
@@ -554,8 +554,8 @@ function filterDir() {
     ].some(function(f) { return f.includes(q); });
     var matchCat = !activeCat
       ? true
-      : activeCat === 'mayorista'
-        ? cfg.businessType === 'mayorista'
+      : activeCat === 'mayoreo'
+        ? cfg.businessType === 'mayoreo'
         : keywords.some(function(k) { return k.toLowerCase() === activeCat; });
     var matchLoc = !activeLoc || loc === activeLoc;
     return matchQ && matchCat && matchLoc;
@@ -598,7 +598,7 @@ function renderDir(stores) {
         '<div class="store-name">' + esc(s.name) + '</div>' +
         '<div class="store-desc">' + esc((cfg.description || 'Visita nuestra tienda').slice(0, 80)) + '</div>' +
         '<div class="store-keywords">' + kwHTML + locHTML + '</div>' +
-        (esMayorista ? '<div class="store-tags"><span class="store-tag mayorista">★ Mayorista</span></div>' : '') +
+        (esMayorista ? '<div class="store-tags"><span class="store-tag mayorista">★ Mayoreo</span></div>' : '') +
         '<div class="store-foot">' +
           '<button class="btn-visit" onclick="event.stopPropagation();window.open(\'' + buildStoreUrl(s.storeId) + '\',\'_blank\')">Ver tienda →</button>' +
           '<div class="btn-qr" onclick="event.stopPropagation();openQR(\'' + s.storeId + '\')">' +
