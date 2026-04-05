@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flyer QR — Visita mi Tienda</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #ede9fe;
+  min-height: 100vh;
+  padding: 32px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+/* ── CONTROLES ── */
+.screen-controls {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 8px 32px rgba(109,40,217,.15);
+}
+.screen-controls h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 800;
+  color: #5b21b6;
+  margin-bottom: 16px;
+}
+.ctrl-field { margin-bottom: 12px; }
+.ctrl-field label {
+  display: block;
+  font-size: 11px; font-weight: 600;
+  color: #7c3aed;
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-bottom: 4px;
+}
+.ctrl-field input, .ctrl-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #ddd6fe;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  color: #1a1a2e;
+  background: #faf5ff;
+}
+.ctrl-field input:focus, .ctrl-field textarea:focus { outline: none; border-color: #7c3aed; }
+.ctrl-field textarea { resize: none; min-height: 60px; }
+.btn-gen {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  color: #fff; border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  box-shadow: 0 4px 20px rgba(124,58,237,.3);
+  transition: all .2s;
+  margin-bottom: 8px;
+}
+.btn-gen:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,58,237,.4); }
+.btn-print {
+  width: 100%; padding: 12px;
+  background: #fff; color: #7c3aed;
+  border: 2px solid #7c3aed; border-radius: 12px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  transition: all .2s;
+}
+.btn-print:hover { background: #faf5ff; }
+
+/* ── HOJA CARTA PREVIEW ── */
+.letter-wrap {
+  background: #fff;
+  width: 100%;
+  max-width: 700px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(109,40,217,.18);
+}
+.letter-topbar {
+  background: #7c3aed;
+  color: #fff;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: 9px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.letter-page {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── FLYER BASE ── */
+.flyer {
+  background: linear-gradient(145deg, #f5f0ff 0%, #ede9fe 50%, #e4d9fd 100%);
+  border: 1.5px solid #c4b5fd;
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.flyer-bg {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, #c4b5fd 1px, transparent 1px);
+  background-size: 14px 14px;
+  opacity: .2;
+}
+.flyer-orb1 {
+  position: absolute; top: -40px; right: -40px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(167,139,250,.25) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.flyer-orb2 {
+  position: absolute; bottom: -30px; left: -30px;
+  width: 100px; height: 100px;
+  background: radial-gradient(circle, rgba(196,181,253,.3) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.cut-line {
+  border: none;
+  border-top: 1.5px dashed #a78bfa;
+  margin: 10px 0;
+  position: relative;
+}
+.cut-line::before {
+  content: '✂';
+  position: absolute; top: -9px; left: 0;
+  font-size: 13px; color: #a78bfa;
+  background: #fff; padding: 0 4px;
+}
+
+/* ── CONTENIDO FLYER ── */
+.f-inner { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
+.f-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #7c3aed; color: #fff;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 99px;
+  margin-bottom: 8px;
+}
+.f-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; color: #3b0764;
+  letter-spacing: -.02em; line-height: 1.1;
+  margin-bottom: 5px;
+}
+.f-tag { color: #6d28d9; font-weight: 500; line-height: 1.4; }
+.f-qr {
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 16px rgba(109,40,217,.12);
+}
+.f-hint { font-weight: 600; color: #7c3aed; text-transform: uppercase; letter-spacing: .06em; }
+.f-url {
+  font-family: 'DM Mono', monospace;
+  color: #8b5cf6;
+  background: rgba(255,255,255,.6);
+  border: 1px solid #ddd6fe;
+  border-radius: 6px;
+  padding: 3px 8px;
+  word-break: break-all;
+}
+.f-foot { color: #a78bfa; letter-spacing: .05em; }
+
+/* ── TAMAÑO 1: 3/4 página — VERTICAL ── */
+.flyer-grande {
+  height: 260px;
+  flex-direction: row;
+  gap: 20px;
+  padding: 22px 24px;
+}
+.flyer-grande .f-inner { flex-direction: row; text-align: left; gap: 20px; }
+.flyer-grande .f-left { display: flex; flex-direction: column; justify-content: center; flex: 1; gap: 8px; }
+.flyer-grande .f-right { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
+.flyer-grande .f-name { font-size: 26px; }
+.flyer-grande .f-tag  { font-size: 13px; }
+.flyer-grande .f-hint { font-size: 10px; }
+.flyer-grande .f-url  { font-size: 9px; margin-top: 2px; }
+.flyer-grande .f-foot { font-size: 8px; margin-top: 6px; }
+
+/* ── TAMAÑO 2: 1/2 página — HORIZONTAL ── */
+.flyer-medio {
+  height: 180px;
+  gap: 16px;
+}
+.flyer-medio .f-inner { flex-direction: row; text-align: left; gap: 16px; }
+.flyer-medio .f-left  { display: flex; flex-direction: column; justify-content: center; flex: 1; gap: 6px; }
+.flyer-medio .f-right { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+.flyer-medio .f-name  { font-size: 20px; }
+.flyer-medio .f-tag   { font-size: 11px; }
+.flyer-medio .f-hint  { font-size: 9px; }
+.flyer-medio .f-url   { font-size: 8px; }
+.flyer-medio .f-foot  { font-size: 7px; margin-top: 4px; }
+
+/* ── TAMAÑO 3: Tarjetas pequeñas — 2 por fila ── */
+.flyers-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.flyer-mini {
+  height: 130px;
+  padding: 12px 10px;
+}
+.flyer-mini .f-inner { gap: 5px; }
+.flyer-mini .f-badge { font-size: 8px; padding: 3px 8px; margin-bottom: 4px; }
+.flyer-mini .f-name  { font-size: 13px; }
+.flyer-mini .f-tag   { font-size: 9px; display: none; }
+.flyer-mini .f-qr    { padding: 6px; border-radius: 8px; }
+.flyer-mini .f-hint  { font-size: 8px; }
+.flyer-mini .f-url   { font-size: 7px; }
+.flyer-mini .f-foot  { font-size: 7px; }
+
+/* ── PRINT ── */
+@media print {
+  @page { size: letter portrait; margin: 1cm; }
+  body { background: #fff !important; padding: 0 !important; gap: 0 !important; }
+  .screen-controls { display: none !important; }
+  .letter-wrap { max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
+  .letter-topbar { display: none !important; }
+  .letter-page { padding: 0 !important; }
+  .flyer, .flyer-mini {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- CONTROLES -->
+<div class="screen-controls">
+  <h2>🖨️ Flyer QR — Invitación a tu tienda</h2>
+  <div class="ctrl-field">
+    <label>Nombre de la tienda</label>
+    <input id="inp-nombre" type="text" placeholder="Ej: Carnicería Yazmín" value="Mi Tienda">
+  </div>
+  <div class="ctrl-field">
+    <label>Link de la tienda (URL)</label>
+    <input id="inp-url" type="url" placeholder="https://..." value="https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html">
+  </div>
+  <div class="ctrl-field">
+    <label>Slogan o descripción corta</label>
+    <textarea id="inp-tag" placeholder="Ej: Carne fresca del día • Servicio a domicilio">Escanea y visita nuestra tienda en línea 🛍️</textarea>
+  </div>
+  <button class="btn-gen" onclick="generarFlyers()">✨ Generar flyers</button>
+  <button class="btn-print" onclick="window.print()">🖨️ Imprimir hoja carta</button>
+</div>
+
+<!-- HOJA CARTA -->
+<div class="letter-wrap" id="letter-wrap" style="display:none">
+  <div class="letter-topbar">
+    <span>📄 Hoja carta — Cortar por líneas punteadas ✂</span>
+    <span>LandingKit</span>
+  </div>
+  <div class="letter-page">
+
+    <!-- FLYER 1: 3/4 página -->
+    <div class="flyer flyer-grande">
+      <div class="flyer-bg"></div><div class="flyer-orb1"></div><div class="flyer-orb2"></div>
+      <div class="f-inner">
+        <div class="f-left">
+          <div class="f-badge">🌐 Tienda en línea</div>
+          <div class="f-name" id="fn-a"></div>
+          <div class="f-tag" id="ft-a"></div>
+          <div class="f-url" id="fu-a"></div>
+          <div class="f-foot">Powered by LandingKit</div>
+        </div>
+        <div class="f-right">
+          <div class="f-qr"><div id="qr-a"></div></div>
+          <div class="f-hint">📱 Escanea para visitar</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="cut-line">
+
+    <!-- FLYER 2: 1/2 página -->
+    <div class="flyer flyer-medio">
+      <div class="flyer-bg"></div><div class="flyer-orb1"></div><div class="flyer-orb2"></div>
+      <div class="f-inner">
+        <div class="f-left">
+          <div class="f-badge">🌐 Tienda en línea</div>
+          <div class="f-name" id="fn-b"></div>
+          <div class="f-tag" id="ft-b"></div>
+          <div class="f-url" id="fu-b"></div>
+          <div class="f-foot">Powered by LandingKit</div>
+        </div>
+        <div class="f-right">
+          <div class="f-qr"><div id="qr-b"></div></div>
+          <div class="f-hint">📱 Escanea</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="cut-line">
+
+    <!-- FLYER 3: Tarjetas mini (2 x fila) -->
+    <div class="flyers-mini">
+      <div class="flyer flyer-mini">
+        <div class="flyer-bg"></div><div class="flyer-orb1"></div>
+        <div class="f-inner">
+          <div class="f-badge">🌐 En línea</div>
+          <div class="f-name" id="fn-c1"></div>
+          <div class="f-qr"><div id="qr-c1"></div></div>
+          <div class="f-hint">📱 Escanea</div>
+          <div class="f-url" id="fu-c1"></div>
+        </div>
+      </div>
+      <div class="flyer flyer-mini">
+        <div class="flyer-bg"></div><div class="flyer-orb1"></div>
+        <div class="f-inner">
+          <div class="f-badge">🌐 En línea</div>
+          <div class="f-name" id="fn-c2"></div>
+          <div class="f-qr"><div id="qr-c2"></div></div>
+          <div class="f-hint">📱 Escanea</div>
+          <div class="f-url" id="fu-c2"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function generarFlyers() {
+  var nombre = document.getElementById('inp-nombre').value.trim() || 'Mi Tienda';
+  var url    = document.getElementById('inp-url').value.trim()    || window.location.href;
+  var tag    = document.getElementById('inp-tag').value.trim()    || 'Visita nuestra tienda en línea';
+  var urlCorta = url.replace('https://','').replace('http://','');
+
+  var textos = { a:[nombre,tag,urlCorta], b:[nombre,tag,urlCorta], c1:[nombre,'',urlCorta], c2:[nombre,'',urlCorta] };
+  Object.keys(textos).forEach(function(id) {
+    var fn = document.getElementById('fn-'+id);
+    var ft = document.getElementById('ft-'+id);
+    var fu = document.getElementById('fu-'+id);
+    if (fn) fn.textContent = textos[id][0];
+    if (ft) ft.textContent = textos[id][1];
+    if (fu) fu.textContent = textos[id][2];
+  });
+
+  var sizes = { a:110, b:90, c1:64, c2:64 };
+  Object.keys(sizes).forEach(function(id) {
+    var el = document.getElementById('qr-'+id);
+    el.innerHTML = '';
+    new QRCode(el, {
+      text: url, width: sizes[id], height: sizes[id],
+      colorDark: '#3b0764', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  });
+
+  document.getElementById('letter-wrap').style.display = '';
+  document.getElementById('letter-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// Auto-generar si vienen parámetros en la URL
+window.addEventListener('load', function() {
+  var p = new URLSearchParams(location.search);
+  var n = p.get('nombre') || p.get('name') || '';
+  var u = p.get('url')    || p.get('store') || '';
+  var t = p.get('tag')    || '';
+  if (n) document.getElementById('inp-nombre').value = n;
+  if (u) document.getElementById('inp-url').value    = u;
+  if (t) document.getElementById('inp-tag').value    = t;
+  if (n || u) generarFlyers();
+});
+</script>
+</body>
+</html>
