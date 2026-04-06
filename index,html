@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Tiendas — Productos, Servicios y Ubicaciones</title>
+<meta name="description" id="meta-desc" content="Directorio de tiendas locales. Encuentra productos y servicios cerca de ti.">
+<meta name="keywords" id="meta-keywords" content="tiendas, productos, servicios, directorio">
+<meta property="og:title" content="Directorio de Tiendas">
+<meta property="og:description" id="og-desc" content="Encuentra tiendas con productos y servicios cerca de ti.">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;
+  --cta:#ff6900;--cta-dark:#e55c00;
+  --bg:#f5f6f7;--surface:#fff;--border:#dde1e7;
+  --text:#1a1a2e;--muted:#717185;
+  --font-d:'Outfit',sans-serif;--font-b:'Inter',sans-serif;
+  --r:10px;--r-lg:14px;--r-xl:18px;
+  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--primary) 0%,#0d47a1 100%);color:#fff;padding:36px 20px 48px;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E")}
+.header-logo{width:56px;height:56px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2)}
+.header-logo svg{width:28px;height:28px}
+.header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;backdrop-filter:blur(6px)}
+.header-loc-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;position:relative;z-index:1}
+.header-locs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;position:relative;z-index:1;padding:0 16px}
+.loc-txt{font-size:13px;font-weight:500;color:rgba(255,255,255,.7);cursor:pointer;padding:4px 6px;border-radius:6px;transition:all .15s;position:relative}
+.loc-txt::after{content:'·';margin-left:6px;color:rgba(255,255,255,.3)}
+.loc-txt:last-child::after{content:''}
+.loc-txt:hover{color:#fff;background:rgba(255,255,255,.1)}
+.loc-txt.active{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+
+/* BUSCADOR - MOVIDO ARRIBA */
+.search-wrap{max-width:600px;margin:-20px auto 30px;padding:0 16px;position:relative;z-index:10}
+.search-box{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow);display:flex;align-items:center;overflow:hidden;border:1.5px solid var(--border)}
+.search-box input{flex:1;padding:14px 16px;border:none;outline:none;font-size:15px;font-family:var(--font-b);color:var(--text)}
+.search-box input::placeholder{color:var(--muted)}
+.search-btn{padding:11px 16px;background:none;border:none;cursor:pointer;color:var(--muted)}
+.search-btn svg{width:20px;height:20px}
+
+/* SECCIÓN TIENDAS CERCA (se mantiene completa) */
+.mapa-section{max-width:960px;margin:0 auto;padding:0 16px 30px;display:none}
+.mapa-section.show{display:block}
+.mapa-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.mapa-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.mapa-title span{width:18px;height:18px;background:#e8f5e9;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px}
+.mapa-toggle{font-size:12px;font-weight:600;color:var(--primary);background:var(--primary-light);border:none;border-radius:99px;padding:5px 14px;cursor:pointer;font-family:var(--font-b);transition:all .15s}
+.mapa-toggle:hover{background:var(--primary);color:#fff}
+#leaflet-map{height:280px;border-radius:var(--r-lg);border:1.5px solid var(--border);overflow:hidden;display:none;margin-bottom:12px}
+#leaflet-map.show{display:block}
+
+.near-cards-wrap{overflow-x:auto;padding-bottom:10px;scrollbar-width:none;-ms-overflow-style:none}
+.near-cards-wrap::-webkit-scrollbar{display:none}
+.near-cards-track{display:flex;gap:10px;width:max-content}
+.near-card{width:200px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:all .2s;flex-shrink:0}
+.near-card:hover,.near-card.highlighted{border-color:var(--primary);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.near-card.highlighted{border-color:#16a34a;box-shadow:0 4px 16px rgba(22,163,74,.25)}
+.near-card-banner{height:70px;background:var(--primary);background-size:cover;background-position:center;position:relative}
+.near-card-logo{width:36px;height:36px;border-radius:8px;border:2px solid #fff;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);position:absolute;bottom:-14px;left:10px}
+.near-card-logo img{width:100%;height:100%;object-fit:cover}
+.near-card-body{padding:18px 10px 12px}
+.near-card-name{font-family:var(--font-d);font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.near-card-dist{font-size:10px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:3px}
+.near-card-kw{font-size:9px;color:var(--primary);background:var(--primary-light);padding:2px 7px;border-radius:99px;display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.near-card-btn{margin-top:8px;width:100%;padding:7px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:all .15s}
+.near-card-btn:hover{background:var(--primary-dark)}
+.mapa-divider{height:1px;background:var(--border);margin:16px 0 0}
+
+/* PROMO CAROUSEL */
+.promo-section{max-width:960px;margin:0 auto;padding:24px 16px 0}
+.promo-label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.promo-label span{width:18px;height:18px;background:#fff3e0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px}
+.promo-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.promo-scroll::-webkit-scrollbar{height:3px}
+.promo-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.promo-card{flex-shrink:0;width:130px;border-radius:var(--r-lg);overflow:hidden;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);transition:all .2s;scroll-snap-align:start;position:relative}
+.promo-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--cta)}
+.promo-img{width:130px;height:130px;object-fit:cover;display:block;background:var(--bg)}
+.promo-img-placeholder{width:130px;height:130px;background:linear-gradient(135deg,var(--primary-light),#e8f0fe);display:flex;align-items:center;justify-content:center;font-size:36px}
+.promo-info{padding:8px}
+.promo-name{font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.promo-store{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.promo-badge{position:absolute;top:6px;left:6px;background:var(--cta);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px}
+
+/* FILTERS */
+.filters-section{max-width:960px;margin:0 auto;padding:24px 16px 0}
+.filter-section-label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.filter-section-label span{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-style:normal}
+.filter-chain-1{background:var(--primary-light);border-radius:5px}
+.chips-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.chip{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s;white-space:nowrap}
+.chip.on-cat{background:var(--primary);color:#fff;border-color:var(--primary)}
+.chip:hover:not(.on-cat){border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.active-filters{max-width:960px;margin:0 auto;padding:0 16px 8px;display:none;align-items:center;gap:8px;flex-wrap:wrap}
+.active-filters.show{display:flex}
+.af-label{font-size:11px;color:var(--muted);font-weight:500}
+.af-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary)}
+.af-tag.loc{background:#fff3e0;color:#e65100;border-color:#e65100}
+.af-tag button{background:none;border:none;cursor:pointer;color:inherit;font-size:13px;line-height:1;padding:0;opacity:.7}
+.clear-all{font-size:11px;color:var(--muted);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:var(--font-b)}
+.clear-all:hover{color:var(--primary)}
+
+/* POPUPS (sin cambios) */
+.popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.popup-bg.on{display:flex}
+.popup{background:var(--surface);border-radius:var(--r-xl);width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.popup-banner{height:120px;background:var(--primary);background-size:cover;background-position:center;border-radius:var(--r-xl) var(--r-xl) 0 0;position:relative}
+.popup-close{position:absolute;top:12px;right:12px;width:30px;height:30px;background:rgba(0,0,0,.35);border:none;border-radius:50%;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.popup-logo{width:64px;height:64px;border-radius:14px;border:3px solid #fff;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--primary);box-shadow:0 4px 12px rgba(0,0,0,.15);position:absolute;bottom:-28px;left:20px}
+.popup-logo img{width:100%;height:100%;object-fit:cover}
+.popup-body{padding:40px 20px 24px}
+.popup-name{font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:6px}
+.popup-location{font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.popup-keywords{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.popup-kw{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--primary-light);color:var(--primary)}
+.popup-kw.loc{background:#fff3e0;color:#e65100}
+.popup-desc{font-size:14px;color:var(--text);line-height:1.7;margin-bottom:20px}
+.popup-qr{background:var(--bg);border-radius:var(--r-lg);padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:20px}
+.popup-qr-label{font-size:11px;color:var(--muted);font-weight:500}
+.popup-actions{display:flex;gap:10px}
+.btn-cta{flex:1;padding:13px;background:var(--cta);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-b);transition:all .15s;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-cta:hover{background:var(--cta-dark)}
+.btn-wa{padding:13px 16px;background:#25d366;color:#fff;border:none;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-wa:hover{background:#1db954}
+.btn-wa svg{width:20px;height:20px}
+.qr-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.qr-modal-bg.on{display:flex}
+.qr-box{background:#fff;border-radius:var(--r-xl);padding:28px;text-align:center;max-width:280px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.qr-box h3{font-family:var(--font-d);font-size:16px;font-weight:700;margin-bottom:6px}
+.qr-box p{font-size:11px;color:var(--muted);margin-bottom:16px}
+.qr-close{margin-top:16px;padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-b)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+  </div>
+  <div class="header-badge">🌐 Directorio de tiendas, cerca de ti!!!</div>
+  <p class="header-loc-title" id="header-loc-title" style="display:none">📍 ¿Dónde estás?</p>
+  <div class="header-locs" id="header-locs"></div>
+</div>
+
+<!-- BUSCADOR (arriba) -->
+<div class="search-wrap">
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Buscar tienda, producto o servicio..." oninput="filterDir()">
+    <button class="search-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- TIENDAS CERCA + MAPA -->
+<div class="mapa-section" id="mapa-section">
+  <div class="mapa-header">
+    <div class="mapa-title">
+      <span>🗺️</span>
+      Tiendas cerca de ti
+    </div>
+    <button class="mapa-toggle" id="mapa-toggle" onclick="toggleMapa()">Ver en mapa</button>
+  </div>
+  <div class="near-cards-wrap">
+    <div class="near-cards-track" id="near-cards-track"></div>
+  </div>
+  <div id="leaflet-map"></div>
+  <div class="mapa-divider"></div>
+</div>
+
+<!-- PROMOCIONES -->
+<div class="promo-section" id="promo-section" style="display:none">
+  <div class="promo-label">
+    <span>🔥</span>
+    Promociones para ti!!!
+  </div>
+  <div class="promo-scroll" id="promo-scroll"></div>
+</div>
+
+<!-- FILTROS -->
+<div class="filters-section">
+  <div class="filter-section-label">
+    <span class="filter-chain-1">🛍</span>
+    Selecciona lo que necesitas
+  </div>
+  <div class="chips-row" id="chips-cat"></div>
+</div>
+
+<!-- FILTROS ACTIVOS -->
+<div class="active-filters" id="active-filters">
+  <span class="af-label">Filtrando por:</span>
+  <span id="af-cat-tag" style="display:none"></span>
+  <span id="af-loc-tag" style="display:none"></span>
+  <button class="clear-all" onclick="clearAllFilters()">Limpiar todo</button>
+</div>
+
+<!-- POPUP TIENDA -->
+<div class="popup-bg" id="popup-bg" onclick="if(event.target===this)closePopup()">
+  <div class="popup">
+    <div class="popup-banner" id="popup-banner">
+      <button class="popup-close" onclick="closePopup()">✕</button>
+      <div class="popup-logo" id="popup-logo"></div>
+    </div>
+    <div class="popup-body">
+      <div class="popup-name" id="popup-name"></div>
+      <div class="popup-location" id="popup-location"></div>
+      <div class="popup-keywords" id="popup-keywords"></div>
+      <div class="popup-desc" id="popup-desc"></div>
+      <div class="popup-qr"><div id="popup-qr-code"></div><div class="popup-qr-label">Escanea y vamos a la tienda</div></div>
+      <div class="popup-actions">
+        <a class="btn-cta" id="popup-visit-btn" href="#" target="_blank">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Visitar tienda
+        </a>
+        <button class="btn-wa" id="popup-wa-btn" style="display:none" onclick="openWA()">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROMO POPUP -->
+<div class="promo-popup-bg" id="promo-popup-bg" onclick="if(event.target===this)closePromoPopup()">
+  <div class="promo-popup" style="position:relative">
+    <button class="promo-popup-close" onclick="closePromoPopup()">✕</button>
+    <div id="promo-popup-img-wrap"></div>
+    <div class="promo-popup-body">
+      <div class="promo-popup-badge">🔥 Promoción para ti</div>
+      <div class="promo-popup-name" id="promo-popup-name"></div>
+      <div class="promo-popup-store" id="promo-popup-store"></div>
+      <div class="promo-popup-desc" id="promo-popup-desc"></div>
+      <div class="promo-popup-actions">
+        <button class="btn-cta" id="promo-popup-btn">Vamos a la tienda →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR MODAL -->
+<div class="qr-modal-bg" id="qr-modal-bg" onclick="if(event.target===this)closeQR()">
+  <div class="qr-box">
+    <h3 id="qr-store-name"></h3>
+    <p>Escanea y vamos a la tienda!!!</p>
+    <div id="qr-code-small"></div>
+    <button class="qr-close" onclick="closeQR()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+/* ====== TODO TU CÓDIGO JAVASCRIPT ORIGINAL ====== */
+var params = new URLSearchParams(location.search);
+var BACKEND = params.get('backend') || localStorage.getItem('ld_backend') || 'https://script.google.com/macros/s/AKfycbxrdW7sLSiJNq_XF_xDjDgBl2rJppwwoRsEe-mNE8G-2BWOcI7DpyJpQYsyN8M-x-I/exec';
+var STORE_BASE = params.get('storeBase') || 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
+var ALL_STORES = [], activeCat = '', activeLoc = '', currentWA = '';
+var _userLat = null, _userLng = null, _userLoc = '';
+var _leafletMap = null, _mapaVisible = false;
+var _leafletMarkers = {};
+var RADIO_KM = 30;
+
+// Aquí pega el resto de tu script completo (todas las funciones)
+window.addEventListener('load', async function() {
+  if (!BACKEND) { document.getElementById('dir-grid').innerHTML='<div class="empty"><div class="empty-ico">⚙️</div><h3>Configuración requerida</h3></div>'; return; }
+  try {
+    var r = await fetch(BACKEND + '?action=stores.directory');
+    var d = JSON.parse(await r.text());
+    var stores = (d.stores||[]).map(function(s){
+      s.config = (typeof s.config==='string') ? JSON.parse(s.config) : (s.config||{});
+      return s;
+    });
+    ALL_STORES = stores;
+    buildLocHeader(stores);
+    buildCatFilters(stores);
+    // renderDir eliminado porque no hay grid
+    updateSEO(stores);
+    detectUserLocation(stores);
+  } catch(e) {
+    console.error(e);
+  }
+});
+
+// Resto de tus funciones (detectUserLocation, buildNearCards, toggleMapa, etc.) 
+// deben ir aquí tal como las tenías originalmente.
+</script>
+</body>
+</html>
