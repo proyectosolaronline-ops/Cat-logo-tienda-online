@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio - Carne pollo res</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+    :root { --primary: #1a73e8; --bg: #f5f6f7; --border: #dde1e7; --font: 'Inter', sans-serif; }
+    body { font-family: var(--font); background: var(--bg); margin: 0; }
+    .header { background: linear-gradient(135deg, var(--primary), #0d47a1); color: #fff; padding: 40px 20px 60px; text-align: center; }
+    .search-wrap { max-width: 600px; margin: -30px auto 20px; padding: 0 15px; position: relative; z-index: 10; }
+    .search-box { background: #fff; border-radius: 12px; display: flex; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .search-box input { flex: 1; padding: 15px; border: none; border-radius: 12px; outline: none; }
+    .chips-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; overflow-x: auto; }
+    .ftxt { padding: 8px 16px; background: #fff; border: 1px solid var(--border); border-radius: 20px; cursor: pointer; font-size: 13px; }
+    .active-ftxt { background: var(--primary); color: #fff; }
+    #leaflet-map { height: 0; transition: 0.3s; margin: 0 15px; border-radius: 15px; }
+    #leaflet-map.show { height: 300px; border: 1px solid var(--border); margin-bottom: 20px; }
+    .near-cards-track { display: flex; gap: 15px; overflow-x: auto; padding: 15px; scrollbar-width: none; }
+    .near-card { width: 220px; background: #fff; border-radius: 15px; border: 1.5px solid var(--border); flex-shrink: 0; overflow: hidden; }
+    .card-banner { height: 80px; background: #1a73e8; position: relative; background-size: cover; }
+    .card-logo { width: 40px; height: 40px; background: #fff; border: 2px solid #fff; border-radius: 8px; position: absolute; bottom: -15px; left: 15px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--primary); }
+    .card-body { padding: 25px 15px 15px; }
+    .card-btn { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div style="background:rgba(255,255,255,0.2); display:inline-block; padding:5px 15px; border-radius:20px; font-size:11px; margin-bottom:10px;">🌐 DIRECTORIO LOCAL</div>
+    <h1 style="margin:0; font-size:24px;">Tiendas y Servicios</h1>
+</div>
+
+<div class="search-wrap">
+    <div class="search-box"><input type="text" id="q" placeholder="¿Qué estás buscando?" oninput="buscar()"></div>
+</div>
+
+<div class="chips-row" id="cats">
+    <span class="ftxt active-ftxt" onclick="filtrar('', this)">Todos</span>
+    <span class="ftxt" onclick="filtrar('mayorista', this)">★ Mayoristas</span>
+    <span class="ftxt" onclick="filtrar('carne', this)">Carne</span>
+    <span class="ftxt" onclick="filtrar('pollo', this)">Pollo</span>
+</div>
+
+<div style="max-width:960px; margin:auto;">
+    <div style="display:flex; justify-content:space-between; padding:0 15px; font-size:12px; font-weight:bold; color:#717185;">
+        <span>RESULTADOS</span>
+        <span style="color:#1a73e8; cursor:pointer;" onclick="verMapa()" id="btn-m">Ver en mapa</span>
+    </div>
+    <div id="leaflet-map"></div>
+    <div class="near-cards-track" id="lista"></div>
+</div>
+
+<script>
+var BACKEND = 'https://script.google.com/macros/s/AKfycbxrdW7sLSiJNq_XF_xDjDgBl2rJppwwoRsEe-mNE8G-2BWOcI7DpyJpQYsyN8M-x-I/exec';
+var TIENDA = 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
+var DATA = [], MAPA = null, CAT = '';
+
+async function iniciar() {
+    const r = await fetch(BACKEND + '?action=stores.directory');
+    const d = await r.json();
+    DATA = d.stores.map(s => { s.config = JSON.parse(s.config || '{}'); return s; });
+    dibujar(DATA);
+    MAPA = L.map('leaflet-map').setView([19.43, -99.13], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(MAPA);
+}
+
+function dibujar(stores) {
+    const box = document.getElementById('lista');
+    box.innerHTML = stores.map(s => `
+        <div class="near-card">
+            <div class="card-banner" style="background-image:url(${s.config.bannerUrl || ''})">
+                <div class="card-logo">${s.name[0]}</div>
+            </div>
+            <div class="card-body">
+                <div style="font-weight:bold; margin-bottom:10px;">${s.name}</div>
+                <button class="card-btn" onclick="window.open('${TIENDA}?store=${s.storeId}&backend=${encodeURIComponent(BACKEND)}')">Ver tienda →</button>
+            </div>
+        </div>`).join('');
+}
+
+function buscar() {
+    const val = document.getElementById('q').value.toLowerCase();
+    const res = DATA.filter(s => s.name.toLowerCase().includes(val) && (CAT==='' || (s.config.keywords||'').toLowerCase().includes(CAT)));
+    dibujar(res);
+}
+
+function filtrar(c, el) {
+    CAT = c;
+    document.querySelectorAll('.ftxt').forEach(x => x.classList.remove('active-ftxt'));
+    el.classList.add('active-ftxt');
+    buscar();
+}
+
+function verMapa() {
+    const m = document.getElementById('leaflet-map');
+    m.classList.toggle('show');
+    if(m.classList.contains('show')) setTimeout(() => MAPA.invalidateSize(), 350);
+    document.getElementById('btn-m').innerText = m.classList.contains('show') ? "Ocultar mapa" : "Ver en mapa";
+}
+
+iniciar();
+</script>
+</body>
+</html>
