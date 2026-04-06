@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Tiendas</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;
+  --cta:#ff6900;--bg:#f5f6f7;--surface:#fff;--border:#dde1e7;
+  --text:#1a1a2e;--muted:#717185;
+  --font-d:'Outfit',sans-serif;--font-b:'Inter',sans-serif;
+  --r-lg:14px;--r-xl:18px;
+  --shadow:0 4px 16px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--primary) 0%,#0d47a1 100%);color:#fff;padding:40px 20px 50px;text-align:center;position:relative}
+.header-badge{display:inline-flex;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:600;text-transform:uppercase;margin-bottom:12px}
+
+/* BUSCADOR ARRIBA (PEGADO AL HEADER) */
+.search-wrap{max-width:600px;margin:-25px auto 0;padding:0 16px;position:relative;z-index:10}
+.search-box{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow);display:flex;align-items:center;border:1.5px solid var(--border);overflow:hidden}
+.search-box input{flex:1;padding:15px;border:none;outline:none;font-size:14px;font-family:var(--font-b)}
+
+/* FILTROS */
+.filters-section{max-width:960px;margin:20px auto 0;padding:0 16px}
+.chips-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.ftxt{font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;padding:8px 16px;border-radius:10px;background:#fff;border:1px solid var(--border);white-space:nowrap}
+.active-ftxt{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* RESULTADOS Y MAPA */
+.mapa-section{max-width:960px;margin:0 auto;padding:16px}
+#leaflet-map{height:0;transition:height 0.3s;border-radius:var(--r-lg);margin-bottom:12px;overflow:hidden}
+#leaflet-map.show{height:280px;border:1.5px solid var(--border)}
+
+.near-cards-wrap{overflow-x:auto;padding:10px 0;scrollbar-width:none}
+.near-cards-track{display:flex;gap:12px;width:max-content}
+
+/* TUS CARDS ORIGINALES */
+.near-card{width:200px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;flex-shrink:0;transition:0.2s}
+.near-card-banner{height:70px;background:var(--primary);background-size:cover;background-position:center;position:relative}
+.near-card-logo{width:36px;height:36px;border-radius:8px;border:2px solid #fff;background:#fff;position:absolute;bottom:-14px;left:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.near-card-logo img{width:100%;height:100%;object-fit:cover}
+.near-card-body{padding:20px 12px 12px}
+.near-card-name{font-size:13px;font-weight:700;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.near-card-btn{width:100%;padding:8px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">🌐 DIRECTORIO LOCAL</div>
+  <h2 style="font-family:var(--font-d);font-weight:800">Tiendas y Servicios</h2>
+</div>
+
+<div class="search-wrap">
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="¿Qué estás buscando hoy?" oninput="filterDir()">
+  </div>
+</div>
+
+<div class="filters-section">
+  <div class="chips-row" id="chips-cat">
+    <span class="ftxt active-ftxt" onclick="setCatFilter('',this)">Todos</span>
+    <span class="ftxt" onclick="setCatFilter('mayorista',this)">★ Mayoristas</span>
+    <span class="ftxt" onclick="setCatFilter('carne',this)">Carne</span>
+    <span class="ftxt" onclick="setCatFilter('pollo',this)">Pollo</span>
+    <span class="ftxt" onclick="setCatFilter('res',this)">Res</span>
+  </div>
+</div>
+
+<div class="mapa-section">
+  <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+    <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase">Resultados</span>
+    <button onclick="toggleMapa()" id="mapa-toggle" style="background:none;border:none;color:var(--primary);font-weight:700;cursor:pointer">Ver en mapa</button>
+  </div>
+  
+  <div id="leaflet-map"></div>
+
+  <div class="near-cards-wrap">
+    <div class="near-cards-track" id="near-cards-track">
+      </div>
+  </div>
+</div>
+
+<script>
+// --- CONEXIÓN CON TU DATA ---
+var params = new URLSearchParams(location.search);
+var BACKEND = params.get('backend') || 'https://script.google.com/macros/s/AKfycbxrdW7sLSiJNq_XF_xDjDgBl2rJppwwoRsEe-mNE8G-2BWOcI7DpyJpQYsyN8M-x-I/exec';
+var ALL_STORES = [], activeCat = '';
+
+async function loadData() {
+    try {
+        const r = await fetch(BACKEND + '?action=stores.directory');
+        const d = await r.json();
+        ALL_STORES = d.stores.map(s => {
+            s.config = (typeof s.config === 'string') ? JSON.parse(s.config) : (s.config || {});
+            return s;
+        });
+        renderDir(ALL_STORES);
+    } catch(e) {
+        document.getElementById('near-cards-track').innerHTML = "Error al conectar con los datos.";
+    }
+}
+
+function renderDir(stores) {
+    const track = document.getElementById('near-cards-track');
+    if (stores.length === 0) {
+        track.innerHTML = '<p style="padding:20px;color:gray">No se encontraron resultados</p>';
+        return;
+    }
+    track.innerHTML = stores.map(s => {
+        const cfg = s.config || {};
+        const logo = cfg.logo || cfg.logoUrl || '';
+        const banner = cfg.bannerUrl || '';
+        return `
+            <div class="near-card">
+                <div class="near-card-banner" style="background-image:url(${banner})">
+                    <div class="near-card-logo">
+                        ${logo ? `<img src="${logo}">` : s.name[0]}
+                    </div>
+                </div>
+                <div class="near-card-body">
+                    <div class="near-card-name">${s.name}</div>
+                    <button class="near-card-btn" onclick="window.open('https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html?store=${s.storeId}&backend=${encodeURIComponent(BACKEND)}','_blank')">Ver tienda →</button>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+function filterDir() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const filtrados = ALL_STORES.filter(s => {
+        const txt = (s.name + (s.config.keywords || '')).toLowerCase();
+        return txt.includes(q) && (activeCat === '' || txt.includes(activeCat));
+    });
+    renderDir(filtrados);
+}
+
+function setCatFilter(cat, el) {
+    activeCat = cat.toLowerCase();
+    document.querySelectorAll('.ftxt').forEach(x => x.classList.remove('active-ftxt'));
+    el.classList.add('active-ftxt');
+    filterDir();
+}
+
+function toggleMapa() {
+    const m = document.getElementById('leaflet-map');
+    const btn = document.getElementById('mapa-toggle');
+    m.classList.toggle('show');
+    btn.innerText = m.classList.contains('show') ? 'Ocultar mapa' : 'Ver en mapa';
+    if(m.classList.contains('show')) {
+        // Inicializar Leaflet aquí si no está listo
+        setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 300);
+    }
+}
+
+window.onload = loadData;
+</script>
+</body>
+</html>
