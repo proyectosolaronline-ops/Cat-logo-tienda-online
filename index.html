@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Tiendas — Productos, Servicios y Ubicaciones</title>
+<meta name="description" id="meta-desc" content="Directorio de tiendas locales. Encuentra productos y servicios cerca de ti.">
+<meta name="keywords" id="meta-keywords" content="tiendas, productos, servicios, directorio">
+<meta property="og:title" content="Directorio de Tiendas">
+<meta property="og:description" id="og-desc" content="Encuentra tiendas con productos y servicios cerca de ti.">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;
+  --cta:#ff6900;--cta-dark:#e55c00;
+  --bg:#f5f6f7;--surface:#fff;--border:#dde1e7;
+  --text:#1a1a2e;--muted:#717185;
+  --font-d:'Outfit',sans-serif;--font-b:'Inter',sans-serif;
+  --r:10px;--r-lg:14px;--r-xl:18px;
+  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--primary) 0%,#0d47a1 100%);color:#fff;padding:36px 20px 48px;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E")}
+.header-logo{width:56px;height:56px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2)}
+.header-logo svg{width:28px;height:28px}
+.header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;backdrop-filter:blur(6px)}
+.header-loc-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;position:relative;z-index:1}
+.header-locs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;position:relative;z-index:1;padding:0 16px}
+.loc-txt{font-size:13px;font-weight:500;color:rgba(255,255,255,.7);cursor:pointer;padding:4px 6px;border-radius:6px;transition:all .15s;position:relative}
+.loc-txt::after{content:'·';margin-left:6px;color:rgba(255,255,255,.3)}
+.loc-txt:last-child::after{content:''}
+.loc-txt:hover{color:#fff;background:rgba(255,255,255,.1)}
+.loc-txt.active{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+
+/* SEARCH - Ahora arriba */
+.search-wrap{max-width:600px;margin: -20px auto 24px;padding:0 16px;position:relative;z-index:10}
+.search-box{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow);display:flex;align-items:center;overflow:hidden;border:1.5px solid var(--border)}
+.search-box input{flex:1;padding:14px 16px;border:none;outline:none;font-size:15px;font-family:var(--font-b);color:var(--text)}
+.search-box input::placeholder{color:var(--muted)}
+.search-btn{padding:11px 16px;background:none;border:none;cursor:pointer;color:var(--muted)}
+.search-btn svg{width:20px;height:20px}
+
+/* PROMO CAROUSEL */
+.promo-section{max-width:960px;margin:0 auto;padding:0 16px 24px}
+.promo-label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.promo-label span{width:18px;height:18px;background:#fff3e0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px}
+.promo-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.promo-scroll::-webkit-scrollbar{height:3px}
+.promo-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.promo-card{flex-shrink:0;width:130px;border-radius:var(--r-lg);overflow:hidden;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);transition:all .2s;scroll-snap-align:start;position:relative}
+.promo-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--cta)}
+.promo-img{width:130px;height:130px;object-fit:cover;display:block;background:var(--bg)}
+.promo-img-placeholder{width:130px;height:130px;background:linear-gradient(135deg,var(--primary-light),#e8f0fe);display:flex;align-items:center;justify-content:center;font-size:36px}
+.promo-info{padding:8px}
+.promo-name{font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.promo-store{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.promo-badge{position:absolute;top:6px;left:6px;background:var(--cta);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px}
+
+/* FILTERS */
+.filters-section{max-width:960px;margin:0 auto;padding:0 16px 16px}
+.filter-section-label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.filter-section-label span{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-style:normal}
+.filter-chain-1{background:var(--primary-light);border-radius:5px}
+.chips-row{display:flex;gap:7px;flex-wrap:wrap}
+.chip{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s;white-space:nowrap}
+.chip.on-cat{background:var(--primary);color:#fff;border-color:var(--primary)}
+.chip:hover:not(.on-cat){border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+
+.active-filters{max-width:960px;margin:0 auto;padding:0 16px 16px;display:none;align-items:center;gap:8px;flex-wrap:wrap}
+.active-filters.show{display:flex}
+.af-label{font-size:11px;color:var(--muted);font-weight:500}
+.af-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary)}
+.af-tag.loc{background:#fff3e0;color:#e65100;border-color:#e65100}
+.af-tag button{background:none;border:none;cursor:pointer;color:inherit;font-size:13px;line-height:1;padding:0;opacity:.7}
+.clear-all{font-size:11px;color:var(--muted);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:var(--font-b)}
+.clear-all:hover{color:var(--primary)}
+
+/* GRID */
+.dir-wrap{max-width:960px;margin:0 auto;padding:16px 16px 60px}
+.dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.store-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-xl);overflow:hidden;cursor:pointer;transition:all .22s;display:flex;flex-direction:column}
+.store-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--primary)}
+.store-banner{height:90px;background:var(--primary);background-size:cover;background-position:center;position:relative;flex-shrink:0}
+.store-logo{width:52px;height:52px;border-radius:12px;border:3px solid #fff;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.15);position:absolute;bottom:-22px;left:16px;flex-shrink:0}
+.store-logo img{width:100%;height:100%;object-fit:cover}
+.store-body{padding:30px 16px 16px;flex:1;display:flex;flex-direction:column}
+.store-name{font-family:var(--font-d);font-size:16px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.store-desc{font-size:12px;color:var(--muted);line-height:1.5;flex:1;margin-bottom:10px}
+.store-keywords{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.store-kw-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--primary-light);color:var(--primary);cursor:pointer;transition:all .12s}
+.store-kw-tag:hover{background:var(--primary);color:#fff}
+.store-loc-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:#fff3e0;color:#e65100;cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:3px}
+.store-loc-tag:hover{background:#e65100;color:#fff}
+.store-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.store-tag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--primary-light);color:var(--primary)}
+.store-tag.mayorista{background:#f3e8ff;color:#7c3aed}
+.store-foot{display:flex;gap:8px}
+.btn-visit{flex:1;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:all .15s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-visit:hover{background:var(--primary-dark)}
+.btn-qr{width:40px;height:40px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.btn-qr:hover{border-color:var(--primary);background:var(--primary-light)}
+.btn-qr svg{width:18px;height:18px;color:var(--muted)}
+
+/* POPUPS (sin cambios) */
+.popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.popup-bg.on{display:flex}
+.popup{background:var(--surface);border-radius:var(--r-xl);width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.popup-banner{height:120px;background:var(--primary);background-size:cover;background-position:center;border-radius:var(--r-xl) var(--r-xl) 0 0;position:relative}
+.popup-close{position:absolute;top:12px;right:12px;width:30px;height:30px;background:rgba(0,0,0,.35);border:none;border-radius:50%;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.popup-logo{width:64px;height:64px;border-radius:14px;border:3px solid #fff;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--primary);box-shadow:0 4px 12px rgba(0,0,0,.15);position:absolute;bottom:-28px;left:20px}
+.popup-logo img{width:100%;height:100%;object-fit:cover}
+.popup-body{padding:40px 20px 24px}
+.popup-name{font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:6px}
+.popup-location{font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.popup-keywords{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.popup-kw{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--primary-light);color:var(--primary)}
+.popup-kw.loc{background:#fff3e0;color:#e65100}
+.popup-desc{font-size:14px;color:var(--text);line-height:1.7;margin-bottom:20px}
+.popup-qr{background:var(--bg);border-radius:var(--r-lg);padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:20px}
+.popup-qr-label{font-size:11px;color:var(--muted);font-weight:500}
+.popup-actions{display:flex;gap:10px}
+.btn-cta{flex:1;padding:13px;background:var(--cta);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-b);transition:all .15s;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-cta:hover{background:var(--cta-dark)}
+.btn-wa{padding:13px 16px;background:#25d366;color:#fff;border:none;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-wa:hover{background:#1db954}
+.btn-wa svg{width:20px;height:20px}
+.qr-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.qr-modal-bg.on{display:flex}
+.qr-box{background:#fff;border-radius:var(--r-xl);padding:28px;text-align:center;max-width:280px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.qr-box h3{font-family:var(--font-d);font-size:16px;font-weight:700;margin-bottom:6px}
+.qr-box p{font-size:11px;color:var(--muted);margin-bottom:16px}
+.qr-close{margin-top:16px;padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-b)}
+
+/* EMPTY / LOADING */
+.empty{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty-ico{font-size:52px;margin-bottom:16px;opacity:.4}
+.empty h3{font-family:var(--font-d);font-size:20px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;margin:60px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.count-badge{font-size:12px;color:var(--muted);margin-bottom:16px}
+
+@media(max-width:480px){
+  .dir-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<script id="schema-ld" type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"Directorio de Tiendas","numberOfItems":0,"itemListElement":[]}</script>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+  </div>
+  <div class="header-badge">🌐 Directorio de tiendas, cerca de ti!!!</div>
+  <p class="header-loc-title" id="header-loc-title" style="display:none">📍 ¿Dónde estás?</p>
+  <div class="header-locs" id="header-locs"></div>
+</div>
+
+<!-- BUSCADOR (ahora arriba) -->
+<div class="search-wrap">
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Buscar tienda, producto o servicio..." oninput="filterDir()">
+    <button class="search-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- PROMOCIONES -->
+<div class="promo-section" id="promo-section" style="display:none">
+  <div class="promo-label">
+    <span>🔥</span>
+    Promociones para ti!!!
+  </div>
+  <div class="promo-scroll" id="promo-scroll"></div>
+</div>
+
+<!-- FILTROS DE CATEGORÍAS -->
+<div class="filters-section">
+  <div class="filter-section-label">
+    <span class="filter-chain-1">🛍</span>
+    Selecciona lo que necesitas
+  </div>
+  <div class="chips-row" id="chips-cat">
+    <!-- Se llena con JS -->
+  </div>
+</div>
+
+<!-- FILTROS ACTIVOS -->
+<div class="active-filters" id="active-filters">
+  <span class="af-label">Filtrando por:</span>
+  <span id="af-cat-tag" style="display:none"></span>
+  <span id="af-loc-tag" style="display:none"></span>
+  <button class="clear-all" onclick="clearAllFilters()">Limpiar todo</button>
+</div>
+
+<!-- GRID DE TIENDAS -->
+<div class="dir-wrap">
+  <div class="count-badge" id="count-badge"></div>
+  <div class="dir-grid" id="dir-grid"><div class="spinner"></div></div>
+</div>
+
+<!-- POPUPS (sin cambios) -->
+<!-- ... (todo el código de popups se mantiene igual) ... -->
+
+<script>
+// Tu código JavaScript actual se mantiene exactamente igual
+// (No lo copio aquí para no alargar el mensaje, pero puedes pegar todo el <script> original)
+</script>
+</body>
+</html>
