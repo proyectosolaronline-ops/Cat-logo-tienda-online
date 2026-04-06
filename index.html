@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Tiendas — Productos, Servicios y Ubicaciones</title>
+<meta name="description" id="meta-desc" content="Directorio de tiendas locales. Encuentra productos y servicios cerca de ti.">
+<meta name="keywords" id="meta-keywords" content="tiendas, productos, servicios, directorio">
+<meta property="og:title" content="Directorio de Tiendas">
+<meta property="og:description" id="og-desc" content="Encuentra tiendas con productos y servicios cerca de ti.">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;
+  --cta:#ff6900;--cta-dark:#e55c00;
+  --bg:#f5f6f7;--surface:#fff;--border:#dde1e7;
+  --text:#1a1a2e;--muted:#717185;
+  --font-d:'Outfit',sans-serif;--font-b:'Inter',sans-serif;
+  --r:10px;--r-lg:14px;--r-xl:18px;
+  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--primary) 0%,#0d47a1 100%);color:#fff;padding:36px 20px 48px;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E")}
+.header-logo{width:56px;height:56px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2)}
+.header-logo svg{width:28px;height:28px}
+.header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;backdrop-filter:blur(6px)}
+.header-loc-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;position:relative;z-index:1}
+.header-locs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;position:relative;z-index:1;padding:0 16px}
+.loc-txt{font-size:13px;font-weight:500;color:rgba(255,255,255,.7);cursor:pointer;padding:4px 6px;border-radius:6px;transition:all .15s;position:relative}
+.loc-txt::after{content:'·';margin-left:6px;color:rgba(255,255,255,.3)}
+.loc-txt:last-child::after{content:''}
+.loc-txt:hover{color:#fff;background:rgba(255,255,255,.1)}
+.loc-txt.active{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+
+/* BUSCADOR - Ahora arriba de todo (después del header) */
+.search-wrap{max-width:600px;margin: -20px auto 30px;padding:0 16px;position:relative;z-index:10}
+.search-box{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow);display:flex;align-items:center;overflow:hidden;border:1.5px solid var(--border)}
+.search-box input{flex:1;padding:14px 16px;border:none;outline:none;font-size:15px;font-family:var(--font-b);color:var(--text)}
+.search-box input::placeholder{color:var(--muted)}
+.search-btn{padding:11px 16px;background:none;border:none;cursor:pointer;color:var(--muted)}
+.search-btn svg{width:20px;height:20px}
+
+/* ── SECCIÓN MAPA + CARDS CERCANAS (como estaba originalmente) ── */
+.mapa-section{max-width:960px;margin:0 auto;padding:0 16px 24px;display:none}
+.mapa-section.show{display:block}
+.mapa-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px
