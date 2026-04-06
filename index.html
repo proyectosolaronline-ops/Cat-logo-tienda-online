@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Tiendas</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--primary:#1a73e8;--primary-light:#e8f0fe;--bg:#f5f6f7;--surface:#fff;--border:#dde1e7;--text:#1a1a2e;--muted:#717185;--r:10px;--r-lg:14px;--shadow:0 4px 16px rgba(0,0,0,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+
+.header{background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:36px 20px 48px;text-align:center}
+.header-logo{width:56px;height:56px;background:rgba(255,255,255,.15);border-radius:16px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center}
+.header-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 14px;font-size:11px;margin-bottom:16px;display:inline-flex;gap:6px}
+
+.search-wrap{max-width:600px;margin:-20px auto 30px;padding:0 16px}
+.search-box{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow);display:flex;border:1.5px solid var(--border)}
+.search-box input{flex:1;padding:14px 16px;border:none;outline:none;font-size:15px}
+.search-btn{padding:11px 16px;background:none;border:none;color:var(--muted)}
+
+.mapa-section{max-width:960px;margin:0 auto;padding:0 16px 30px;display:none}
+.mapa-section.show{display:block}
+.mapa-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+#leaflet-map{height:280px;border-radius:var(--r-lg);border:1.5px solid var(--border);display:none}
+#leaflet-map.show{display:block}
+
+.near-cards-wrap{overflow-x:auto;padding-bottom:12px}
+.near-cards-track{display:flex;gap:12px}
+.near-card{width:200px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;flex-shrink:0;cursor:pointer;transition:.2s}
+.near-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+
+.promo-section{max-width:960px;margin:0 auto;padding:0 16px 24px}
+.filters-section{max-width:960px;margin:0 auto;padding:0 16px 24px}
+.chips-row{display:flex;gap:7px;flex-wrap:wrap}
+.chip{padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer}
+.chip.on-cat{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+.active-filters{max-width:960px;margin:0 auto;padding:0 16px 16px;display:none;gap:8px;flex-wrap:wrap}
+.active-filters.show{display:flex}
+
+.popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center}
+.popup-bg.on{display:flex}
+.popup{background:#fff;border-radius:var(--r-lg);width:90%;max-width:420px;max-height:90vh;overflow:auto}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="28" height="28"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+  </div>
+  <div class="header-badge">🌐 Directorio de tiendas, cerca de ti!!!</div>
+</div>
+
+<div class="search-wrap">
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Buscar tienda, producto o servicio..." oninput="filterDir()">
+    <button class="search-btn">🔍</button>
+  </div>
+</div>
+
+<div class="mapa-section" id="mapa-section">
+  <div class="mapa-header">
+    <div><strong>📍 Tiendas cerca de ti</strong></div>
+    <button onclick="toggleMapa()">Ver en mapa</button>
+  </div>
+  <div class="near-cards-wrap">
+    <div class="near-cards-track" id="near-cards-track"></div>
+  </div>
+  <div id="leaflet-map"></div>
+</div>
+
+<div class="promo-section" id="promo-section" style="display:none">
+  <strong>🔥 Promociones para ti!!!</strong>
+  <div id="promo-scroll" style="display:flex;gap:10px;overflow-x:auto;padding:10px 0"></div>
+</div>
+
+<div class="filters-section">
+  <div>🛍 Selecciona lo que necesitas</div>
+  <div class="chips-row" id="chips-cat"></div>
+</div>
+
+<div class="active-filters" id="active-filters"></div>
+
+<div class="popup-bg" id="popup-bg">
+  <div class="popup">
+    <button onclick="closePopup()" style="float:right;margin:10px">✕</button>
+    <div id="popup-body" style="padding:20px"></div>
+  </div>
+</div>
+
+<script>
+// PEGA AQUÍ TODO TU CÓDIGO JAVASCRIPT ORIGINAL COMPLETO
+// (desde "var params = new URLSearchParams(location.search);" hasta el final)
+</script>
+</body>
+</html>
