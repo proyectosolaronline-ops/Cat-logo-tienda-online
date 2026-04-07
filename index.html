@@ -308,7 +308,7 @@ window.addEventListener('load',async function(){
 async function detectUserLocation(stores){
   if(!BACKEND){return;}
 
-  // === 1. Obtener ubicación del usuario ===
+  // 1. Obtener coordenadas del usuario (GPS o URL)
   if(navigator.geolocation){
     try{
       var pos = await new Promise(function(res,rej){
@@ -319,7 +319,6 @@ async function detectUserLocation(stores){
     }catch(e){}
   }
 
-  // Fallback por URL
   if(_userLat === null){
     var urlLat = parseFloat(params.get('lat') || '');
     var urlLng = parseFloat(params.get('lng') || '');
@@ -329,48 +328,57 @@ async function detectUserLocation(stores){
     }
   }
 
-  /* Obtener nombre de la localidad (pueblo, ciudad o estado) */
+  // 2. Obtener nombre de localidad (más preciso)
   if(_userLat !== null){
     try{
-      var nr = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_userLat+'&lon='+_userLng+'&zoom=12&addressdetails=1',{
+      var nr = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_userLat+'&lon='+_userLng+'&zoom=10&addressdetails=1',{
         headers:{'Accept-Language':'es'}
       });
       var nd = await nr.json();
       var a = nd.address || {};
-      _userLoc = a.city || a.town || a.village || a.suburb || a.county || a.state_district || a.state || '';
+      
+      // Prioridad: city > town > village > suburb > state
+      _userLoc = a.city || a.town || a.village || a.suburb || a.county || a.state || '';
     }catch(e){}
   }
 
   var cercanas = [];
 
-  // === NUEVA LÓGICA ESTRICTA ===
-  if (_userLoc) {
+  // 3. FILTRADO ESTRICTO por localidad
+  if (_userLoc && _userLoc.length > 2) {
     var locN = _userLoc.toLowerCase().trim();
 
     cercanas = stores.filter(function(s){
       var cfg = s.config || {};
-      var storeLoc = (parseLocation(cfg.storeLocation, cfg) || '').toLowerCase().trim();
-      var fullLoc  = (cfg.storeLocation || '').toLowerCase().trim();
+      var storeLocRaw = parseLocation(cfg.storeLocation, cfg) || '';
+      var storeLoc = storeLocRaw.toLowerCase().trim();
+      var fullLoc = (cfg.storeLocation || '').toLowerCase().trim();
 
-      // Coincidencia más estricta: mismo pueblo o estado
-      return storeLoc === locN || 
-             fullLoc.includes(locN) || 
-             locN.includes(storeLoc);
+      // Coincidencia estricta: debe contener la palabra exacta o ser muy similar
+      if (storeLoc === locN) return true;
+      if (fullLoc === locN) return true;
+
+      // Evitar coincidencias parciales débiles (ej: "México" no coincide con "Estado de México" si es muy diferente)
+      var wordsUser = locN.split(/\s+/);
+      var wordsStore = storeLoc.split(/\s+/);
+
+      return wordsUser.some(w => w.length > 3 && storeLoc.includes(w)) ||
+             wordsStore.some(w => w.length > 3 && locN.includes(w));
     });
-  } 
+  }
 
-  // Si no hay ubicación o no encontró tiendas locales → NO mostrar nada en "cerca de ti"
+  // Si no hay tiendas locales → NO mostrar ninguna en "cerca de ti"
   if (cercanas.length === 0) {
-    cercanas = [];   // Forzamos que no muestre tiendas lejanas automáticamente
+    cercanas = [];
   }
 
   _idsCercanas = cercanas.map(function(s){ return s.storeId; });
 
-  // Construir interfaz
+  // Actualizar interfaz
   buildNearCards(cercanas);
   buildLeafletMap(cercanas);
 
-  // Grid: todas las tiendas restantes (incluyendo otras ciudades/estados)
+  // Todas las demás tiendas van al grid inferior
   var restantes = stores.filter(function(s){ 
     return _idsCercanas.indexOf(s.storeId) === -1; 
   });
@@ -378,7 +386,7 @@ async function detectUserLocation(stores){
 
   buildPromoCarouselLocal(stores, _userLoc);
 }
-/* ── NEAR CARDS ── */
+         /* ── NEAR CARDS ── */
 function buildNearCards(cercanas){
   var track=document.getElementById('near-cards-track');
   var badge=document.getElementById('count-near');
