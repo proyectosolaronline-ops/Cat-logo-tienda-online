@@ -306,62 +306,99 @@ window.addEventListener('load',async function(){
 });
 
 async function detectUserLocation(stores){
+  if(!BACKEND){return;}
+  
+  // Obtener ubicación del usuario (GPS o por parámetros)
   if(navigator.geolocation){
     try{
-      var pos=await new Promise(function(res,rej){navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000,enableHighAccuracy:false});});
-      _userLat=pos.coords.latitude;_userLng=pos.coords.longitude;
+      var pos = await new Promise(function(res,rej){
+        navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000,enableHighAccuracy:false});
+      });
+      _userLat = pos.coords.latitude;
+      _userLng = pos.coords.longitude;
     }catch(e){}
   }
-  if(_userLat===null){var urlLat=parseFloat(params.get('lat')||'');var urlLng=parseFloat(params.get('lng')||'');if(!isNaN(urlLat)&&!isNaN(urlLng)){_userLat=urlLat;_userLng=urlLng;}}
 
-  /* Obtener nombre de localidad */
-  if(_userLat!==null){
+  // Fallback por parámetros en URL
+  if(_userLat === null){
+    var urlLat = parseFloat(params.get('lat') || '');
+    var urlLng = parseFloat(params.get('lng') || '');
+    if(!isNaN(urlLat) && !isNaN(urlLng)){
+      _userLat = urlLat;
+      _userLng = urlLng;
+    }
+  }
+
+  /* Obtener nombre de localidad (pueblo, ciudad o estado) */
+  if(_userLat !== null){
     try{
-      var nr=await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_userLat+'&lon='+_userLng+'&zoom=12&addressdetails=1',{headers:{'Accept-Language':'es'}});
-      var nd=await nr.json(); var a=nd.address||{};
-      _userLoc=a.city||a.town||a.village||a.suburb||a.neighbourhood||a.county||a.state_district||'';
+      var nr = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_userLat+'&lon='+_userLng+'&zoom=12&addressdetails=1',{
+        headers:{'Accept-Language':'es'}
+      });
+      var nd = await nr.json();
+      var a = nd.address || {};
+      _userLoc = a.city || a.town || a.village || a.suburb || a.county || a.state_district || a.state || '';
     }catch(e){}
   }
 
-  var cercanas=[];
-  if(_userLat!==null){
-    /* 1. Tiendas en radio de distancia */
-    cercanas=stores.filter(function(s){
-      var cfg=s.config||{};var lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-      return !isNaN(lat)&&!isNaN(lng)&&haversineKm(_userLat,_userLng,lat,lng)<=RADIO_KM;
+  var cercanas = [];
+
+  /* ==================== NUEVA LÓGICA ==================== */
+  if (_userLoc) {
+    var locN = _userLoc.toLowerCase().trim();
+
+    // Filtrar tiendas que coincidan con el mismo pueblo, ciudad o estado
+    cercanas = stores.filter(function(s){
+      var cfg = s.config || {};
+      var storeLoc = (parseLocation(cfg.storeLocation, cfg) || '').toLowerCase().trim();
+      var fullLoc = (cfg.storeLocation || '').toLowerCase().trim();
+
+      return storeLoc === locN || 
+             storeLoc.includes(locN) || 
+             locN.includes(storeLoc) || 
+             fullLoc.includes(locN);
     });
-    /* 2. Fallback: mismo estado/ciudad por nombre si no hay por distancia */
-    if(!cercanas.length&&_userLoc){
-      var locN=_userLoc.toLowerCase();
-      cercanas=stores.filter(function(s){
-        var loc=(parseLocation(s.config.storeLocation,s.config)||'').toLowerCase();
-        var full=(s.config.storeLocation||'').toLowerCase();
-        return loc===locN||loc.includes(locN)||locN.includes(loc)||full.includes(locN);
+
+    // Si no encontró ninguna coincidencia, mostrar todas las tiendas con coordenadas
+    if (cercanas.length === 0) {
+      cercanas = stores.filter(function(s){
+        var cfg = s.config || {};
+        return !isNaN(parseFloat(cfg.locationLat)) && !isNaN(parseFloat(cfg.locationLng));
       });
     }
-  } else {
-    /* Sin GPS — mostrar todas con coords */
-    cercanas=stores.filter(function(s){var cfg=s.config||{};return !isNaN(parseFloat(cfg.locationLat))&&!isNaN(parseFloat(cfg.locationLng));});
+  } 
+  else {
+    // Sin ubicación del usuario → mostrar todas las tiendas que tienen coordenadas
+    cercanas = stores.filter(function(s){
+      var cfg = s.config || {};
+      return !isNaN(parseFloat(cfg.locationLat)) && !isNaN(parseFloat(cfg.locationLng));
+    });
   }
 
-  cercanas.sort(function(a,b){
-    if(_userLat===null)return 0;
-    var ca=a.config||{},cb=b.config||{};
-    var la=parseFloat(ca.locationLat),lb=parseFloat(cb.locationLat);
-    if(isNaN(la)||isNaN(lb))return 0;
-    return haversineKm(_userLat,_userLng,la,parseFloat(ca.locationLng))-haversineKm(_userLat,_userLng,lb,parseFloat(cb.locationLng));
-  });
+  // Ordenar (si hay ubicación GPS, ordenar por distancia)
+  if (_userLat !== null) {
+    cercanas.sort(function(a, b){
+      var ca = a.config || {}, cb = b.config || {};
+      var la = parseFloat(ca.locationLat), lb = parseFloat(cb.locationLat);
+      if(isNaN(la) || isNaN(lb)) return 0;
+      return haversineKm(_userLat, _userLng, la, parseFloat(ca.locationLng)) - 
+             haversineKm(_userLat, _userLng, lb, parseFloat(cb.locationLng));
+    });
+  }
 
-  _idsCercanas=cercanas.map(function(s){return s.storeId;});
+  _idsCercanas = cercanas.map(function(s){ return s.storeId; });
 
+  // Construir tarjetas cercanas y mapa
   buildNearCards(cercanas);
-  buildLeafletMap(cercanas); /* construir mapa con pins inmediatamente */
+  buildLeafletMap(cercanas);
 
-  /* Grid: tiendas que NO están en cercanas */
-  var restantes=stores.filter(function(s){return _idsCercanas.indexOf(s.storeId)===-1;});
+  // Grid: tiendas que NO están en cercanas
+  var restantes = stores.filter(function(s){ 
+    return _idsCercanas.indexOf(s.storeId) === -1; 
+  });
   renderGrid(restantes);
 
-  buildPromoCarouselLocal(stores,_userLoc);
+  buildPromoCarouselLocal(stores, _userLoc);
 }
 
 /* ── NEAR CARDS ── */
