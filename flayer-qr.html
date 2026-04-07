@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flyer QR — Visita mi Tienda</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#ede9fe;min-height:100vh;padding:32px 16px;display:flex;flex-direction:column;align-items:center;gap:28px}
+
+/* CONTROLES */
+.screen-controls{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:560px;box-shadow:0 8px 32px rgba(109,40,217,.15)}
+.screen-controls h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#5b21b6;margin-bottom:16px}
+.ctrl-field{margin-bottom:12px}
+.ctrl-field label{display:block;font-size:11px;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.ctrl-field input,.ctrl-field textarea{width:100%;padding:10px 12px;border:1.5px solid #ddd6fe;border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;color:#1a1a2e;background:#faf5ff}
+.ctrl-field input:focus,.ctrl-field textarea:focus{outline:none;border-color:#7c3aed}
+.ctrl-field textarea{resize:none;min-height:60px}
+
+/* SELECTOR DE TAMAÑO */
+.size-selector{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.size-btn{flex:1;min-width:120px;padding:10px 8px;border:2px solid #ddd6fe;border-radius:10px;background:#faf5ff;color:#7c3aed;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center}
+.size-btn:hover{border-color:#7c3aed;background:#ede9fe}
+.size-btn.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.size-btn small{display:block;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;opacity:.8;margin-top:2px}
+
+.btn-gen{width:100%;padding:14px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;box-shadow:0 4px 20px rgba(124,58,237,.3);transition:all .2s;margin-bottom:8px}
+.btn-gen:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(124,58,237,.4)}
+.btn-print{width:100%;padding:12px;background:#fff;color:#7c3aed;border:2px solid #7c3aed;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s}
+.btn-print:hover{background:#faf5ff}
+
+/* HOJA PREVIEW */
+.letter-wrap{background:#fff;width:100%;max-width:700px;border-radius:12px;overflow:hidden;box-shadow:0 8px 40px rgba(109,40,217,.18)}
+.letter-topbar{background:#7c3aed;color:#fff;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:9px 18px;display:flex;align-items:center;justify-content:space-between}
+.letter-page{padding:18px;display:flex;flex-direction:column;gap:0}
+
+/* FLYER BASE */
+.flyer{background:linear-gradient(145deg,#f5f0ff 0%,#ede9fe 50%,#e4d9fd 100%);border:1.5px solid #c4b5fd;border-radius:14px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:18px}
+.flyer-bg{position:absolute;inset:0;background-image:radial-gradient(circle,#c4b5fd 1px,transparent 1px);background-size:14px 14px;opacity:.2}
+.flyer-orb1{position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:radial-gradient(circle,rgba(167,139,250,.25) 0%,transparent 70%);border-radius:50%}
+.flyer-orb2{position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(196,181,253,.3) 0%,transparent 70%);border-radius:50%}
+.cut-line{border:none;border-top:1.5px dashed #a78bfa;margin:10px 0;position:relative}
+.cut-line::before{content:'✂';position:absolute;top:-9px;left:0;font-size:13px;color:#a78bfa;background:#fff;padding:0 4px}
+
+/* CONTENIDO */
+.f-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;text-align:center;width:100%}
+.f-badge{display:inline-flex;align-items:center;gap:5px;background:#7c3aed;color:#fff;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:99px;margin-bottom:8px}
+.f-name{font-family:'Syne',sans-serif;font-weight:800;color:#3b0764;letter-spacing:-.02em;line-height:1.1;margin-bottom:5px}
+.f-tag{color:#6d28d9;font-weight:500;line-height:1.4}
+.f-qr{background:#fff;border-radius:12px;padding:10px;box-shadow:0 4px 16px rgba(109,40,217,.12)}
+.f-hint{font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em}
+.f-url{font-family:'DM Mono',monospace;color:#8b5cf6;background:rgba(255,255,255,.6);border:1px solid #ddd6fe;border-radius:6px;padding:3px 8px;word-break:break-all}
+.f-foot{color:#a78bfa;letter-spacing:.05em}
+
+/* ── CARTA COMPLETA: 1 flyer grande ── */
+.layout-carta .flyer-carta{height:420px;flex-direction:row;gap:24px;padding:28px 32px}
+.layout-carta .flyer-carta .f-inner{flex-direction:row;text-align:left;gap:24px}
+.layout-carta .flyer-carta .f-left{display:flex;flex-direction:column;justify-content:center;flex:1;gap:10px}
+.layout-carta .flyer-carta .f-right{display:flex;flex-direction:column;align-items:center;gap:10px;flex-shrink:0}
+.layout-carta .flyer-carta .f-name{font-size:34px}
+.layout-carta .flyer-carta .f-tag{font-size:15px}
+.layout-carta .flyer-carta .f-hint{font-size:11px}
+.layout-carta .flyer-carta .f-url{font-size:10px}
+.layout-carta .flyer-carta .f-foot{font-size:9px;margin-top:8px}
+
+/* ── MEDIA CARTA: 2 flyers horizontales ── */
+.layout-media .flyer-medio{height:190px;gap:16px}
+.layout-media .flyer-medio .f-inner{flex-direction:row;text-align:left;gap:16px}
+.layout-media .flyer-medio .f-left{display:flex;flex-direction:column;justify-content:center;flex:1;gap:6px}
+.layout-media .flyer-medio .f-right{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0}
+.layout-media .flyer-medio .f-name{font-size:22px}
+.layout-media .flyer-medio .f-tag{font-size:12px}
+.layout-media .flyer-medio .f-hint{font-size:9px}
+.layout-media .flyer-medio .f-url{font-size:8px}
+.layout-media .flyer-medio .f-foot{font-size:7px;margin-top:4px}
+
+/* ── 3/4 CARTA: flyer grande + mini ── */
+.layout-tres4 .flyer-grande{height:270px;flex-direction:row;gap:20px;padding:22px 26px}
+.layout-tres4 .flyer-grande .f-inner{flex-direction:row;text-align:left;gap:20px}
+.layout-tres4 .flyer-grande .f-left{display:flex;flex-direction:column;justify-content:center;flex:1;gap:8px}
+.layout-tres4 .flyer-grande .f-right{display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0}
+.layout-tres4 .flyer-grande .f-name{font-size:26px}
+.layout-tres4 .flyer-grande .f-tag{font-size:13px}
+.layout-tres4 .flyer-grande .f-hint{font-size:10px}
+.layout-tres4 .flyer-grande .f-url{font-size:9px}
+.layout-tres4 .flyer-grande .f-foot{font-size:8px;margin-top:6px}
+.layout-tres4 .flyers-mini{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.layout-tres4 .flyer-mini{height:130px;padding:12px 10px}
+.layout-tres4 .flyer-mini .f-inner{gap:5px}
+.layout-tres4 .flyer-mini .f-badge{font-size:8px;padding:3px 8px;margin-bottom:4px}
+.layout-tres4 .flyer-mini .f-name{font-size:13px}
+.layout-tres4 .flyer-mini .f-tag{display:none}
+.layout-tres4 .flyer-mini .f-qr{padding:6px;border-radius:8px}
+.layout-tres4 .flyer-mini .f-hint{font-size:8px}
+.layout-tres4 .flyer-mini .f-url{font-size:7px}
+.layout-tres4 .flyer-mini .f-foot{font-size:7px}
+
+/* PRINT */
+@media print{
+  @page{size:letter portrait;margin:1cm}
+  body{background:#fff !important;padding:0 !important;gap:0 !important}
+  .screen-controls{display:none !important}
+  .letter-wrap{max-width:100% !important;box-shadow:none !important;border-radius:0 !important}
+  .letter-topbar{display:none !important}
+  .letter-page{padding:0 !important}
+  .flyer,.flyer-mini{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div class="screen-controls">
+  <h2>🖨️ Flyer QR — Invitación a tu tienda</h2>
+
+  <div class="ctrl-field">
+    <label>Nombre de la tienda</label>
+    <input id="inp-nombre" type="text" placeholder="Ej: Carnicería Yazmín" value="Mi Tienda">
+  </div>
+  <div class="ctrl-field">
+    <label>Link de la tienda (URL) — se toma de esta página automáticamente</label>
+    <input id="inp-url" type="url" placeholder="https://...">
+  </div>
+  <div class="ctrl-field">
+    <label>Slogan o descripción corta</label>
+    <textarea id="inp-tag" placeholder="Ej: Carne fresca del día • Servicio a domicilio">Escanea y visita nuestra tienda en línea 🛍️</textarea>
+  </div>
+
+  <div class="ctrl-field">
+    <label>Tamaño de hoja</label>
+    <div class="size-selector">
+      <button class="size-btn active" onclick="setSize('carta',this)">
+        📄 Carta completa
+        <small>1 flyer grande</small>
+      </button>
+      <button class="size-btn" onclick="setSize('media',this)">
+        📄 Media carta
+        <small>2 flyers iguales</small>
+      </button>
+      <button class="size-btn" onclick="setSize('tres4',this)">
+        📄 3/4 de carta
+        <small>1 grande + 2 mini</small>
+      </button>
+    </div>
+  </div>
+
+  <button class="btn-gen" onclick="generarFlyers()">✨ Generar flyers</button>
+  <button class="btn-print" onclick="window.print()">🖨️ Imprimir hoja carta</button>
+</div>
+
+<!-- HOJA -->
+<div class="letter-wrap" id="letter-wrap" style="display:none">
+  <div class="letter-topbar">
+    <span id="topbar-label">📄 Hoja carta — Cortar por líneas punteadas ✂</span>
+    <span>LandingKit</span>
+  </div>
+  <div class="letter-page" id="letter-page"></div>
+</div>
+
+<script>
+var _tamano = 'carta';
+
+// Tomar URL actual de la página por defecto
+window.addEventListener('load', function(){
+  var p = new URLSearchParams(location.search);
+  var n = p.get('nombre') || p.get('name') || '';
+  var u = p.get('url') || p.get('store') || '';
+  var t = p.get('tag') || '';
+  // URL por defecto = la página actual (misma carpeta que directorio)
+  var defaultUrl = location.href.replace(/\/[^\/]*$/, '/index.html');
+  document.getElementById('inp-url').value = u || defaultUrl;
+  if(n) document.getElementById('inp-nombre').value = n;
+  if(t) document.getElementById('inp-tag').value = t;
+  if(n || u) generarFlyers();
+});
+
+function setSize(s, btn){
+  _tamano = s;
+  document.querySelectorAll('.size-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function makeQR(containerId, url, size){
+  var el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = '';
+  new QRCode(el,{text:url,width:size,height:size,colorDark:'#3b0764',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+}
+
+function flyerHTML(id, clases, innerHTML){
+  return '<div class="flyer '+clases+'">'
+    +'<div class="flyer-bg"></div><div class="flyer-orb1"></div><div class="flyer-orb2"></div>'
+    +'<div class="f-inner">'+innerHTML+'</div>'
+    +'</div>';
+}
+
+function leftRight(idSuf, badge, nombre, tag, urlCorta, qrId, hint){
+  return '<div class="f-left">'
+    +'<div class="f-badge">'+badge+'</div>'
+    +'<div class="f-name" id="fn-'+idSuf+'">'+nombre+'</div>'
+    +'<div class="f-tag" id="ft-'+idSuf+'">'+tag+'</div>'
+    +'<div class="f-url" id="fu-'+idSuf+'">'+urlCorta+'</div>'
+    +'<div class="f-foot">Powered by LandingKit</div>'
+    +'</div>'
+    +'<div class="f-right">'
+    +'<div class="f-qr"><div id="'+qrId+'"></div></div>'
+    +'<div class="f-hint">'+hint+'</div>'
+    +'</div>';
+}
+
+function generarFlyers(){
+  var nombre   = document.getElementById('inp-nombre').value.trim() || 'Mi Tienda';
+  var url      = document.getElementById('inp-url').value.trim()    || location.href;
+  var tag      = document.getElementById('inp-tag').value.trim()    || 'Visita nuestra tienda en línea';
+  var urlCorta = url.replace('https://','').replace('http://','');
+  var page     = document.getElementById('letter-page');
+  page.innerHTML = '';
+  page.className = 'letter-page layout-'+_tamano;
+
+  if(_tamano === 'carta'){
+    document.getElementById('topbar-label').textContent = '📄 Carta completa — 1 flyer grande';
+    page.innerHTML = flyerHTML('carta','flyer-carta',
+      leftRight('a','🌐 Tienda en línea',nombre,tag,urlCorta,'qr-a','📱 Escanea para visitar'));
+    setTimeout(function(){ makeQR('qr-a',url,130); }, 50);
+  }
+  else if(_tamano === 'media'){
+    document.getElementById('topbar-label').textContent = '📄 Media carta — 2 flyers iguales ✂';
+    page.innerHTML =
+      flyerHTML('medio1','flyer-medio', leftRight('b1','🌐 Tienda en línea',nombre,tag,urlCorta,'qr-b1','📱 Escanea'))
+      +'<hr class="cut-line">'
+      +flyerHTML('medio2','flyer-medio', leftRight('b2','🌐 Tienda en línea',nombre,tag,urlCorta,'qr-b2','📱 Escanea'));
+    setTimeout(function(){ makeQR('qr-b1',url,90); makeQR('qr-b2',url,90); }, 50);
+  }
+  else if(_tamano === 'tres4'){
+    document.getElementById('topbar-label').textContent = '📄 3/4 de carta — 1 grande + 2 mini ✂';
+    var miniRow = '<div class="flyers-mini">'
+      +flyerHTML('m1','flyer-mini',
+        '<div class="f-badge">🌐 En línea</div>'
+        +'<div class="f-name" id="fn-c1">'+nombre+'</div>'
+        +'<div class="f-qr"><div id="qr-c1"></div></div>'
+        +'<div class="f-hint">📱 Escanea</div>'
+        +'<div class="f-url">'+urlCorta+'</div>')
+      +flyerHTML('m2','flyer-mini',
+        '<div class="f-badge">🌐 En línea</div>'
+        +'<div class="f-name" id="fn-c2">'+nombre+'</div>'
+        +'<div class="f-qr"><div id="qr-c2"></div></div>'
+        +'<div class="f-hint">📱 Escanea</div>'
+        +'<div class="f-url">'+urlCorta+'</div>')
+      +'</div>';
+    page.innerHTML =
+      flyerHTML('grande','flyer-grande', leftRight('a','🌐 Tienda en línea',nombre,tag,urlCorta,'qr-a','📱 Escanea para visitar'))
+      +'<hr class="cut-line">'
+      +miniRow;
+    setTimeout(function(){ makeQR('qr-a',url,110); makeQR('qr-c1',url,64); makeQR('qr-c2',url,64); }, 50);
+  }
+
+  var lw = document.getElementById('letter-wrap');
+  lw.style.display = '';
+  lw.scrollIntoView({behavior:'smooth',block:'start'});
+}
+</script>
+</body>
+</html>
