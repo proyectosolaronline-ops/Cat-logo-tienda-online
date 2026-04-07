@@ -279,7 +279,7 @@ var ALL_STORES=[],activeCat='',activeLoc='',currentWA='';
 var _userLat=null,_userLng=null,_userLoc='';
 var _leafletMap=null,_mapaVisible=false;
 var _leafletMarkers={};
-var RADIO_KM=20;
+var RADIO_KM=50;
 var _idsCercanas=[]; /* IDs de tiendas en el carrusel — para no duplicar en grid */
 
 function fixImgUrl(u){if(!u)return'';var m=u.match(/[?&]id=([\w-]+)/);if(m)return'https://lh3.googleusercontent.com/d/'+m[1];var m2=u.match(/\/d\/([\w-]+)/);if(m2)return'https://lh3.googleusercontent.com/d/'+m2[1];return u;}
@@ -307,7 +307,7 @@ window.addEventListener('load',async function(){
 async function detectUserLocation(stores){
   if(!BACKEND){return;}
 
-  // 1. Obtener ubicación del usuario
+  // 1. Obtener ubicación del usuario (GPS o URL)
   if(navigator.geolocation){
     try{
       var pos = await new Promise(function(res,rej){
@@ -327,7 +327,7 @@ async function detectUserLocation(stores){
     }
   }
 
-  // 2. Obtener nombre de localidad
+  // 2. Obtener nombre de localidad (para priorizar)
   if(_userLat !== null){
     try{
       var nr = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_userLat+'&lon='+_userLng+'&zoom=10&addressdetails=1',{
@@ -341,23 +341,23 @@ async function detectUserLocation(stores){
 
   var cercanas = [];
 
-  // 3. Filtrado principal: Tiendas del mismo estado/pueblo
-  if (_userLoc && _userLoc.length > 2) {
+  // === LÓGICA FINAL (Siempre usa RADIO_KM por default) ===
+  
+  // Primero intentamos filtrar por misma localidad (estado/pueblo)
+  if (_userLoc && _userLoc.length > 3) {
     var locN = _userLoc.toLowerCase().trim();
-
+    
     cercanas = stores.filter(function(s){
       var cfg = s.config || {};
       var storeLoc = (parseLocation(cfg.storeLocation, cfg) || '').toLowerCase().trim();
       var fullLoc = (cfg.storeLocation || '').toLowerCase().trim();
 
-      return storeLoc === locN || 
-             fullLoc === locN ||
-             storeLoc.includes(locN) || 
-             locN.includes(storeLoc);
+      return storeLoc === locN || fullLoc === locN || 
+             storeLoc.includes(locN) || locN.includes(storeLoc);
     });
   }
 
-  // 4. Respaldo: Si no hay tiendas locales → usar RADIO_KM
+  // Si no encontró tiendas por localidad → USAR RADIO_KM (esto es lo que pediste)
   if (cercanas.length === 0 && _userLat !== null) {
     cercanas = stores.filter(function(s){
       var cfg = s.config || {};
@@ -367,12 +367,7 @@ async function detectUserLocation(stores){
     });
   }
 
-  // 5. Si todavía no hay nada → mostrar vacío (no tiendas lejanas)
-  if (cercanas.length === 0) {
-    cercanas = [];
-  }
-
-  // Ordenar por distancia si tenemos GPS
+  // Ordenar por distancia si tenemos ubicación GPS
   if (_userLat !== null && cercanas.length > 0) {
     cercanas.sort(function(a, b){
       var ca = a.config || {}, cb = b.config || {};
@@ -385,18 +380,17 @@ async function detectUserLocation(stores){
 
   _idsCercanas = cercanas.map(function(s){ return s.storeId; });
 
-  // === Actualizar interfaz ===
+  // Actualizar todo
   buildNearCards(cercanas);
-  buildLeafletMap(cercanas);   // ← Aquí se crean los pines
-
+  buildLeafletMap(cercanas);
+  
   var restantes = stores.filter(function(s){ 
     return _idsCercanas.indexOf(s.storeId) === -1; 
   });
   renderGrid(restantes);
 
   buildPromoCarouselLocal(stores, _userLoc);
-}         
-         /* ── NEAR CARDS ── */
+}         /* ── NEAR CARDS ── */
 function buildNearCards(cercanas){
   var track=document.getElementById('near-cards-track');
   var badge=document.getElementById('count-near');
