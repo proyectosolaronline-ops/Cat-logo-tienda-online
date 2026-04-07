@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Tiendas — Productos, Servicios y Ubicaciones</title>
+<meta name="description" id="meta-desc" content="Directorio de tiendas locales.">
+<meta name="keywords" id="meta-keywords" content="tiendas, productos, servicios, directorio">
+<meta property="og:title" content="Directorio de Tiendas">
+<meta property="og:description" id="og-desc" content="Encuentra tiendas con productos y servicios cerca de ti.">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;--cta:#ff6900;--cta-dark:#e55c00;--bg:#f5f6f7;--surface:#fff;--border:#dde1e7;--text:#1a1a2e;--muted:#717185;--font-d:'Outfit',sans-serif;--font-b:'Inter',sans-serif;--r:10px;--r-lg:14px;--r-xl:18px;--shadow:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12)}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+.header{background:linear-gradient(135deg,var(--primary) 0%,#0d47a1 100%);color:#fff;padding:36px 20px 48px;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E")}
+.header-logo{width:56px;height:56px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2)}
+.header-logo svg{width:28px;height:28px}
+.header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;backdrop-filter:blur(6px)}
+.header-loc-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;position:relative;z-index:1}
+.header-locs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;position:relative;z-index:1;padding:0 16px}
+.loc-txt{font-size:13px;font-weight:500;color:rgba(255,255,255,.7);cursor:pointer;padding:4px 6px;border-radius:6px;transition:all .15s}
+.loc-txt::after{content:'·';margin-left:6px;color:rgba(255,255,255,.3)}.loc-txt:last-child::after{content:''}
+.loc-txt:hover{color:#fff;background:rgba(255,255,255,.1)}
+.loc-txt.active{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.search-wrap{max-width:600px;margin:20px auto 0;padding:0 16px;position:relative;z-index:2}
+.search-box{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow);display:flex;align-items:center;overflow:hidden;border:1.5px solid var(--border)}
+.search-box input{flex:1;padding:13px 16px;border:none;outline:none;font-size:14px;font-family:var(--font-b);color:var(--text)}
+.search-box input::placeholder{color:var(--muted)}
+.search-btn{padding:11px 16px;background:none;border:none;cursor:pointer;color:var(--muted)}
+.search-btn svg{width:18px;height:18px}
+.mapa-section{max-width:960px;margin:0 auto;padding:24px 16px 0;display:block}
+.mapa-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.mapa-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.mapa-title span{width:18px;height:18px;background:#e8f5e9;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px}
+.mapa-toggle{font-size:12px;font-weight:600;color:var(--primary);background:var(--primary-light);border:none;border-radius:99px;padding:5px 14px;cursor:pointer;font-family:var(--font-b);transition:all .15s}
+#leaflet-map{height:280px;border-radius:var(--r-lg);border:1.5px solid var(--border);overflow:hidden;display:none;margin-bottom:12px}
+#leaflet-map.show{display:block}
+.near-cards-wrap{overflow-x:auto;padding-bottom:10px;scrollbar-width:none;-ms-overflow-style:none}
+.near-cards-wrap::-webkit-scrollbar{display:none}
+.near-cards-track{display:flex;gap:10px;width:max-content}
+.near-card{width:200px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:all .2s;flex-shrink:0}
+.near-card:hover,.near-card.highlighted{border-color:var(--primary);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.near-card.highlighted{border-color:#16a34a;box-shadow:0 4px 16px rgba(22,163,74,.25)}
+.near-card-banner{height:70px;background:var(--primary);background-size:cover;background-position:center;position:relative}
+.near-card-logo{width:36px;height:36px;border-radius:8px;border:2px solid #fff;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);position:absolute;bottom:-14px;left:10px}
+.near-card-logo img{width:100%;height:100%;object-fit:cover}
+.near-card-body{padding:18px 10px 12px}
+.near-card-name{font-family:var(--font-d);font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.near-card-dist{font-size:10px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:3px}
+.near-card-kw{font-size:9px;color:var(--primary);background:var(--primary-light);padding:2px 7px;border-radius:99px;display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.near-card-btn{margin-top:8px;width:100%;padding:7px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:all .15s}
+.near-card-btn:hover{background:var(--primary-dark)}
+.mapa-divider{height:1px;background:var(--border);margin:16px 0 0}
+.dir-wrap{max-width:960px;margin:0 auto;padding:16px 16px 60px}
+.dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.store-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-xl);padding:15px;display:flex;flex-direction:column;gap:5px}
+</style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+    <div class="header-badge" id="radar-status">Iniciando Radar...</div>
+    <div class="header-loc-title">Directorio Oficial LandingKit</div>
+    <div class="header-locs">
+        <span class="loc-txt active">Todas las Tiendas</span>
+    </div>
+</header>
+
+<div class="search-wrap">
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="¿Qué buscas hoy?" oninput="filtrar()">
+        <button class="search-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+    </div>
+</div>
+
+<section class="mapa-section">
+    <div class="mapa-header">
+        <div class="mapa-title"><span>📍</span> Tiendas cerca de ti</div>
+        <button class="mapa-toggle" onclick="toggleMapa()">Ver Mapa</button>
+    </div>
+    <div id="leaflet-map"></div>
+    <div class="near-cards-wrap">
+        <div class="near-cards-track" id="near-track"></div>
+    </div>
+</section>
+
+<div class="dir-wrap">
+    <div class="dir-grid" id="grid-principal"></div>
+</div>
+
+<script>
+/** * INTEGRACIÓN LANDINGKIT v3.3 
+ */
+let map, storesData = [], userCoords = null;
+
+window.onload = () => {
+    if (typeof google !== 'undefined') {
+        google.script.run
+            .withSuccessHandler(response => {
+                if(response.ok) {
+                    storesData = response.data; // Recibe el 'result' del MAESTRO.gs
+                    obtenerUbicacion();
+                }
+            })
+            .handleRequest({ action: 'stores.directory' }, 'GET');
+    }
+};
+
+function obtenerUbicacion() {
+    navigator.geolocation.getCurrentPosition(pos => {
+        userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        document.getElementById('radar-status').innerText = "📍 Radar Activo";
+        render();
+    }, () => {
+        document.getElementById('radar-status').innerText = "GPS no disponible";
+        render();
+    });
+}
+
+function render() {
+    const track = document.getElementById('near-track');
+    const grid = document.getElementById('grid-principal');
+    track.innerHTML = ""; grid.innerHTML = "";
+
+    // Mapeo analítico: s.config es el objeto parseado por el backend
+    const procesadas = storesData.map(s => {
+        let dist = 9999;
+        if (userCoords && s.config.locationLat) {
+            dist = calcularDistancia(userCoords.lat, userCoords.lng, parseFloat(s.config.locationLat), parseFloat(s.config.locationLng));
+        }
+        return { ...s, dist };
+    }).sort((a, b) => a.dist - b.dist);
+
+    procesadas.forEach((s, i) => {
+        const config = s.config || {};
+        const distTxt = s.dist < 999 ? `A ${s.dist.toFixed(1)} km` : (config.storeLocation || 'Ubicación remota');
+
+        // Render NEAR CARDS
+        if (s.dist < 100 || i < 4) {
+            const card = document.createElement('div');
+            card.className = `near-card ${i === 0 ? 'highlighted' : ''}`;
+            card.onclick = () => window.open(`https://wa.me/${config.whatsapp}`);
+            card.innerHTML = `
+                <div class="near-card-banner" style="background-image: url('${config.bannerUrl || ''}')">
+                    <div class="near-card-logo">
+                        <img src="${config.logoUrl || config.logo || ''}" onerror="this.src='https://via.placeholder.com/40'">
+                    </div>
+                </div>
+                <div class="near-card-body">
+                    <div class="near-card-name">${s.name}</div>
+                    <div class="near-card-dist">📍 ${distTxt}</div>
+                    <div class="near-card-kw">${config.description || 'Tienda Oficial'}</div>
+                    <button class="near-card-btn">VISITAR</button>
+                </div>`;
+            track.appendChild(card);
+        }
+
+        // Render GRID principal
+        grid.innerHTML += `
+            <div class="store-card">
+                <div class="near-card-name" style="font-size:14px">${s.name}</div>
+                <div style="font-size:11px; color:var(--muted)">${config.description || ''}</div>
+                <div style="font-size:11px; color:var(--primary); font-weight:600; margin-top:5px">${config.storeLocation || ''}</div>
+            </div>`;
+    });
+
+    if (userCoords) initMapa(procesadas);
+}
+
+function initMapa(tiendas) {
+    if (map) return;
+    map = L.map('leaflet-map').setView([userCoords.lat, userCoords.coords?.longitude || userCoords.lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    L.circleMarker([userCoords.lat, userCoords.lng], {radius:7, color:'#1a73e8', fillOpacity:1}).addTo(map).bindPopup("Tu ubicación");
+    
+    tiendas.forEach(s => {
+        if (s.config.locationLat) {
+            L.marker([s.config.locationLat, s.config.locationLng]).addTo(map).bindPopup(s.name);
+        }
+    });
+}
+
+function toggleMapa() {
+    const el = document.getElementById('leaflet-map');
+    el.classList.toggle('show');
+    if (map) setTimeout(() => map.invalidateSize(), 200);
+}
+
+function calcularDistancia(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+function filtrar() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.store-card').forEach(c => {
+        c.style.display = c.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+    });
+}
+</script>
+</body>
+</html>
