@@ -571,7 +571,7 @@ function closeQR(){document.getElementById('qr-modal-bg').classList.remove('on')
     </svg>
   </button>
 
-  <!-- Botón QR (abajo) - CORREGIDO -->
+  <!-- Botón QR (abajo) -->
   <button id="btnFlotanteQR" class="btn-flotante-qr" title="Ver código QR">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <rect x="3" y="3" width="7" height="7"></rect>
@@ -628,14 +628,11 @@ document.getElementById('btnFlotanteWA').addEventListener('click', function() {
   window.open(`https://wa.me/?text=${texto}%0A${url}`, '_blank');
 });
 
-// QR - Ruta corregida según tu GitHub (flayer-qr.html)
+// QR - Ruta corregida y más estable para GitHub Pages
 document.getElementById('btnFlotanteQR').addEventListener('click', function() {
-  window.open('./flayer-qr.html', '_blank');
+  window.open('flayer-qr.html', '_blank');
 });
 </script>
-
-
-  
               //////////////////////
 </body>
 </html>
