@@ -24,7 +24,9 @@ body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-fo
 .header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;backdrop-filter:blur(6px)}
 .header-loc-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;position:relative;z-index:1}
 .header-locs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;position:relative;z-index:1;padding:0 16px}
-.loc-txt{font-size:13px;font-weight:500;color:rgba(255,255,255,.7);cursor:pointer;padding:4px 6px;border-radius:6px;transition:all .15s}
+.loc-txt{font-size:13px;font-weight:500;color:rgba(255,255,255,.7);
+         
+         cursor:pointer;padding:4px 6px;border-radius:6px;transition:all .15s}
 .loc-txt::after{content:'·';margin-left:6px;color:rgba(255,255,255,.3)}.loc-txt:last-child::after{content:''}
 .loc-txt:hover{color:#fff;background:rgba(255,255,255,.1)}
 .loc-txt.active{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
@@ -372,7 +374,7 @@ function buildNearCards(cercanas){
     badge.textContent='';return;
   }
   badge.textContent=cercanas.length+' tienda'+(cercanas.length!==1?'s':'')+' cerca';
-  if(titleEl)titleEl.textContent='Tiendas cerca de ti';
+  if(titleEl) titleEl.textContent = _userLoc ? 'Tiendas en ' + _userLoc : 'Tiendas en el mapa';
   track.innerHTML=cercanas.map(function(s){
     var cfg=s.config||{};var ini=(s.name||'?')[0].toUpperCase();
     var logoSrc=fixImgUrl(cfg.logo||cfg.logoUrl||'');var bannerSrc=fixImgUrl(cfg.bannerUrl||'');
