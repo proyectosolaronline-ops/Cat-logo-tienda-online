@@ -307,7 +307,7 @@ window.addEventListener('load',async function(){
 async function detectUserLocation(stores){
   if(!BACKEND){return;}
 
-  // 1. Obtener ubicación GPS o por URL
+  // 1. Obtener ubicación del usuario
   if(navigator.geolocation){
     try{
       var pos = await new Promise(function(res,rej){
@@ -327,7 +327,7 @@ async function detectUserLocation(stores){
     }
   }
 
-  // 2. Obtener nombre de localidad (pueblo, ciudad o estado)
+  // 2. Obtener nombre de localidad
   if(_userLat !== null){
     try{
       var nr = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_userLat+'&lon='+_userLng+'&zoom=10&addressdetails=1',{
@@ -341,7 +341,7 @@ async function detectUserLocation(stores){
 
   var cercanas = [];
 
-  // 3. LÓGICA PRINCIPAL: Primero intentar por nombre de localidad (estado/pueblo)
+  // 3. Filtrado principal: Tiendas del mismo estado/pueblo
   if (_userLoc && _userLoc.length > 2) {
     var locN = _userLoc.toLowerCase().trim();
 
@@ -350,7 +350,6 @@ async function detectUserLocation(stores){
       var storeLoc = (parseLocation(cfg.storeLocation, cfg) || '').toLowerCase().trim();
       var fullLoc = (cfg.storeLocation || '').toLowerCase().trim();
 
-      // Coincidencia estricta por nombre
       return storeLoc === locN || 
              fullLoc === locN ||
              storeLoc.includes(locN) || 
@@ -358,7 +357,7 @@ async function detectUserLocation(stores){
     });
   }
 
-  // 4. Si NO encontró tiendas por nombre → usar RADIO_KM como respaldo
+  // 4. Respaldo: Si no hay tiendas locales → usar RADIO_KM
   if (cercanas.length === 0 && _userLat !== null) {
     cercanas = stores.filter(function(s){
       var cfg = s.config || {};
@@ -368,13 +367,13 @@ async function detectUserLocation(stores){
     });
   }
 
-  // 5. Si todavía no hay tiendas → mostrar vacío (no mostrar tiendas lejanas)
+  // 5. Si todavía no hay nada → mostrar vacío (no tiendas lejanas)
   if (cercanas.length === 0) {
     cercanas = [];
   }
 
   // Ordenar por distancia si tenemos GPS
-  if (_userLat !== null) {
+  if (_userLat !== null && cercanas.length > 0) {
     cercanas.sort(function(a, b){
       var ca = a.config || {}, cb = b.config || {};
       var la = parseFloat(ca.locationLat), lb = parseFloat(cb.locationLat);
@@ -386,9 +385,9 @@ async function detectUserLocation(stores){
 
   _idsCercanas = cercanas.map(function(s){ return s.storeId; });
 
-  // Actualizar la interfaz
+  // === Actualizar interfaz ===
   buildNearCards(cercanas);
-  buildLeafletMap(cercanas);
+  buildLeafletMap(cercanas);   // ← Aquí se crean los pines
 
   var restantes = stores.filter(function(s){ 
     return _idsCercanas.indexOf(s.storeId) === -1; 
@@ -396,9 +395,7 @@ async function detectUserLocation(stores){
   renderGrid(restantes);
 
   buildPromoCarouselLocal(stores, _userLoc);
-}
-         
-         
+}         
          /* ── NEAR CARDS ── */
 function buildNearCards(cercanas){
   var track=document.getElementById('near-cards-track');
