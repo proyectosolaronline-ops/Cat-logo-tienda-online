@@ -304,11 +304,10 @@ window.addEventListener('load',async function(){
     document.getElementById('near-cards-track').innerHTML='<div style="padding:32px 20px;color:var(--muted);text-align:center;min-width:280px"><div style="font-size:32px">😕</div><div style="font-size:13px;margin-top:8px">'+esc(e.message)+'</div></div>';
   }
 });
-
 async function detectUserLocation(stores){
   if(!BACKEND){return;}
 
-  // 1. Obtener coordenadas del usuario (GPS o URL)
+  // 1. Obtener ubicación GPS o por URL
   if(navigator.geolocation){
     try{
       var pos = await new Promise(function(res,rej){
@@ -328,7 +327,7 @@ async function detectUserLocation(stores){
     }
   }
 
-  // 2. Obtener nombre de localidad (más preciso)
+  // 2. Obtener nombre de localidad (pueblo, ciudad o estado)
   if(_userLat !== null){
     try{
       var nr = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_userLat+'&lon='+_userLng+'&zoom=10&addressdetails=1',{
@@ -336,49 +335,61 @@ async function detectUserLocation(stores){
       });
       var nd = await nr.json();
       var a = nd.address || {};
-      
-      // Prioridad: city > town > village > suburb > state
       _userLoc = a.city || a.town || a.village || a.suburb || a.county || a.state || '';
     }catch(e){}
   }
 
   var cercanas = [];
 
-  // 3. FILTRADO ESTRICTO por localidad
+  // 3. LÓGICA PRINCIPAL: Primero intentar por nombre de localidad (estado/pueblo)
   if (_userLoc && _userLoc.length > 2) {
     var locN = _userLoc.toLowerCase().trim();
 
     cercanas = stores.filter(function(s){
       var cfg = s.config || {};
-      var storeLocRaw = parseLocation(cfg.storeLocation, cfg) || '';
-      var storeLoc = storeLocRaw.toLowerCase().trim();
+      var storeLoc = (parseLocation(cfg.storeLocation, cfg) || '').toLowerCase().trim();
       var fullLoc = (cfg.storeLocation || '').toLowerCase().trim();
 
-      // Coincidencia estricta: debe contener la palabra exacta o ser muy similar
-      if (storeLoc === locN) return true;
-      if (fullLoc === locN) return true;
-
-      // Evitar coincidencias parciales débiles (ej: "México" no coincide con "Estado de México" si es muy diferente)
-      var wordsUser = locN.split(/\s+/);
-      var wordsStore = storeLoc.split(/\s+/);
-
-      return wordsUser.some(w => w.length > 3 && storeLoc.includes(w)) ||
-             wordsStore.some(w => w.length > 3 && locN.includes(w));
+      // Coincidencia estricta por nombre
+      return storeLoc === locN || 
+             fullLoc === locN ||
+             storeLoc.includes(locN) || 
+             locN.includes(storeLoc);
     });
   }
 
-  // Si no hay tiendas locales → NO mostrar ninguna en "cerca de ti"
+  // 4. Si NO encontró tiendas por nombre → usar RADIO_KM como respaldo
+  if (cercanas.length === 0 && _userLat !== null) {
+    cercanas = stores.filter(function(s){
+      var cfg = s.config || {};
+      var lat = parseFloat(cfg.locationLat);
+      var lng = parseFloat(cfg.locationLng);
+      return !isNaN(lat) && !isNaN(lng) && haversineKm(_userLat, _userLng, lat, lng) <= RADIO_KM;
+    });
+  }
+
+  // 5. Si todavía no hay tiendas → mostrar vacío (no mostrar tiendas lejanas)
   if (cercanas.length === 0) {
     cercanas = [];
   }
 
+  // Ordenar por distancia si tenemos GPS
+  if (_userLat !== null) {
+    cercanas.sort(function(a, b){
+      var ca = a.config || {}, cb = b.config || {};
+      var la = parseFloat(ca.locationLat), lb = parseFloat(cb.locationLat);
+      if(isNaN(la) || isNaN(lb)) return 0;
+      return haversineKm(_userLat, _userLng, la, parseFloat(ca.locationLng)) - 
+             haversineKm(_userLat, _userLng, lb, parseFloat(cb.locationLng));
+    });
+  }
+
   _idsCercanas = cercanas.map(function(s){ return s.storeId; });
 
-  // Actualizar interfaz
+  // Actualizar la interfaz
   buildNearCards(cercanas);
   buildLeafletMap(cercanas);
 
-  // Todas las demás tiendas van al grid inferior
   var restantes = stores.filter(function(s){ 
     return _idsCercanas.indexOf(s.storeId) === -1; 
   });
@@ -386,6 +397,8 @@ async function detectUserLocation(stores){
 
   buildPromoCarouselLocal(stores, _userLoc);
 }
+         
+         
          /* ── NEAR CARDS ── */
 function buildNearCards(cercanas){
   var track=document.getElementById('near-cards-track');
