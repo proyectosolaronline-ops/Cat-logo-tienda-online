@@ -279,7 +279,7 @@ var ALL_STORES=[],activeCat='',activeLoc='',currentWA='';
 var _userLat=null,_userLng=null,_userLoc='';
 var _leafletMap=null,_mapaVisible=false;
 var _leafletMarkers={};
-var RADIO_KM=50;
+var RADIO_KM=10;
 var _idsCercanas=[]; /* IDs de tiendas en el carrusel — para no duplicar en grid */
 
 function fixImgUrl(u){if(!u)return'';var m=u.match(/[?&]id=([\w-]+)/);if(m)return'https://lh3.googleusercontent.com/d/'+m[1];var m2=u.match(/\/d\/([\w-]+)/);if(m2)return'https://lh3.googleusercontent.com/d/'+m2[1];return u;}
