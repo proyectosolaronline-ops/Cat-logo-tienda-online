@@ -396,7 +396,7 @@ function buildNearCards(cercanas){
   var badge=document.getElementById('count-near');
   var titleEl=document.getElementById('mapa-title-txt');
   if(!cercanas.length){
-    track.innerHTML='<div style="padding:32px 20px;color:var(--muted);text-align:center;min-width:280px"><div style="font-size:32px;margin-bottom:8px">📍</div><div style="font-size:13px;font-weight:600">Sin tiendas cercanas</div><div style="font-size:12px;margin-top:4px">Prueba otra búsqueda</div></div>';
+    track.innerHTML='<div style="padding:32px 20px;color:var(--muted);text-align:center;min-width:280px"><div style="font-size:32px;margin-bottom:8px">📍</div><div style="font-size:13px;font-weight:600">Sin tiendas cercanas</div><div style="font-size:12px;margin-top:4px">Prueba otra búsqueda o Activa tu GPS !!!</div></div>';
     badge.textContent='';return;
   }
   badge.textContent=cercanas.length+' tienda'+(cercanas.length!==1?'s':'')+' cerca';
