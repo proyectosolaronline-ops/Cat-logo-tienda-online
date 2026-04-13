@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Tiendas — Productos, Servicios y Ubicaciones</title>
+<meta name="description" id="meta-desc" content="Directorio de tiendas locales.">
+<meta name="keywords" id="meta-keywords" content="tiendas, productos, servicios, directorio">
+<meta property="og:title" content="Directorio de Tiendas">
+<meta property="og:description" id="og-desc" content="Encuentra tiendas con productos y servicios cerca de ti.">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;--cta:#ff6900;--cta-dark:#e55c00;--bg:#f5f6f7;--surface:#fff;--border:#dde1e7;--text:#1a1a2e;--muted:#717185;--font-d:'Outfit',sans-serif;--font-b:'Inter',sans-serif;--r:10px;--r-lg:14px;--r-xl:18px;--shadow:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12)}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:var(--font-b);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+.header{background:linear-gradient(135deg,var(--primary) 0%,#0d47a1 100%);color:#fff;padding:36px 20px 48px;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E")}
+.header-logo{width:56px;height:56px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2)}
+.header-logo svg{width:28px;height:28px}
+.header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;backdrop-filter:blur(6px)}
+.header-loc-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;position:relative;z-index:1}
+.header-locs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;position:relative;z-index:1;padding:0 16px}
+.loc-txt{font-size:13px;font-weight:500;color:rgba(255,255,255,.7);cursor:pointer;padding:4px 6px;border-radius:6px;transition:all .15s}
+.loc-txt::after{content:'·';margin-left:6px;color:rgba(255,255,255,.3)}.loc-txt:last-child::after{content:''}
+.loc-txt:hover{color:#fff;background:rgba(255,255,255,.1)}
+.loc-txt.active{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.search-wrap{max-width:600px;margin:20px auto 0;padding:0 16px;position:relative;z-index:2}
+.search-box{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow);display:flex;align-items:center;overflow:hidden;border:1.5px solid var(--border)}
+.search-box input{flex:1;padding:13px 16px;border:none;outline:none;font-size:14px;font-family:var(--font-b);color:var(--text)}
+.search-box input::placeholder{color:var(--muted)}
+.search-btn{padding:11px 16px;background:none;border:none;cursor:pointer;color:var(--muted)}
+.search-btn svg{width:18px;height:18px}
+.ftxt{font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;padding:3px 6px;border-radius:6px;transition:all .15s;white-space:nowrap}
+.ftxt::after{content:'·';margin-left:6px;color:rgba(0,0,0,.2)}.ftxt:last-child::after{content:''}
+.ftxt:hover{color:var(--primary);background:var(--primary-light)}
+.ftxt.active-ftxt{color:var(--primary);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.active-filters{max-width:960px;margin:0 auto;padding:0 16px 8px;display:none;align-items:center;gap:8px;flex-wrap:wrap}
+.active-filters.show{display:flex}
+.af-label{font-size:11px;color:var(--muted);font-weight:500}
+.af-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary)}
+.af-tag.loc{background:#fff3e0;color:#e65100;border-color:#e65100}
+.af-tag button{background:none;border:none;cursor:pointer;color:inherit;font-size:13px;line-height:1;padding:0;opacity:.7}
+.clear-all{font-size:11px;color:var(--muted);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:var(--font-b)}
+.clear-all:hover{color:var(--primary)}
+.mapa-section{max-width:960px;margin:0 auto;padding:24px 16px 0;display:block}
+.mapa-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.mapa-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.mapa-title span{width:18px;height:18px;background:#e8f5e9;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px}
+.mapa-toggle{font-size:12px;font-weight:600;color:var(--primary);background:var(--primary-light);border:none;border-radius:99px;padding:5px 14px;cursor:pointer;font-family:var(--font-b);transition:all .15s}
+.mapa-toggle:hover{background:var(--primary);color:#fff}
+#leaflet-map{height:280px;border-radius:var(--r-lg);border:1.5px solid var(--border);overflow:hidden;display:none;margin-bottom:12px}
+#leaflet-map.show{display:block}
+.near-cards-wrap{overflow-x:auto;padding-bottom:10px;scrollbar-width:none;-ms-overflow-style:none}
+.near-cards-wrap::-webkit-scrollbar{display:none}
+.near-cards-track{display:flex;gap:10px;width:max-content}
+.near-card{width:200px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:all .2s;flex-shrink:0}
+.near-card:hover,.near-card.highlighted{border-color:var(--primary);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.near-card.highlighted{border-color:#16a34a;box-shadow:0 4px 16px rgba(22,163,74,.25)}
+.near-card-banner{height:70px;background:var(--primary);background-size:cover;background-position:center;position:relative}
+.near-card-logo{width:36px;height:36px;border-radius:8px;border:2px solid #fff;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.15);position:absolute;bottom:-14px;left:10px}
+.near-card-logo img{width:100%;height:100%;object-fit:cover}
+.near-card-body{padding:18px 10px 12px}
+.near-card-name{font-family:var(--font-d);font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.near-card-dist{font-size:10px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:3px}
+.near-card-kw{font-size:9px;color:var(--primary);background:var(--primary-light);padding:2px 7px;border-radius:99px;display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.near-card-btn{margin-top:8px;width:100%;padding:7px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:all .15s}
+.near-card-btn:hover{background:var(--primary-dark)}
+.mapa-divider{height:1px;background:var(--border);margin:16px 0 0}
+.dir-wrap{max-width:960px;margin:0 auto;padding:16px 16px 60px}
+.dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.store-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-xl);overflow:hidden;cursor:pointer;transition:all .22s;display:flex;flex-direction:column}
+.store-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--primary)}
+.store-banner{height:90px;background:var(--primary);background-size:cover;background-position:center;position:relative;flex-shrink:0}
+.store-logo{width:52px;height:52px;border-radius:12px;border:3px solid #fff;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.15);position:absolute;bottom:-22px;left:16px;flex-shrink:0}
+.store-logo img{width:100%;height:100%;object-fit:cover}
+.store-body{padding:30px 16px 16px;flex:1;display:flex;flex-direction:column}
+.store-name{font-family:var(--font-d);font-size:16px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.store-desc{font-size:12px;color:var(--muted);line-height:1.5;flex:1;margin-bottom:10px}
+.store-keywords{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.store-kw-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--primary-light);color:var(--primary);cursor:pointer;transition:all .12s}
+.store-kw-tag:hover{background:var(--primary);color:#fff}
+.store-loc-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:#fff3e0;color:#e65100;cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:3px}
+.store-loc-tag:hover{background:#e65100;color:#fff}
+.store-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.store-tag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--primary-light);color:var(--primary)}
+.store-tag.mayorista{background:#f3e8ff;color:#7c3aed}
+.store-foot{display:flex;gap:8px}
+.btn-visit{flex:1;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:all .15s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-visit:hover{background:var(--primary-dark)}
+.btn-qr{width:40px;height:40px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.btn-qr:hover{border-color:var(--primary);background:var(--primary-light)}
+.btn-qr svg{width:18px;height:18px;color:var(--muted)}
+
+/* ── PROMO SECTION (global) ── */
+.promo-section{max-width:960px;margin:0 auto;padding:20px 16px 0}
+.promo-label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.promo-label span{width:18px;height:18px;background:#fff3e0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px}
+.promo-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory}
+.promo-scroll::-webkit-scrollbar{height:3px}.promo-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.promo-card{flex-shrink:0;width:130px;border-radius:var(--r-lg);overflow:hidden;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);transition:all .2s;scroll-snap-align:start;position:relative}
+.promo-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--cta)}
+.promo-img{width:130px;height:130px;object-fit:cover;display:block;background:var(--bg)}
+.promo-img-placeholder{width:130px;height:130px;background:linear-gradient(135deg,var(--primary-light),#e8f0fe);display:flex;align-items:center;justify-content:center;font-size:36px}
+.promo-info{padding:8px}.promo-name{font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.promo-store{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.promo-badge{position:absolute;top:6px;left:6px;background:var(--cta);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px}
+
+/* ── FIX: Productos catálogo de tiendas cercanas ── */
+/* Sección que va JUSTO debajo del carrusel de near-cards y del divider */
+#promo-near-section {
+  max-width:960px;
+  margin:0 auto;
+  padding:16px 16px 0;
+  /* Siempre presente en el DOM, display controlado por JS */
+}
+#promo-near-section .promo-label span {
+  background:#e8f5e9;
+}
+/* Cada card de producto/promo cercano tiene un acento verde para diferenciarlo */
+#promo-near-scroll .promo-card {
+  border-color: #c8e6c9;
+}
+#promo-near-scroll .promo-card:hover {
+  border-color: #16a34a;
+  box-shadow: 0 4px 16px rgba(22,163,74,.2);
+}
+#promo-near-scroll .promo-badge.near {
+  background: #16a34a;
+}
+/* Logo miniatura de la tienda sobre la card de producto cercano */
+.promo-store-logo {
+  width:22px;height:22px;border-radius:5px;border:1.5px solid #fff;
+  background:var(--primary);overflow:hidden;display:inline-flex;
+  align-items:center;justify-content:center;font-size:9px;font-weight:700;
+  color:#fff;vertical-align:middle;margin-right:3px;flex-shrink:0;
+}
+.promo-store-logo img{width:100%;height:100%;object-fit:cover}
+.promo-store-row{display:flex;align-items:center;gap:2px;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* POPUPS */
+.popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.popup-bg.on{display:flex}
+.popup{background:var(--surface);border-radius:var(--r-xl);width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.popup-banner{height:120px;background:var(--primary);background-size:cover;background-position:center;border-radius:var(--r-xl) var(--r-xl) 0 0;position:relative}
+.popup-close{position:absolute;top:12px;right:12px;width:30px;height:30px;background:rgba(0,0,0,.35);border:none;border-radius:50%;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.popup-logo{width:64px;height:64px;border-radius:14px;border:3px solid #fff;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--primary);box-shadow:0 4px 12px rgba(0,0,0,.15);position:absolute;bottom:-28px;left:20px}
+.popup-logo img{width:100%;height:100%;object-fit:cover}
+.popup-body{padding:40px 20px 24px}
+.popup-name{font-family:var(--font-d);font-size:22px;font-weight:800;margin-bottom:6px}
+.popup-location{font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.popup-keywords{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.popup-kw{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--primary-light);color:var(--primary)}
+.popup-kw.loc{background:#fff3e0;color:#e65100}
+.popup-desc{font-size:14px;color:var(--text);line-height:1.7;margin-bottom:20px}
+.popup-qr{background:var(--bg);border-radius:var(--r-lg);padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:20px}
+.popup-qr-label{font-size:11px;color:var(--muted);font-weight:500}
+.popup-actions{display:flex;gap:10px}
+.btn-cta{flex:1;padding:13px;background:var(--cta);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-b);transition:all .15s;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-cta:hover{background:var(--cta-dark)}
+.btn-wa{padding:13px 16px;background:#25d366;color:#fff;border:none;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-wa:hover{background:#1db954}.btn-wa svg{width:20px;height:20px}
+.qr-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.qr-modal-bg.on{display:flex}
+.qr-box{background:#fff;border-radius:var(--r-xl);padding:28px;text-align:center;max-width:280px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.qr-box h3{font-family:var(--font-d);font-size:16px;font-weight:700;margin-bottom:6px}
+.qr-box p{font-size:11px;color:var(--muted);margin-bottom:16px}
+.qr-close{margin-top:16px;padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-b)}
+.promo-popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:350;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.promo-popup-bg.on{display:flex}
+.promo-popup{background:var(--surface);border-radius:var(--r-xl);width:100%;max-width:360px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.promo-popup-img{width:100%;height:200px;object-fit:cover;display:block}
+.promo-popup-img-ph{width:100%;height:200px;background:linear-gradient(135deg,var(--primary-light),#e8f0fe);display:flex;align-items:center;justify-content:center;font-size:64px}
+.promo-popup-body{padding:20px}
+.promo-popup-badge{display:inline-block;background:var(--cta);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;margin-bottom:10px}
+.promo-popup-name{font-family:var(--font-d);font-size:20px;font-weight:800;margin-bottom:4px}
+.promo-popup-store{font-size:12px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:5px}
+.promo-popup-desc{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:18px}
+.promo-popup-actions{display:flex;gap:10px}
+.promo-popup-close{position:absolute;top:10px;right:10px;width:28px;height:28px;background:rgba(0,0,0,.4);border:none;border-radius:50%;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.empty{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty-ico{font-size:52px;margin-bottom:16px;opacity:.4}
+.empty h3{font-family:var(--font-d);font-size:20px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;margin:60px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.count-badge{font-size:12px;color:var(--muted);margin-bottom:8px}
+.lk-marker-user{width:16px;height:16px;background:#16a34a;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.lk-pin-wrap{display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 3px 10px rgba(0,0,0,.35));cursor:pointer}
+.lk-pin-avatar{width:44px;height:44px;border-radius:50%;border:3px solid #fff;background:var(--primary);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:16px;font-family:var(--font-d)}
+.lk-pin-avatar img{width:100%;height:100%;object-fit:cover}
+.lk-pin-tip{width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:12px solid #fff;margin-top:-2px}
+
+/* Botones flotantes */
+.botones-flotantes{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:12px;z-index:9999}
+.btn-flotante-wa,.btn-flotante-qr{width:60px;height:60px;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:all .3s ease}
+.btn-flotante-wa{background:#25d366;color:white}.btn-flotante-wa:hover{background:#1eb954;transform:scale(1.08)}
+.btn-flotante-qr{background:var(--primary);color:white}.btn-flotante-qr:hover{background:var(--primary-dark);transform:scale(1.08)}
+.modal-qr{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;align-items:center;justify-content:center;padding:20px}
+.modal-qr-content{background:white;border-radius:20px;padding:30px 25px;text-align:center;max-width:320px;width:100%;box-shadow:0 15px 40px rgba(0,0,0,.3);position:relative}
+.modal-close{position:absolute;top:12px;right:12px;background:none;border:none;font-size:24px;cursor:pointer;color:#666}
+.btn-flayer{margin-top:15px;padding:14px 24px;background:var(--primary);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;width:100%}
+.btn-flayer:hover{background:var(--primary-dark)}
+
+@media(max-width:480px){.dir-grid{grid-template-columns:1fr 1fr}.loc-txt{font-size:12px}#leaflet-map.show{height:220px}}
+</style>
+</head>
+<body>
+<script id="schema-ld" type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"Directorio de Tiendas","numberOfItems":0,"itemListElement":[]}</script>
+
+<div class="header">
+  <div class="header-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></div>
+  <div class="header-badge">🌐 Directorio de tiendas, cerca de ti!!!</div>
+  <p class="header-loc-title" id="header-loc-title" style="display:none">📍 ¿Dónde estás?</p>
+  <div class="header-locs" id="header-locs"></div>
+</div>
+
+<!-- BUSCADOR -->
+<div class="search-wrap">
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Buscar tienda, producto o servicio..." oninput="filterDir()">
+    <button class="search-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+  </div>
+</div>
+
+<!-- FILTROS TIPO TEXTO -->
+<div style="max-width:960px;margin:0 auto;padding:12px 16px 0">
+  <div id="chips-cat" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+    <span class="ftxt active-ftxt" onclick="setCatFilter('',this)">Todos</span>
+    <span class="ftxt" onclick="setCatFilter('mayorista',this)" style="color:#7c3aed">★ Mayoristas</span>
+  </div>
+</div>
+
+<!-- FILTROS ACTIVOS -->
+<div class="active-filters" id="active-filters">
+  <span class="af-label">Filtrando por:</span>
+  <span id="af-cat-tag" style="display:none"></span>
+  <span id="af-loc-tag" style="display:none"></span>
+  <button class="clear-all" onclick="clearAllFilters()">Limpiar todo</button>
+</div>
+
+<!-- MAPA + TIENDAS CERCANAS -->
+<div class="mapa-section" id="mapa-section">
+  <div class="mapa-header">
+    <div class="mapa-title"><span>🗺️</span> <span id="mapa-title-txt">Tiendas cerca de ti</span></div>
+    <button class="mapa-toggle" id="mapa-toggle" onclick="toggleMapa()">Ver en mapa</button>
+  </div>
+  <div id="leaflet-map"></div>
+  <div class="count-badge" id="count-near" style="padding:0 4px"></div>
+  <div class="near-cards-wrap">
+    <div class="near-cards-track" id="near-cards-track">
+      <div style="padding:32px 20px;color:var(--muted);text-align:center;min-width:280px">
+        <div style="font-size:32px;margin-bottom:8px">🔍</div>
+        <div style="font-size:13px;font-weight:600">Activando ubicación...</div>
+      </div>
+    </div>
+  </div>
+  <div class="mapa-divider"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     FIX: PRODUCTOS / PROMOS DE TIENDAS CERCANAS
+     Esta sección va SIEMPRE justo debajo del carrusel near-cards
+     y del divider. Se llena con buildPromoCarouselNear().
+     ══════════════════════════════════════════════════════════ -->
+<div id="promo-near-section" style="display:none">
+  <div class="promo-section">
+    <div class="promo-label">
+      <span>🛍️</span>
+      <span id="promo-near-label-txt">Productos y ofertas cerca de ti</span>
+    </div>
+    <div class="promo-scroll" id="promo-near-scroll"></div>
+  </div>
+</div>
+
+<!-- PROMOS LOCALES (misma ciudad exacta) -->
+<div id="promo-section" style="display:none">
+  <div class="promo-section">
+    <div class="promo-label"><span>🔥</span> Promociones para ti!!!</div>
+    <div class="promo-scroll" id="promo-scroll"></div>
+  </div>
+</div>
+
+<!-- Botón para mostrar tiendas fuera del radio -->
+<div id="btn-remote-wrap" style="display:none;max-width:960px;margin:0 auto;padding:14px 16px 0;text-align:center">
+  <button id="btn-show-remote" onclick="toggleRemoteStores()"
+    style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:#fff;border:1.5px solid var(--border);border-radius:99px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--font-b);transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.06)"
+    onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+    🌎 <span id="btn-remote-txt">Ver tiendas fuera de mi zona</span>
+  </button>
+</div>
+
+<!-- GRID: resto de tiendas (no cercanas) -->
+<div class="dir-wrap" id="dir-wrap" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase">🏪 Tiendas fuera de mi zona</div>
+    <button onclick="toggleRemoteStores()" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:var(--font-b)">Ocultar ✕</button>
+  </div>
+  <div class="count-badge" id="count-badge"></div>
+  <div class="dir-grid" id="dir-grid"></div>
+</div>
+
+<!-- POPUP TIENDA -->
+<div class="popup-bg" id="popup-bg" onclick="if(event.target===this)closePopup()">
+  <div class="popup">
+    <div class="popup-banner" id="popup-banner">
+      <button class="popup-close" onclick="closePopup()">✕</button>
+      <div class="popup-logo" id="popup-logo"></div>
+    </div>
+    <div class="popup-body">
+      <div class="popup-name" id="popup-name"></div>
+      <div class="popup-location" id="popup-location"></div>
+      <div class="popup-keywords" id="popup-keywords"></div>
+      <div class="popup-desc" id="popup-desc"></div>
+      <div class="popup-qr"><div id="popup-qr-code"></div><div class="popup-qr-label">Escanea y vamos a la tienda</div></div>
+      <div class="popup-actions">
+        <a class="btn-cta" id="popup-visit-btn" href="#" target="_blank"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>Visitar tienda</a>
+        <button class="btn-wa" id="popup-wa-btn" style="display:none" onclick="openWA()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROMO POPUP -->
+<div class="promo-popup-bg" id="promo-popup-bg" onclick="if(event.target===this)closePromoPopup()">
+  <div class="promo-popup" style="position:relative">
+    <button class="promo-popup-close" onclick="closePromoPopup()">✕</button>
+    <div id="promo-popup-img-wrap"></div>
+    <div class="promo-popup-body">
+      <div class="promo-popup-badge" id="promo-popup-badge">🔥 Promoción para ti</div>
+      <div class="promo-popup-name" id="promo-popup-name"></div>
+      <div class="promo-popup-store" id="promo-popup-store"></div>
+      <div class="promo-popup-desc" id="promo-popup-desc"></div>
+      <div class="promo-popup-actions"><button class="btn-cta" id="promo-popup-btn">Vamos a la tienda →</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- QR MODAL -->
+<div class="qr-modal-bg" id="qr-modal-bg" onclick="if(event.target===this)closeQR()">
+  <div class="qr-box"><h3 id="qr-store-name"></h3><p>Escanea y vamos a la tienda!!!</p><div id="qr-code-small"></div><button class="qr-close" onclick="closeQR()">Cerrar</button></div>
+</div>
+
+<script>
+var params=new URLSearchParams(location.search);
+var BACKEND=params.get('backend')||localStorage.getItem('ld_backend')||'https://script.google.com/macros/s/AKfycbwUhTHQkBhLIvF9KgP2bHpVeufIEaPCXZWo9-azz7mYrEEA79BPFCQxE68YQQxE5iw/exec';
+var STORE_BASE=params.get('storeBase')||'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
+var ALL_STORES=[],activeCat='',activeLoc='',currentWA='';
+var _userLat=null,_userLng=null,_userLoc='',_userState='',_userCountry='';
+var _leafletMap=null,_mapaVisible=false;
+var _leafletMarkers={};
+var RADIO_KM=50;
+var _idsCercanas=[];
+
+function fixImgUrl(u){if(!u)return'';var m=u.match(/[?&]id=([\w-]+)/);if(m)return'https://lh3.googleusercontent.com/d/'+m[1];var m2=u.match(/\/d\/([\w-]+)/);if(m2)return'https://lh3.googleusercontent.com/d/'+m2[1];return u;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function buildStoreUrl(id){return STORE_BASE+'?backend='+encodeURIComponent(BACKEND)+'&store='+encodeURIComponent(id);}
+function parseKeywords(raw){return raw?raw.split(',').map(function(k){return k.trim();}).filter(Boolean):[];}
+function parseLocation(raw,cfg){if(cfg&&cfg.directoryCity)return cfg.directoryCity;if(!raw)return'';return raw.split(',')[0].trim();}
+function haversineKm(la1,ln1,la2,ln2){var R=6371,dL=(la2-la1)*Math.PI/180,dN=(ln2-ln1)*Math.PI/180;var a=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dN/2)*Math.sin(dN/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+
+window.addEventListener('load',async function(){
+  if(!BACKEND)return;
+  try{
+    var r=await fetch(BACKEND+'?action=stores.directory');
+    var d=JSON.parse(await r.text());
+    var stores=(d.stores||[]).map(function(s){s.config=(typeof s.config==='string')?JSON.parse(s.config):(s.config||{});return s;});
+    ALL_STORES=stores;
+    buildLocHeader(stores);
+    buildCatFilters(stores);
+    updateSEO(stores);
+    detectUserLocation(stores);
+  }catch(e){
+    document.getElementById('near-cards-track').innerHTML='<div style="padding:32px 20px;color:var(--muted);text-align:center;min-width:280px"><div style="font-size:32px">😕</div><div style="font-size:13px;margin-top:8px">'+esc(e.message)+'</div></div>';
+  }
+});
+
+async function detectUserLocation(stores){
+  if(!BACKEND)return;
+  if(navigator.geolocation){
+    try{
+      var pos=await new Promise(function(res,rej){navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000,enableHighAccuracy:false});});
+      _userLat=pos.coords.latitude;_userLng=pos.coords.longitude;
+    }catch(e){}
+  }
+  if(_userLat===null){
+    var urlLat=parseFloat(params.get('lat')||''),urlLng=parseFloat(params.get('lng')||'');
+    if(!isNaN(urlLat)&&!isNaN(urlLng)){_userLat=urlLat;_userLng=urlLng;}
+  }
+  if(_userLat!==null){
+    try{
+      var nr=await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_userLat+'&lon='+_userLng+'&zoom=10&addressdetails=1',{headers:{'Accept-Language':'es'}});
+      var nd=await nr.json();
+      var a=nd.address||{};
+      _userLoc=a.city||a.town||a.village||a.suburb||a.county||a.state||'';
+      _userState=(a.state||a['state_district']||'').toLowerCase().trim();
+      _userCountry=(a.country_code||'').toLowerCase().trim();
+    }catch(e){}
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     FILTRO CERCANAS: coordenadas GPS + mismo estado
+     1) Tiendas con coords: usar haversine <= RADIO_KM
+     2) Tiendas sin coords pero con texto de ciudad: coincidencia
+     3) De ambas listas: descartar las que sean de OTRO estado
+        usando reverse geocoding de sus propias coordenadas.
+        Si la tienda no tiene coords → confiar en texto de ciudad.
+     ══════════════════════════════════════════════════════════════ */
+  var cercanas=[];
+  if(_userLat!==null){
+    /* Paso A: por km (tiendas con coordenadas) */
+    var porKm=stores.filter(function(s){
+      var cfg=s.config||{};
+      var lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
+      return !isNaN(lat)&&!isNaN(lng)&&haversineKm(_userLat,_userLng,lat,lng)<=RADIO_KM;
+    });
+
+    /* Paso B: por texto de ciudad (tiendas sin coords o con nombre de ciudad coincidente) */
+    var porTexto=[];
+    if(_userLoc&&_userLoc.length>2){
+      var locN=_userLoc.toLowerCase().trim();
+      porTexto=stores.filter(function(s){
+        var cfg=s.config||{};
+        var storeLoc=(parseLocation(cfg.storeLocation,cfg)||'').toLowerCase().trim();
+        var fullLoc=(cfg.storeLocation||'').toLowerCase().trim();
+        return storeLoc===locN||fullLoc===locN||storeLoc.includes(locN)||locN.includes(storeLoc);
+      });
+    }
+
+    /* Unir sin duplicados */
+    var seen={};
+    porKm.concat(porTexto).forEach(function(s){
+      if(!seen[s.storeId]){seen[s.storeId]=s;cercanas.push(s);}
+    });
+
+    /* Paso C: Si tenemos estado del usuario, descartar tiendas de otro estado.
+       Para tiendas CON coordenadas: obtener su estado via reverse geocoding.
+       Para tiendas SIN coordenadas: revisar si el texto de storeLocation
+       contiene el nombre del estado del usuario (match flexible). */
+    if(_userState&&cercanas.length>0){
+      /* Reverse geocode solo de las tiendas con coords que pasaron el filtro de km */
+      var conCoords=cercanas.filter(function(s){
+        var cfg=s.config||{};
+        return !isNaN(parseFloat(cfg.locationLat))&&!isNaN(parseFloat(cfg.locationLng));
+      });
+      /* Obtener estado de cada tienda con coords (en paralelo, máx 5 para no saturar Nominatim) */
+      var storeStates={};
+      await Promise.all(conCoords.slice(0,10).map(async function(s){
+        var cfg=s.config||{};
+        try{
+          var tr=await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+cfg.locationLat+'&lon='+cfg.locationLng+'&zoom=8&addressdetails=1',{headers:{'Accept-Language':'es'}});
+          var td=await tr.json();
+          var ta=td.address||{};
+          storeStates[s.storeId]=(ta.state||ta['state_district']||'').toLowerCase().trim();
+        }catch(e){storeStates[s.storeId]=_userState;/* en error, asumir mismo estado */}
+      }));
+
+      cercanas=cercanas.filter(function(s){
+        var cfg=s.config||{};
+        var hasCoords=!isNaN(parseFloat(cfg.locationLat))&&!isNaN(parseFloat(cfg.locationLng));
+        if(hasCoords&&storeStates[s.storeId]!==undefined){
+          /* Comparar estado de la tienda con estado del usuario */
+          return storeStates[s.storeId]===_userState;
+        }
+        /* Sin coords o sin dato de reverse: match flexible por texto */
+        var fullLoc=(cfg.storeLocation||'').toLowerCase();
+        var dirCity=(cfg.directoryCity||'').toLowerCase();
+        /* Aceptar si el texto de ubicación contiene alguna palabra clave del estado */
+        var stateWords=_userState.split(/\s+/).filter(function(w){return w.length>3;});
+        return stateWords.length===0||stateWords.some(function(w){return fullLoc.includes(w)||dirCity.includes(w);});
+      });
+    }
+  } else if(_userLoc&&_userLoc.length>2){
+    /* Sin GPS: solo texto */
+    var locN2=_userLoc.toLowerCase().trim();
+    cercanas=stores.filter(function(s){
+      var cfg=s.config||{};
+      var storeLoc=(parseLocation(cfg.storeLocation,cfg)||'').toLowerCase().trim();
+      var fullLoc=(cfg.storeLocation||'').toLowerCase().trim();
+      return storeLoc===locN2||fullLoc===locN2||storeLoc.includes(locN2)||locN2.includes(storeLoc);
+    });
+  }
+  if(_userLat!==null&&cercanas.length>0){
+    cercanas.sort(function(a,b){
+      var ca=a.config||{},cb=b.config||{};
+      var la=parseFloat(ca.locationLat),lb=parseFloat(cb.locationLat);
+      if(isNaN(la)||isNaN(lb))return 0;
+      return haversineKm(_userLat,_userLng,la,parseFloat(ca.locationLng))-haversineKm(_userLat,_userLng,lb,parseFloat(cb.locationLng));
+    });
+  }
+
+  _idsCercanas=cercanas.map(function(s){return s.storeId;});
+  buildNearCards(cercanas);
+  buildLeafletMap(cercanas);
+
+  /* ══════════════════════════════════════════════════════
+     FIX PRINCIPAL: construir productos/promos de cercanas
+     Se llama DESPUÉS de buildNearCards para que aparezca
+     justo debajo del carrusel, respetando el orden del DOM.
+     ══════════════════════════════════════════════════════ */
+  buildPromoCarouselNear(cercanas);
+
+  var restantes=stores.filter(function(s){return _idsCercanas.indexOf(s.storeId)===-1;});
+  renderGrid(restantes);
+  buildPromoCarouselLocal(stores,_userLoc);
+}
+
+/* ── NEAR CARDS ── */
+function buildNearCards(cercanas){
+  var track=document.getElementById('near-cards-track');
+  var badge=document.getElementById('count-near');
+  var titleEl=document.getElementById('mapa-title-txt');
+  if(!cercanas.length){
+    track.innerHTML='<div style="padding:32px 20px;color:var(--muted);text-align:center;min-width:280px"><div style="font-size:32px;margin-bottom:8px">📍</div><div style="font-size:13px;font-weight:600">Sin tiendas cercanas</div><div style="font-size:12px;margin-top:4px">Prueba otra búsqueda o Activa tu GPS !!!</div></div>';
+    badge.textContent='';return;
+  }
+  badge.textContent=cercanas.length+' tienda'+(cercanas.length!==1?'s':'')+' cerca';
+  if(titleEl)titleEl.textContent=_userLoc?'Tiendas en '+_userLoc:'Tiendas en el mapa';
+  track.innerHTML=cercanas.map(function(s){
+    var cfg=s.config||{};var ini=(s.name||'?')[0].toUpperCase();
+    var logoSrc=fixImgUrl(cfg.logo||cfg.logoUrl||'');var bannerSrc=fixImgUrl(cfg.bannerUrl||'');
+    var kws=parseKeywords(cfg.keywords).slice(0,2).join(', ');
+    var dist=(_userLat!==null&&!isNaN(parseFloat(cfg.locationLat)))?haversineKm(_userLat,_userLng,parseFloat(cfg.locationLat),parseFloat(cfg.locationLng)).toFixed(1)+' km':'';
+    var locC=parseLocation(cfg.storeLocation,cfg);
+    return'<div class="near-card" id="nc-'+s.storeId+'" onclick="openPopup(\''+s.storeId+'\')" onmouseenter="highlightMarker(\''+s.storeId+'\')">'
+      +'<div class="near-card-banner" style="'+(bannerSrc?'background-image:url('+bannerSrc+')':'background:var(--primary)')+'"><div class="near-card-logo">'+(logoSrc?'<img src="'+esc(logoSrc)+'" onerror="this.parentNode.textContent=\''+ini+'\'">':ini)+'</div></div>'
+      +'<div class="near-card-body"><div class="near-card-name">'+esc(s.name)+'</div>'+(dist?'<div class="near-card-dist">📍 '+dist+'</div>':(locC?'<div class="near-card-dist">📍 '+esc(locC)+'</div>':''))+(kws?'<div class="near-card-kw">'+esc(kws)+'</div>':'')+'<button class="near-card-btn" onclick="event.stopPropagation();window.open(\''+buildStoreUrl(s.storeId)+'\',\'_blank\')">Ver tienda →</button></div></div>';
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   FIX: buildPromoCarouselNear — productos/promos de tiendas CERCANAS
+   
+   Lógica de prioridad por card (una por tienda, sin duplicar):
+   1. Si la tienda tiene promoImage + promoTitle → muestra esa promo
+   2. Si tiene al menos promoTitle o promoDesc → muestra con placeholder
+   3. FALLBACK: muestra "producto catálogo" usando logo + keywords + desc
+      de la tienda, para que SIEMPRE haya algo visual de cada tienda cercana.
+   
+   El resultado se coloca en #promo-near-section que está en el DOM
+   justo debajo del .mapa-divider, por lo que no requiere reordenar nada.
+   ══════════════════════════════════════════════════════════════════════ */
+function buildPromoCarouselNear(cercanas){
+  var promos=[];
+  cercanas.forEach(function(s){
+    var cfg=s.config||{};
+    var hasPromoImg=!!(cfg.promoImage);
+    var hasPromoTitle=!!(cfg.promoTitle);
+    var hasPromo=hasPromoImg||hasPromoTitle||!!(cfg.promoDesc);
+
+    var kws=parseKeywords(cfg.keywords);
+    var logoSrc=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+
+    if(hasPromo){
+      /* Caso 1 y 2: la tienda tiene datos de promo explícitos */
+      promos.push({
+        storeId:s.storeId,
+        storeName:s.name,
+        logoSrc:logoSrc,
+        title:cfg.promoTitle||(kws.slice(0,2).join(', ')||s.name),
+        desc:cfg.promoDesc||cfg.description||'Visita nuestra tienda y conoce nuestros productos.',
+        img:fixImgUrl(cfg.promoImage||''),
+        storeUrl:buildStoreUrl(s.storeId),
+        isPromo:true
+      });
+    } else {
+      /* Caso 3 FALLBACK: construir card catálogo desde datos de la tienda */
+      promos.push({
+        storeId:s.storeId,
+        storeName:s.name,
+        logoSrc:logoSrc,
+        title:kws.slice(0,2).join(', ')||s.name,
+        desc:cfg.description||'Visita nuestra tienda y conoce nuestros productos y servicios.',
+        img:'',   /* sin imagen de promo → se usa placeholder con logo */
+        storeUrl:buildStoreUrl(s.storeId),
+        isPromo:false
+      });
+    }
+  });
+
+  var section=document.getElementById('promo-near-section');
+  var scroll=document.getElementById('promo-near-scroll');
+  var labelTxt=document.getElementById('promo-near-label-txt');
+
+  if(!promos.length){section.style.display='none';return;}
+
+  /* Actualizar label según si hay promos reales o solo catálogo */
+  var hayPromos=promos.some(function(p){return p.isPromo;});
+  if(labelTxt)labelTxt.textContent=hayPromos
+    ?'Productos y ofertas cerca de ti'
+    :'Catálogo de tiendas cerca de ti';
+
+  window._PROMOS_NEAR=promos;
+  section.style.display='';
+
+  scroll.innerHTML=promos.map(function(p,i){
+    /* Imagen: promo real → img tag; fallback → placeholder con inicial/logo */
+    var imgH;
+    if(p.img){
+      imgH='<img class="promo-img" src="'+esc(p.img)+'" onerror="this.parentNode.innerHTML=\''+buildFallbackImgHtml(p)+'\'">'; 
+    } else {
+      imgH=buildFallbackImgHtml(p);
+    }
+    /* Badge: verde para catálogo, naranja/cta para promo real */
+    var badge=p.isPromo
+      ?'<div class="promo-badge near">🛍️ Oferta</div>'
+      :'<div class="promo-badge near" style="background:#16a34a">📦 Catálogo</div>';
+    /* Logo miniatura de la tienda en la fila inferior */
+    var logoH=p.logoSrc
+      ?'<div class="promo-store-logo"><img src="'+esc(p.logoSrc)+'" onerror="this.parentNode.textContent=\''+esc((p.storeName||'?')[0].toUpperCase())+'\'"></div>'
+      :'<div class="promo-store-logo">'+esc((p.storeName||'?')[0].toUpperCase())+'</div>';
+    return'<div class="promo-card" onclick="openPromoPopupNear('+i+')">'
+      +badge+imgH
+      +'<div class="promo-info">'
+        +'<div class="promo-name">'+esc(p.title)+'</div>'
+        +'<div class="promo-store-row">'+logoH+'<span>'+esc(p.storeName)+'</span></div>'
+      +'</div></div>';
+  }).join('');
+}
+
+/* Genera el HTML del placeholder visual para cards sin imagen de promo */
+function buildFallbackImgHtml(p){
+  var ini=esc((p.storeName||'?')[0].toUpperCase());
+  var logoTag=p.logoSrc
+    ?'<img src="'+esc(p.logoSrc)+'" style="width:60px;height:60px;border-radius:12px;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2)" onerror="this.style.display=\'none\'">'
+    :'<div style="width:60px;height:60px;border-radius:12px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;border:3px solid #fff">'+ini+'</div>';
+  return'<div class="promo-img-placeholder" style="flex-direction:column;gap:8px;">'+logoTag+'</div>';
+}
+
+function openPromoPopupNear(idx){
+  var p=(window._PROMOS_NEAR||[])[idx];if(!p)return;
+  /* Imagen o fallback en el popup */
+  document.getElementById('promo-popup-img-wrap').innerHTML=p.img
+    ?'<img class="promo-popup-img" src="'+esc(p.img)+'" onerror="this.parentNode.innerHTML=\'<div class=promo-popup-img-ph>🛍️</div>\'">'
+    :'<div class="promo-popup-img-ph">🛍️</div>';
+  /* Badge dinámico */
+  var badge=document.getElementById('promo-popup-badge');
+  if(badge)badge.textContent=p.isPromo?'🔥 Promoción para ti':'📦 Producto de catálogo';
+  document.getElementById('promo-popup-name').textContent=p.title;
+  /* Logo de la tienda en la línea de la tienda */
+  var logoH=p.logoSrc
+    ?'<img src="'+esc(p.logoSrc)+'" style="width:20px;height:20px;border-radius:5px;object-fit:cover;vertical-align:middle;margin-right:4px" onerror="this.style.display=\'none\'">'
+    :'';
+  document.getElementById('promo-popup-store').innerHTML=logoH+'🏪 '+esc(p.storeName);
+  document.getElementById('promo-popup-desc').textContent=p.desc;
+  document.getElementById('promo-popup-btn').onclick=function(){window.open(p.storeUrl,'_blank');};
+  document.getElementById('promo-popup-bg').classList.add('on');
+}
+
+/* ── GRID (otras tiendas, sin duplicar cercanas) ── */
+var _remoteStores=[],_remoteVisible=false;
+function renderGrid(stores){
+  _remoteStores=stores;_remoteVisible=false;
+  var wrap=document.getElementById('dir-wrap');
+  var btnWrap=document.getElementById('btn-remote-wrap');
+  /* Siempre oculto hasta que el usuario haga clic */
+  wrap.style.display='none';
+  document.getElementById('dir-grid').innerHTML='';
+  document.getElementById('count-badge').textContent='';
+  if(!stores.length){btnWrap.style.display='none';return;}
+  btnWrap.style.display='';
+  document.getElementById('btn-remote-txt').textContent='Ver '+stores.length+' tienda'+(stores.length!==1?'s':'')+' fuera de mi zona (más de '+RADIO_KM+' km)';
+}
+function _renderRemoteGrid(){
+  var g=document.getElementById('dir-grid'),badge=document.getElementById('count-badge');
+  badge.textContent=_remoteStores.length+' tienda'+(_remoteStores.length!==1?'s':'')+' más disponible'+(_remoteStores.length!==1?'s':'');
+  g.innerHTML=_remoteStores.map(function(s){
+    var cfg=s.config||{},ini=(s.name||'?')[0].toUpperCase();
+    var logoSrc=fixImgUrl(cfg.logo||cfg.logoUrl||''),bannerSrc=fixImgUrl(cfg.bannerUrl||'');
+    var kws=parseKeywords(cfg.keywords),locC=parseLocation(cfg.storeLocation,cfg);
+    var kwH=kws.slice(0,3).map(function(kw){return'<span class="store-kw-tag" onclick="event.stopPropagation();setCatFilterByValue(\''+esc(kw.toLowerCase())+'\')">'+esc(kw)+'</span>';}).join('');
+    if(kws.length>3)kwH+='<span class="store-kw-tag" style="opacity:.6">+'+(kws.length-3)+'</span>';
+    var locH=locC?'<span class="store-loc-tag" onclick="event.stopPropagation();setLocFilterByValue(\''+esc(locC.toLowerCase())+'\')">📍 '+esc(locC)+'</span>':'';
+    return'<div class="store-card" onclick="openPopup(\''+s.storeId+'\')">'
+      +'<div class="store-banner" style="'+(bannerSrc?'background-image:url('+bannerSrc+')':'background:var(--primary)')+'"><div class="store-logo">'+(logoSrc?'<img src="'+esc(logoSrc)+'" onerror="this.parentNode.textContent=\''+ini+'\'">':ini)+'</div></div>'
+      +'<div class="store-body"><div class="store-name">'+esc(s.name)+'</div><div class="store-desc">'+esc((cfg.description||'Visita nuestra tienda').slice(0,80))+'</div><div class="store-keywords">'+kwH+locH+'</div>'
+      +(cfg.businessType==='mayorista'?'<div class="store-tags"><span class="store-tag mayorista">★ Mayoreo</span></div>':'')
+      +'<div class="store-foot"><button class="btn-visit" onclick="event.stopPropagation();window.open(\''+buildStoreUrl(s.storeId)+'\',\'_blank\')">Ver tienda →</button>'
+      +'<div class="btn-qr" onclick="event.stopPropagation();openQR(\''+s.storeId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 20h3M20 17v3"/></svg></div></div></div></div>';
+  }).join('');
+}
+function toggleRemoteStores(){
+  _remoteVisible=!_remoteVisible;
+  var wrap=document.getElementById('dir-wrap'),btnTxt=document.getElementById('btn-remote-txt');
+  if(_remoteVisible){
+    _renderRemoteGrid();
+    wrap.style.display='';
+    btnTxt.textContent='Ocultar tiendas fuera de mi zona';
+    wrap.scrollIntoView({behavior:'smooth',block:'start'});
+  } else {
+    wrap.style.display='none';
+    document.getElementById('dir-grid').innerHTML='';
+    document.getElementById('count-badge').textContent='';
+    btnTxt.textContent='Ver '+_remoteStores.length+' tienda'+(_remoteStores.length!==1?'s':'')+' fuera de mi zona (más de '+RADIO_KM+' km)';
+  }
+}
+
+/* ── PROMOS LOCALES: solo misma ciudad/pueblo ── */
+function buildPromoCarouselLocal(stores,userLoc){
+  var promos=[],userLocN=(userLoc||'').toLowerCase();
+  stores.forEach(function(s){
+    var cfg=s.config||{};
+    var storeLoc=parseLocation(cfg.storeLocation,cfg).toLowerCase();
+    var mismaCiudad=userLocN&&storeLoc&&(storeLoc===userLocN||storeLoc.includes(userLocN)||userLocN.includes(storeLoc));
+    if(mismaCiudad&&(cfg.promoImage||cfg.promoTitle)){
+      promos.push({storeId:s.storeId,storeName:s.name,title:cfg.promoTitle||s.name,desc:cfg.promoDesc||cfg.description||'',img:fixImgUrl(cfg.promoImage||''),storeUrl:buildStoreUrl(s.storeId)});
+    }
+  });
+  var section=document.getElementById('promo-section'),scroll=document.getElementById('promo-scroll');
+  if(!promos.length){section.style.display='none';return;}
+  window._PROMOS=promos;section.style.display='';
+  scroll.innerHTML=promos.map(function(p,i){
+    var imgH=p.img?'<img class="promo-img" src="'+esc(p.img)+'" onerror="this.parentNode.innerHTML=\'<div class=promo-img-placeholder>🛍️</div>\'">':'<div class="promo-img-placeholder">🛍️</div>';
+    return'<div class="promo-card" onclick="openPromoPopup('+i+')"><div class="promo-badge">🔥 Promo</div>'+imgH+'<div class="promo-info"><div class="promo-name">'+esc(p.title)+'</div><div class="promo-store">'+esc(p.storeName)+'</div></div></div>';
+  }).join('');
+}
+function openPromoPopup(idx){
+  var p=(window._PROMOS||[])[idx];if(!p)return;
+  document.getElementById('promo-popup-img-wrap').innerHTML=p.img?'<img class="promo-popup-img" src="'+esc(p.img)+'" onerror="this.parentNode.innerHTML=\'<div class=promo-popup-img-ph>🛍️</div>\'">':'<div class="promo-popup-img-ph">🛍️</div>';
+  var badge=document.getElementById('promo-popup-badge');if(badge)badge.textContent='🔥 Promoción para ti';
+  document.getElementById('promo-popup-name').textContent=p.title;
+  document.getElementById('promo-popup-store').innerHTML='🏪 '+esc(p.storeName);
+  document.getElementById('promo-popup-desc').textContent=p.desc;
+  document.getElementById('promo-popup-btn').onclick=function(){window.open(p.storeUrl,'_blank');};
+  document.getElementById('promo-popup-bg').classList.add('on');
+}
+function closePromoPopup(){document.getElementById('promo-popup-bg').classList.remove('on');}
+
+/* ── MAPA LEAFLET ── */
+function buildLeafletMap(cercanas){window._NEAR_STORES_MAP=cercanas;}
+function toggleMapa(){
+  _mapaVisible=!_mapaVisible;
+  var mapEl=document.getElementById('leaflet-map'),toggle=document.getElementById('mapa-toggle');
+  mapEl.classList.toggle('show',_mapaVisible);
+  toggle.textContent=_mapaVisible?'Ocultar mapa':'Ver en mapa';
+  if(_mapaVisible&&!_leafletMap){
+    var cercanas=window._NEAR_STORES_MAP||[];
+    var centerLat=_userLat,centerLng=_userLng;
+    if(!centerLat&&cercanas.length){centerLat=parseFloat(cercanas[0].config.locationLat);centerLng=parseFloat(cercanas[0].config.locationLng);}
+    _leafletMap=L.map('leaflet-map').setView([centerLat||20.5881,centerLng||-100.3889],13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>',maxZoom:19}).addTo(_leafletMap);
+    if(_userLat){var ui=L.divIcon({html:'<div class="lk-marker-user"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});L.marker([_userLat,_userLng],{icon:ui}).addTo(_leafletMap).bindPopup('<b>📍 Tu ubicación</b>').openPopup();}
+    cercanas.forEach(function(s){
+      var cfg=s.config||{};var lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);if(isNaN(lat)||isNaN(lng))return;
+      var kws=parseKeywords(cfg.keywords).slice(0,2).join(', ');var url=buildStoreUrl(s.storeId);
+      var dist=_userLat?haversineKm(_userLat,_userLng,lat,lng).toFixed(1)+' km':'';var ini=(s.name||'?')[0].toUpperCase();
+      var logoSrc=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+      var avatarHtml=logoSrc?'<img src="'+esc(logoSrc)+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><span style="display:none;width:100%;height:100%;align-items:center;justify-content:center">'+ini+'</span>':ini;
+      var pinHtml='<div class="lk-pin-wrap"><div class="lk-pin-avatar">'+avatarHtml+'</div><div class="lk-pin-tip"></div></div>';
+      var si=L.divIcon({html:pinHtml,iconSize:[44,58],iconAnchor:[22,58],popupAnchor:[0,-60],className:''});
+      var pop=L.popup({maxWidth:240}).setContent('<div style="font-family:Inter,sans-serif;min-width:180px">'+(logoSrc?'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><img src="'+esc(logoSrc)+'" style="width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid #eee" onerror="this.style.display=\'none\'"><div style="font-weight:700;font-size:14px">'+esc(s.name)+'</div></div>':'<div style="font-weight:700;font-size:14px;margin-bottom:6px">'+esc(s.name)+'</div>')+(dist?'<div style="font-size:11px;color:#717185;margin-bottom:4px">📍 '+dist+'</div>':'')+(kws?'<div style="font-size:11px;color:#1a73e8;margin-bottom:8px">'+esc(kws)+'</div>':'')+'<div style="display:flex;gap:6px"><button onclick="openPopup(\''+s.storeId+'\')" style="flex:1;padding:7px;background:#1a73e8;color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer">Ver detalle</button><a href="'+url+'" target="_blank" style="flex:1;padding:7px;background:#ff6900;color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:600;text-align:center;text-decoration:none">Ir a tienda</a></div></div>');
+      var marker=L.marker([lat,lng],{icon:si}).addTo(_leafletMap).bindPopup(pop);
+      marker.on('click',function(){scrollToNearCard(s.storeId);});
+      _leafletMarkers[s.storeId]=marker;
+    });
+    if(cercanas.length>1){var validBounds=cercanas.filter(function(s){return !isNaN(parseFloat(s.config.locationLat));});if(validBounds.length){var bounds=L.latLngBounds(validBounds.map(function(s){return[parseFloat(s.config.locationLat),parseFloat(s.config.locationLng)];}));if(_userLat)bounds.extend([_userLat,_userLng]);_leafletMap.fitBounds(bounds,{padding:[30,30]});}}
+    setTimeout(function(){_leafletMap.invalidateSize();},200);
+  } else if(_mapaVisible&&_leafletMap){setTimeout(function(){_leafletMap.invalidateSize();},100);}
+}
+function highlightMarker(id){var m=_leafletMarkers[id];if(m)m.openPopup();}
+function scrollToNearCard(id){var c=document.getElementById('nc-'+id);if(!c)return;c.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});c.classList.add('highlighted');setTimeout(function(){c.classList.remove('highlighted');},2000);}
+
+/* ── HEADER LOCS ── */
+function buildLocHeader(stores){
+  var locSet={};stores.forEach(function(s){var l=parseLocation(s.config.storeLocation,s.config);if(l)locSet[l.toLowerCase()]=l;});
+  var hdrLocs=document.getElementById('header-locs'),title=document.getElementById('header-loc-title');
+  var locs=Object.values(locSet).sort();if(!locs.length)return;title.style.display='';hdrLocs.innerHTML='';
+  var all=document.createElement('span');all.className='loc-txt active';all.textContent='Todas';all.onclick=function(){setLocFilter('',all);};hdrLocs.appendChild(all);
+  locs.forEach(function(loc){var t=document.createElement('span');t.className='loc-txt';t.textContent=loc;t.dataset.loc=loc.toLowerCase();t.onclick=function(){setLocFilter(loc.toLowerCase(),t);};hdrLocs.appendChild(t);});
+}
+
+/* ── FILTROS ── */
+function buildCatFilters(stores){
+  var kwSet={};stores.forEach(function(s){parseKeywords(s.config.keywords).forEach(function(k){kwSet[k.toLowerCase()]=k;});});
+  var el=document.getElementById('chips-cat');
+  el.innerHTML='<span class="ftxt active-ftxt" onclick="setCatFilter(\'\',this)">Todos</span><span class="ftxt" onclick="setCatFilter(\'mayorista\',this)" style="color:#7c3aed">★ Mayoristas</span>';
+  Object.keys(kwSet).sort().forEach(function(kl){var c=document.createElement('span');c.className='ftxt';c.textContent=kwSet[kl];c.onclick=function(){setCatFilter(kl,c);};el.appendChild(c);});
+}
+function setCatFilter(f,el){activeCat=f;document.querySelectorAll('#chips-cat .ftxt').forEach(function(c){c.classList.remove('active-ftxt');c.style.color='';});if(el){el.classList.add('active-ftxt');if(f==='mayorista')el.style.color='#7c3aed';}updateAF();filterDir();}
+function setLocFilter(f,el){activeLoc=f;document.querySelectorAll('#header-locs .loc-txt').forEach(function(t){t.classList.remove('active');});if(el)el.classList.add('active');updateAF();filterDir();}
+function updateAF(){var af=document.getElementById('active-filters'),ct=document.getElementById('af-cat-tag'),lt=document.getElementById('af-loc-tag');af.classList.toggle('show',!!(activeCat||activeLoc));ct.style.display=activeCat?'':'none';if(activeCat)ct.innerHTML='<span class="af-tag">🛍 '+activeCat+' <button onclick="clearCat()">×</button></span>';lt.style.display=activeLoc?'':'none';if(activeLoc)lt.innerHTML='<span class="af-tag loc">📍 '+activeLoc+' <button onclick="clearLoc()">×</button></span>';}
+function clearCat(){activeCat='';document.querySelectorAll('#chips-cat .ftxt').forEach(function(c){c.classList.remove('active-ftxt');c.style.color='';});var f=document.querySelector('#chips-cat .ftxt');if(f)f.classList.add('active-ftxt');updateAF();filterDir();}
+function clearLoc(){activeLoc='';document.querySelectorAll('#header-locs .loc-txt').forEach(function(t){t.classList.remove('active');});var f=document.querySelector('#header-locs .loc-txt');if(f)f.classList.add('active');updateAF();filterDir();}
+function clearAllFilters(){clearCat();clearLoc();document.getElementById('search-input').value='';filterDir();}
+
+function filterDir(){
+  var q=(document.getElementById('search-input').value||'').toLowerCase().trim();
+  var hayFiltro=q||activeCat||activeLoc;
+  var list=ALL_STORES.filter(function(s){
+    var cfg=s.config||{},kws=parseKeywords(cfg.keywords),loc=parseLocation(cfg.storeLocation,cfg).toLowerCase(),kwt=kws.map(function(k){return k.toLowerCase();}).join(' ');
+    var mQ=!q||[(s.name||'').toLowerCase(),(cfg.description||'').toLowerCase(),kwt,loc,(cfg.storeLocation||'').toLowerCase()].some(function(f){return f.includes(q);});
+    var mC=!activeCat?true:activeCat==='mayorista'?cfg.businessType==='mayorista':kws.some(function(k){return k.toLowerCase()===activeCat;});
+    var mL=!activeLoc||loc===activeLoc;
+    return mQ&&mC&&mL;
+  });
+  if(!hayFiltro){
+    var cercanas=ALL_STORES.filter(function(s){return _idsCercanas.indexOf(s.storeId)!==-1;});
+    buildNearCards(cercanas);
+    /* Reconstruir también el carrusel de promos/catálogo al limpiar filtros */
+    buildPromoCarouselNear(cercanas);
+    var restantes=ALL_STORES.filter(function(s){return _idsCercanas.indexOf(s.storeId)===-1;});
+    renderGrid(restantes);
+    return;
+  }
+  /* Con filtro: mostrar resultados en near-cards, ocultar sección promo-near */
+  buildNearCards(list);
+  document.getElementById('promo-near-section').style.display='none';
+  renderGrid([]);
+}
+
+function setCatFilterByValue(v){document.querySelectorAll('#chips-cat .ftxt').forEach(function(c){if(c.textContent.trim().toLowerCase()===v)setCatFilter(v,c);});}
+function setLocFilterByValue(v){document.querySelectorAll('#header-locs .loc-txt').forEach(function(t){if((t.dataset.loc||'')===v)setLocFilter(v,t);});}
+
+function updateSEO(stores){var kwSet={},locSet={};stores.forEach(function(s){parseKeywords(s.config.keywords).forEach(function(k){kwSet[k.toLowerCase()]=k;});var l=parseLocation(s.config.storeLocation,s.config);if(l)locSet[l.toLowerCase()]=l;});var kwC=Object.values(kwSet).join(', '),locC=Object.values(locSet).join(', '),comb=[kwC,locC].filter(Boolean).join(', ');document.getElementById('meta-keywords').content='tiendas, directorio, '+comb;var dt='Directorio de tiendas con: '+kwC+'. Ubicadas en: '+locC+'.';document.getElementById('meta-desc').content=dt;document.getElementById('og-desc').content=dt;document.title='Directorio — '+(kwC.slice(0,50)||'Tiendas')+' | '+(locC.slice(0,40)||'Localidades');document.getElementById('schema-ld').textContent=JSON.stringify({'@context':'https://schema.org','@type':'ItemList','name':'Directorio de Tiendas','description':dt,'numberOfItems':stores.length,'keywords':comb,'itemListElement':stores.map(function(s,i){var cfg=s.config||{};return{'@type':'ListItem','position':i+1,'item':{'@type':'LocalBusiness','name':s.name,'description':cfg.description||'','url':buildStoreUrl(s.storeId),'keywords':(cfg.keywords||'')+', '+(cfg.storeLocation||''),'address':{'@type':'PostalAddress','addressLocality':parseLocation(cfg.storeLocation,cfg)}}};})});}
+
+function openPopup(id){
+  var s=ALL_STORES.find(function(x){return x.storeId===id;});if(!s)return;
+  var cfg=s.config||{},logo=fixImgUrl(cfg.logo||cfg.logoUrl||''),banner=fixImgUrl(cfg.bannerUrl||'');
+  var ini=(s.name||'?')[0].toUpperCase(),url=buildStoreUrl(id),kws=parseKeywords(cfg.keywords),loc=parseLocation(cfg.storeLocation,cfg);
+  currentWA=cfg.whatsapp||'';
+  document.getElementById('popup-banner').style.background=banner?'url('+banner+') center/cover no-repeat':'var(--primary)';
+  document.getElementById('popup-logo').innerHTML=logo?'<img src="'+esc(logo)+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.textContent=\''+ini+'\'">':ini;
+  document.getElementById('popup-name').textContent=s.name||'';
+  document.getElementById('popup-location').innerHTML=cfg.storeLocation?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> '+esc(cfg.storeLocation):'';
+  document.getElementById('popup-keywords').innerHTML=kws.map(function(k){return'<span class="popup-kw">'+esc(k)+'</span>';}).join('')+(loc?'<span class="popup-kw loc">📍 '+esc(loc)+'</span>':'');
+  document.getElementById('popup-desc').textContent=cfg.description||'Visita nuestra tienda y descubre todos nuestros productos y servicios.';
+  document.getElementById('popup-visit-btn').href=url;
+  document.getElementById('popup-wa-btn').style.display=currentWA?'flex':'none';
+  var qe=document.getElementById('popup-qr-code');qe.innerHTML='';
+  try{new QRCode(qe,{text:url,width:140,height:140,colorDark:'#1a1a2e',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}catch(e){}
+  document.getElementById('popup-bg').classList.add('on');document.body.style.overflow='hidden';
+}
+function closePopup(){document.getElementById('popup-bg').classList.remove('on');document.body.style.overflow='';}
+function openWA(){if(currentWA)window.open('https://wa.me/'+currentWA.replace(/\D/g,''),'_blank');}
+
+function openQR(id){
+  var s=ALL_STORES.find(function(x){return x.storeId===id;});if(!s)return;
+  var cfg=s.config||{};
+  var flyerUrl='./flyer-qr.html?nombre='+encodeURIComponent(s.name||'')+'&url='+encodeURIComponent(buildStoreUrl(id))+'&tag='+encodeURIComponent(cfg.description||'Visita nuestra tienda en línea');
+  window.open(flyerUrl,'_blank');
+}
+function closeQR(){document.getElementById('qr-modal-bg').classList.remove('on');}
+</script>
+
+<div class="header-badge" style="display:block;text-align:center;padding:10px 16px;background:rgba(0,0,0,.04);font-size:11px;color:var(--muted);font-weight:500">
+  🌐 ¿Quieres que tu negocio aparezca aquí? Aumenta las ventas con tu EasyLink Web
+</div>
+
+<!-- BOTONES FLOTANTES -->
+<div class="botones-flotantes">
+  <button id="btnFlotanteWA" class="btn-flotante-wa" title="Compartir por WhatsApp">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </button>
+  <button id="btnFlotanteQR" class="btn-flotante-qr" title="Ver código QR">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+  </button>
+</div>
+
+<!-- Modal QR -->
+<div id="modalQR" class="modal-qr">
+  <div class="modal-qr-content">
+    <button class="modal-close" id="closeModal">✕</button>
+    <h3>Escanea para visitar el directorio</h3>
+    <div id="qrContainer" style="background:white;padding:20px;border-radius:12px;display:inline-block;margin:15px 0"></div>
+    <button id="btnAbrirFlayer" class="btn-flayer">Continuar con flayer →</button>
+  </div>
+</div>
+
+<script>
+document.getElementById('btnFlotanteWA').addEventListener('click',function(){
+  var url=encodeURIComponent(window.location.href);
+  var texto=encodeURIComponent('¡Mira este directorio de tiendas cerca de ti! 🌟');
+  window.open('https://wa.me/?text='+texto+'%0A'+url,'_blank');
+});
+var modal=document.getElementById('modalQR'),qrContainer=document.getElementById('qrContainer'),qrGenerado=false;
+document.getElementById('btnFlotanteQR').addEventListener('click',function(){
+  modal.style.display='flex';
+  if(!qrGenerado){new QRCode(qrContainer,{text:window.location.href,width:220,height:220,colorDark:'#1a1a2e',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});qrGenerado=true;}
+});
+document.getElementById('closeModal').addEventListener('click',function(){modal.style.display='none';});
+document.getElementById('btnAbrirFlayer').addEventListener('click',function(){window.open('flayer-qr.html','_blank');});
+modal.addEventListener('click',function(e){if(e.target===modal)modal.style.display='none';});
+</script>
+</body>
+</html>
