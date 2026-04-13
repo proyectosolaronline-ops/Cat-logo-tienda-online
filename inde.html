@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio Solar • Mapa en Pantalla Completa</title>
+<meta name="description" content="Tiendas solares cercanas (menos de 10 km)">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --primary:#1a73e8;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  background:#000;
+  color:#fff;
+  height:100vh;
+  overflow:hidden;
+}
+#map {
+  width:100%;
+  height:100vh;
+  position:relative;
+}
+
+/* BUSCADOR FLOTANTE SOBRE EL MAPA */
+.search-overlay {
+  position:absolute;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  width:90%;
+  max-width:420px;
+  z-index:1000;
+  background:#fff;
+  border-radius:50px;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  display:flex;
+  align-items:center;
+  padding:8px 16px;
+  color:#222;
+}
+.search-overlay input {
+  flex:1;
+  border:none;
+  outline:none;
+  font-size:16px;
+  padding:8px 12px;
+}
+.search-overlay button {
+  background:none;
+  border:none;
+  cursor:pointer;
+  color:#1a73e8;
+}
+
+/* HEADER MINIMAL */
+.header {
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  background:linear-gradient(180deg, rgba(0,0,0,.7) 0%, transparent 100%);
+  padding:15px 20px;
+  z-index:1100;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-family:'Outfit',sans-serif;
+}
+.header-logo {
+  font-size:22px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* CONTADOR FLOTANTE */
+.count-float {
+  position:absolute;
+  bottom:30px;
+  left:20px;
+  background:rgba(0,0,0,.75);
+  color:#fff;
+  padding:8px 16px;
+  border-radius:50px;
+  font-size:14px;
+  font-weight:600;
+  z-index:1000;
+  box-shadow:0 4px 15px rgba(0,0,0,.4);
+}
+
+/* POPUP PEQUEÑO */
+.leaflet-popup-content-wrapper {
+  border-radius:16px !important;
+  box-shadow:0 10px 30px rgba(0,0,0,.3) !important;
+}
+.leaflet-popup-content {
+  margin:8px;
+  min-width:240px;
+  font-size:14px;
+}
+.popup-title {
+  font-family:'Outfit',sans-serif;
+  font-size:17px;
+  font-weight:700;
+  margin-bottom:4px;
+}
+.popup-distance {
+  font-size:12px;
+  color:#16a34a;
+  margin-bottom:8px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <span>☀️</span> Directorio Solar
+  </div>
+  <div style="font-size:13px;opacity:0.8;">Solo tiendas <strong>≤ 10 km</strong></div>
+</div>
+
+<!-- MAPA FULLSCREEN -->
+<div id="map"></div>
+
+<!-- BUSCADOR FLOTANTE -->
+<div class="search-overlay">
+  <input type="text" id="search-input" placeholder="Buscar tienda o producto..." autocomplete="off">
+  <button onclick="filterMarkers()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </button>
+</div>
+
+<!-- CONTADOR -->
+<div class="count-float" id="count-float">Buscando tiendas cercanas...</div>
+
+<script>
+// ==================== CONFIG ====================
+const BACKEND = 'https://script.google.com/macros/s/AKfycbwUhTHQkBhLIvF9KgP2bHpVeufIEaPCXZWo9-azz7mYrEEA79BPFCQxE68YQQxE5iw/exec';
+const RADIO_KM = 10;                    // ← SOLO 10 KM (como pediste)
+let ALL_STORES = [];
+let map;
+let markers = [];
+let userLat = null;
+let userLng = null;
+
+// ==================== UTILIDADES ====================
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function fixImgUrl(u) {
+  if (!u) return '';
+  const m = u.match(/[?&]id=([\w-]+)/) || u.match(/\/d\/([\w-]+)/);
+  return m ? `https://lh3.googleusercontent.com/d/${m[1]}` : u;
+}
+
+// ==================== CARGA DE TIENDAS ====================
+async function loadStores() {
+  try {
+    const r = await fetch(BACKEND + '?action=stores.directory');
+    const data = await r.json();
+    ALL_STORES = (data.stores || []).map(s => {
+      s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {});
+      return s;
+    });
+    detectUserLocation();
+  } catch(e) {
+    document.getElementById('count-float').innerHTML = '❌ Error al cargar tiendas';
+  }
+}
+
+// ==================== GEOLOCALIZACIÓN + FILTRO 10KM ====================
+async function detectUserLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async pos => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+
+      // Filtramos SOLO tiendas ≤ 10 km
+      let cercanas = ALL_STORES.filter(s => {
+        const cfg = s.config || {};
+        const lat = parseFloat(cfg.locationLat);
+        const lng = parseFloat(cfg.locationLng);
+        if (isNaN(lat) || isNaN(lng)) return false;
+        return haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
+      });
+
+      // Ordenamos por distancia
+      cercanas.sort((a,b) => {
+        const ca = a.config || {}, cb = b.config || {};
+        return haversineKm(userLat, userLng, parseFloat(ca.locationLat), parseFloat(ca.locationLng)) -
+               haversineKm(userLat, userLng, parseFloat(cb.locationLat), parseFloat(cb.locationLng));
+      });
+
+      initMap(cercanas);
+    }, () => {
+      // Si no da permiso → mostramos todas (o puedes cambiarlo)
+      initMap(ALL_STORES);
+    });
+  }
+}
+
+// ==================== MAPA + MARCADORES ====================
+function initMap(stores) {
+  if (map) return;
+
+  map = L.map('map', { zoomControl: true }).setView([userLat || 19.4326, userLng || -99.1332], 14);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  // Marcador de usuario
+  if (userLat && userLng) {
+    L.circleMarker([userLat, userLng], {
+      radius: 8,
+      color: '#16a34a',
+      fillColor: '#fff',
+      fillOpacity: 1,
+      weight: 3
+    }).addTo(map).bindPopup('<b>📍 Tú estás aquí</b>');
+  }
+
+  markers = [];
+
+  stores.forEach(s => {
+    const cfg = s.config || {};
+    const lat = parseFloat(cfg.locationLat);
+    const lng = parseFloat(cfg.locationLng);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    const dist = userLat ? haversineKm(userLat, userLng, lat, lng).toFixed(1) : '?';
+
+    const iconHtml = cfg.logo 
+      ? `<img src="${fixImgUrl(cfg.logo)}" style="width:42px;height:42px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.3)">`
+      : `<div style="width:42px;height:42px;background:#1a73e8;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;border:3px solid #fff">☀️</div>`;
+
+    const customIcon = L.divIcon({
+      html: iconHtml,
+      className: '',
+      iconSize: [46, 46],
+      iconAnchor: [23, 23]
+    });
+
+    const popupHTML = `
+      <div>
+        <div class="popup-title">${s.name}</div>
+        <div class="popup-distance">📍 ${dist} km</div>
+        <div style="font-size:13px;line-height:1.4;margin:8px 0">${cfg.description || 'Tienda solar'}</div>
+        <a href="https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html?backend=${encodeURIComponent(BACKEND)}&store=${s.storeId}" 
+           target="_blank" style="display:block;background:#1a73e8;color:#fff;text-align:center;padding:10px;border-radius:12px;text-decoration:none;font-weight:600">
+          Ver tienda →
+        </a>
+      </div>`;
+
+    const marker = L.marker([lat, lng], { icon: customIcon })
+      .addTo(map)
+      .bindPopup(popupHTML, { closeButton: true, offset: [0, -10] });
+
+    markers.push({ marker, store: s });
+  });
+
+  document.getElementById('count-float').innerHTML = 
+    `✅ ${stores.length} tiendas solares <strong>≤ 10 km</strong>`;
+}
+
+// ==================== BUSCADOR EN TIEMPO REAL ====================
+function filterMarkers() {
+  const query = document.getElementById('search-input').value.toLowerCase().trim();
+
+  markers.forEach(item => {
+    const s = item.store;
+    const cfg = s.config || {};
+    const text = (s.name + ' ' + (cfg.description || '') + ' ' + (cfg.keywords || '')).toLowerCase();
+
+    if (!query || text.includes(query)) {
+      item.marker.addTo(map);
+    } else {
+      map.removeLayer(item.marker);
+    }
+  });
+}
+
+// ==================== INICIO ====================
+window.addEventListener('load', loadStores);
+</script>
+</body>
+</html>
