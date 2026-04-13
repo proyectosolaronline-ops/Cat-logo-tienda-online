@@ -141,14 +141,18 @@ body {
 <div class="count-float" id="count-float">Buscando tiendas cercanas...</div>
 
 <script>
+
 // ==================== CONFIG ====================
 const BACKEND = 'https://script.google.com/macros/s/AKfycbwUhTHQkBhLIvF9KgP2bHpVeufIEaPCXZWo9-azz7mYrEEA79BPFCQxE68YQQxE5iw/exec';
-const RADIO_KM = 10;                    // ← SOLO 10 KM (como pediste)
+const RADIO_KM = 15;                    // ← CAMBIADO A 15 KM
+
 let ALL_STORES = [];
 let map;
 let markers = [];
 let userLat = null;
 let userLng = null;
+
+  
 
 // ==================== UTILIDADES ====================
 function haversineKm(lat1, lon1, lat2, lon2) {
