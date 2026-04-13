@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio Solar - Mapa Completo</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{ --primary:#1a73e8; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#000; color:#fff; height:100vh; overflow:hidden; }
+
+#map { width:100%; height:100vh; }
+
+.header {
+  position:absolute; top:0; left:0; right:0; z-index:1100;
+  background:linear-gradient(135deg,#1a73e8,#0d47a1);
+  padding:15px 20px; text-align:center; color:#fff;
+}
+.header-logo {
+  width:56px; height:56px; background:rgba(255,255,255,.2);
+  border-radius:16px; margin:0 auto 8px; display:flex;
+  align-items:center; justify-content:center;
+}
+
+/* Botón flotante */
+.btn-mostrar {
+  position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
+  z-index:1000; background:var(--primary); color:#fff;
+  border:none; padding:15px 32px; border-radius:50px; font-size:17px;
+  font-weight:600; box-shadow:0 8px 25px rgba(26,115,232,.5);
+  cursor:pointer;
+}
+
+/* Popup detalle */
+.popup-bg {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.75);
+  z-index:2000; align-items:center; justify-content:center; padding:15px;
+}
+.popup {
+  background:#fff; color:#222; border-radius:20px; width:100%; max-width:420px;
+  max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+.popup-banner { height:160px; background-size:cover; background-position:center; position:relative; border-radius:20px 20px 0 0; }
+.popup-close { position:absolute; top:12px; right:12px; width:34px; height:34px; background:rgba(0,0,0,.5); border:none; border-radius:50%; color:#fff; font-size:18px; cursor:pointer; }
+.popup-logo { width:80px; height:80px; border-radius:16px; border:5px solid #fff; position:absolute; bottom:-40px; left:20px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,.3); }
+.popup-body { padding:55px 20px 25px; }
+.popup-name { font-family:'Outfit',sans-serif; font-size:23px; font-weight:700; margin-bottom:8px; }
+.popup-desc { line-height:1.6; color:#333; margin-bottom:20px; }
+
+/* Modal lista de tiendas */
+.modal {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.85);
+  z-index:2100; align-items:center; justify-content:center; padding:15px;
+}
+.modal-content {
+  background:#fff; color:#222; width:100%; max-width:460px; border-radius:20px; max-height:88vh; overflow:hidden;
+}
+.modal-header {
+  padding:20px; background:var(--primary); color:#fff; font-weight:700; display:flex; justify-content:space-between;
+}
+.modal-body { padding:10px; max-height:65vh; overflow-y:auto; }
+.store-item {
+  display:flex; gap:15px; padding:16px; border-bottom:1px solid #eee; cursor:pointer;
+}
+.store-item:hover { background:#f8f9fa; }
+.store-logo {
+  width:70px; height:70px; border-radius:14px; overflow:hidden; border:3px solid #fff;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+    </svg>
+  </div>
+  <div style="font-size:19px; font-weight:700;">Directorio Solar</div>
+</div>
+
+<div id="map"></div>
+
+<button class="btn-mostrar" onclick="showStoresModal()">
+  📋 Mostrar tiendas encontradas (≤ 20 km)
+</button>
+
+<!-- Popup detalle al hacer clic en pin -->
+<div class="popup-bg" id="popup-bg" onclick="if(event.target===this)closePopup()">
+  <div class="popup">
+    <div class="popup-banner" id="popup-banner">
+      <button class="popup-close" onclick="closePopup()">✕</button>
+      <div class="popup-logo" id="popup-logo"></div>
+    </div>
+    <div class="popup-body">
+      <div class="popup-name" id="popup-name"></div>
+      <div class="popup-desc" id="popup-desc"></div>
+      <a id="popup-visit-btn" href="#" target="_blank" style="display:block; padding:14px; background:#1a73e8; color:#fff; text-align:center; border-radius:12px; text-decoration:none; font-weight:600; margin-top:15px;">
+        Ver tienda completa →
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal lista de tiendas encontradas -->
+<div class="modal" id="stores-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>Tiendas cercanas (≤ 20 km)</span>
+      <span onclick="closeModal()" style="cursor:pointer; font-size:28px;">×</span>
+    </div>
+    <div class="modal-body" id="modal-stores-list"></div>
+  </div>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const BACKEND = 'https://script.google.com/macros/s/AKfycbwUhTHQkBhLIvF9KgP2bHpVeufIEaPCXZWo9-azz7mYrEEA79BPFCQxE68YQQxE5iw/exec';
+const STORE_BASE = 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
+const RADIO_KM = 20;
+
+let ALL_STORES = [];
+let map;
+let userLat = null;
+let userLng = null;
+let nearbyStores = [];
+
+// ==================== FUNCIONES DEL ORIGINAL ====================
+function fixImgUrl(u){
+  if(!u) return '';
+  var m = u.match(/[?&]id=([\w-]+)/);
+  if(m) return 'https://lh3.googleusercontent.com/d/'+m[1];
+  var m2 = u.match(/\/d\/([\w-]+)/);
+  if(m2) return 'https://lh3.googleusercontent.com/d/'+m2[1];
+  return u;
+}
+
+function haversineKm(la1,ln1,la2,ln2){
+  var R=6371, dL=(la2-la1)*Math.PI/180, dN=(ln2-ln1)*Math.PI/180;
+  var a = Math.sin(dL/2)*Math.sin(dL/2) + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dN/2)*Math.sin(dN/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function buildStoreUrl(id){
+  return STORE_BASE + '?backend=' + encodeURIComponent(BACKEND) + '&store=' + encodeURIComponent(id);
+}
+
+// ==================== CARGA ====================
+window.addEventListener('load', async () => {
+  try {
+    const r = await fetch(BACKEND + '?action=stores.directory');
+    const data = await r.json();
+    ALL_STORES = (data.stores || []).map(s => {
+      s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {});
+      return s;
+    });
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        initMap();
+      }, () => {
+        userLat = 19.4326;
+        userLng = -99.1332;
+        initMap();
+      });
+    } else {
+      userLat = 19.4326;
+      userLng = -99.1332;
+      initMap();
+    }
+  } catch(e) {
+    alert("Error al cargar las tiendas");
+  }
+});
+
+function initMap() {
+  map = L.map('map').setView([userLat, userLng], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+  L.circleMarker([userLat, userLng], {radius:9, color:'#16a34a', fillColor:'#fff', weight:3}).addTo(map);
+
+  nearbyStores = ALL_STORES.filter(s => {
+    const cfg = s.config || {};
+    const lat = parseFloat(cfg.locationLat);
+    const lng = parseFloat(cfg.locationLng);
+    if (isNaN(lat) || isNaN(lng)) return false;
+    return haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
+  });
+
+  nearbyStores.forEach(s => {
+    const cfg = s.config || {};
+    const lat = parseFloat(cfg.locationLat);
+    const lng = parseFloat(cfg.locationLng);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    const logoUrl = fixImgUrl(cfg.logo || cfg.logoUrl || '');
+    const ini = (s.name || '?')[0].toUpperCase();
+
+    const pinHTML = logoUrl 
+      ? `<img src="${logoUrl}" style="width:52px;height:52px;border-radius:50%;border:4px solid #fff;object-fit:cover;">`
+      : `<div style="width:52px;height:52px;background:#1a73e8;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;border:4px solid #fff;">☀️</div>`;
+
+    const icon = L.divIcon({html: pinHTML, className:'', iconSize:[56,56], iconAnchor:[28,28]});
+
+    const marker = L.marker([lat, lng], {icon}).addTo(map);
+
+    // Click en pin → abre popup detalle
+    marker.on('click', () => openPopup(s.storeId));
+  });
+}
+
+// ==================== POPUP DETALLE ====================
+function openPopup(id) {
+  const s = ALL_STORES.find(x => x.storeId === id);
+  if (!s) return;
+
+  const cfg = s.config || {};
+  const logo = fixImgUrl(cfg.logo || cfg.logoUrl || '');
+  const banner = fixImgUrl(cfg.bannerUrl || '');
+
+  document.getElementById('popup-banner').style.background = banner ? `url(${banner}) center/cover` : '#1a73e8';
+  document.getElementById('popup-logo').innerHTML = logo 
+    ? `<img src="${logo}" style="width:100%;height:100%;object-fit:cover">` 
+    : ini;
+
+  document.getElementById('popup-name').textContent = s.name || 'Tienda';
+  document.getElementById('popup-desc').textContent = cfg.description || 'Visita nuestra tienda de energía solar';
+
+  document.getElementById('popup-visit-btn').href = buildStoreUrl(id);
+  document.getElementById('popup-bg').style.display = 'flex';
+}
+
+function closePopup() {
+  document.getElementById('popup-bg').style.display = 'none';
+}
+
+// ==================== BOTÓN "MOSTRAR TIENDAS ENCONTRADAS" ====================
+function showStoresModal() {
+  const listContainer = document.getElementById('modal-stores-list');
+  listContainer.innerHTML = '';
+
+  if (nearbyStores.length === 0) {
+    listContainer.innerHTML = '<p style="text-align:center;padding:40px;color:#666;">No hay tiendas cercanas en este momento.</p>';
+  } else {
+    nearbyStores.forEach(s => {
+      const cfg = s.config || {};
+      const logoUrl = fixImgUrl(cfg.logo || cfg.logoUrl || '');
+      const dist = userLat ? haversineKm(userLat, userLng, parseFloat(cfg.locationLat||0), parseFloat(cfg.locationLng||0)).toFixed(1) : '?';
+
+      const item = document.createElement('div');
+      item.className = 'store-item';
+      item.innerHTML = `
+        <div class="store-logo">
+          ${logoUrl ? `<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;">` : '☀️'}
+        </div>
+        <div>
+          <h3>${s.name}</h3>
+          <p style="color:#16a34a; font-weight:600;">📍 ${dist} km</p>
+          <p style="font-size:14px; color:#555;">${cfg.description || 'Tienda solar'}</p>
+        </div>
+      `;
+      item.onclick = () => {
+        closeModal();
+        openPopup(s.storeId);
+      };
+      listContainer.appendChild(item);
+    });
+  }
+
+  document.getElementById('stores-modal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('stores-modal').style.display = 'none';
+}
+</script>
+</body>
+</html>
