@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio Solar - Mapa Completo</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --primary:#1a73e8;
+  --bg:#f5f6f7;
+  --surface:#fff;
+  --text:#1a1a2e;
+  --muted:#717185;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Inter',sans-serif; background:#000; color:#fff; height:100vh; overflow:hidden; }
+
+#map { width:100%; height:100vh; position:relative; }
+
+/* Header simple */
+.header {
+  position:absolute; top:0; left:0; right:0; z-index:1100;
+  background:linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%);
+  padding:15px 20px; text-align:center; color:#fff;
+}
+.header-logo {
+  width:56px; height:56px; background:rgba(255,255,255,.15);
+  border-radius:16px; margin:0 auto 8px; display:flex;
+  align-items:center; justify-content:center;
+}
+.header-logo svg { width:28px; height:28px; }
+
+/* Buscador flotante */
+.search-wrap {
+  position:absolute; top:80px; left:50%; transform:translateX(-50%);
+  width:90%; max-width:500px; z-index:1000;
+}
+.search-box {
+  background:#fff; border-radius:50px; box-shadow:0 4px 20px rgba(0,0,0,.3);
+  display:flex; align-items:center; padding:8px 16px;
+}
+.search-box input {
+  flex:1; border:none; outline:none; font-size:16px; padding:8px 12px;
+}
+
+/* Botón flotante */
+.btn-mostrar {
+  position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
+  z-index:1000; background:var(--primary); color:#fff;
+  border:none; padding:14px 28px; border-radius:50px; font-size:16px;
+  font-weight:600; box-shadow:0 6px 20px rgba(26,115,232,.5);
+  cursor:pointer;
+}
+
+/* Popup original (mantenido tal cual) */
+.popup-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:2000; align-items:center; justify-content:center; padding:16px; }
+.popup { background:#fff; border-radius:20px; width:100%; max-width:420px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+.popup-banner { height:140px; background-size:cover; background-position:center; position:relative; border-radius:20px 20px 0 0; }
+.popup-close { position:absolute; top:12px; right:12px; width:32px; height:32px; background:rgba(0,0,0,.4); border:none; border-radius:50%; color:#fff; cursor:pointer; }
+.popup-logo { width:72px; height:72px; border-radius:16px; border:4px solid #fff; position:absolute; bottom:-36px; left:20px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,.3); }
+.popup-body { padding:50px 20px 20px; }
+.popup-name { font-family:'Outfit',sans-serif; font-size:22px; font-weight:800; margin-bottom:8px; }
+.popup-desc { line-height:1.6; color:#333; margin:15px 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 01-8 0"/>
+    </svg>
+  </div>
+  <div style="font-size:18px; font-weight:600;">Directorio Solar</div>
+</div>
+
+<div id="map"></div>
+
+<div class="search-wrap">
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Buscar tienda..." onkeyup="filterStores()">
+  </div>
+</div>
+
+<button class="btn-mostrar" onclick="showNearbyModal()">📋 Mostrar tiendas encontradas (≤ 20 km)</button>
+
+<!-- Popup original -->
+<div class="popup-bg" id="popup-bg" onclick="if(event.target===this)closePopup()">
+  <div class="popup">
+    <div class="popup-banner" id="popup-banner">
+      <button class="popup-close" onclick="closePopup()">✕</button>
+      <div class="popup-logo" id="popup-logo"></div>
+    </div>
+    <div class="popup-body">
+      <div class="popup-name" id="popup-name"></div>
+      <div class="popup-desc" id="popup-desc"></div>
+      <div style="display:flex; gap:12px; margin-top:20px;">
+        <a id="popup-visit-btn" href="#" target="_blank" style="flex:1; padding:14px; background:#1a73e8; color:#fff; text-align:center; border-radius:12px; text-decoration:none; font-weight:600;">Ver tienda</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const BACKEND = 'https://script.google.com/macros/s/AKfycbwUhTHQkBhLIvF9KgP2bHpVeufIEaPCXZWo9-azz7mYrEEA79BPFCQxE68YQQxE5iw/exec';
+const STORE_BASE = 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
+const RADIO_KM = 20;
+
+let ALL_STORES = [];
+let map;
+let userLat = null;
+let userLng = null;
+let nearbyStores = [];
+
+// ==================== UTILS DEL ORIGINAL ====================
+function fixImgUrl(u){
+  if(!u) return '';
+  var m = u.match(/[?&]id=([\w-]+)/);
+  if(m) return 'https://lh3.googleusercontent.com/d/'+m[1];
+  var m2 = u.match(/\/d\/([\w-]+)/);
+  if(m2) return 'https://lh3.googleusercontent.com/d/'+m2[1];
+  return u;
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function buildStoreUrl(id){ 
+  return STORE_BASE + '?backend=' + encodeURIComponent(BACKEND) + '&store=' + encodeURIComponent(id); 
+}
+
+function haversineKm(la1,ln1,la2,ln2){
+  var R=6371, dL=(la2-la1)*Math.PI/180, dN=(ln2-ln1)*Math.PI/180;
+  var a = Math.sin(dL/2)*Math.sin(dL/2) + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dN/2)*Math.sin(dN/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ==================== CARGA ====================
+window.addEventListener('load', async function(){
+  try {
+    var r = await fetch(BACKEND+'?action=stores.directory');
+    var d = JSON.parse(await r.text());
+    ALL_STORES = (d.stores||[]).map(s => {
+      s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config||{});
+      return s;
+    });
+    detectUserLocation();
+  } catch(e) {
+    alert("Error al cargar tiendas: " + e.message);
+  }
+});
+
+async function detectUserLocation(){
+  if(navigator.geolocation){
+    try {
+      var pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res, rej));
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+    } catch(e){}
+  }
+  if(!userLat){
+    userLat = 19.4326;
+    userLng = -99.1332;
+  }
+  renderFullMap();
+}
+
+// ==================== MAPA EN PANTALLA COMPLETA ====================
+function renderFullMap(){
+  map = L.map('map').setView([userLat, userLng], 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  // Marcador usuario
+  L.circleMarker([userLat, userLng], {radius:9, color:'#16a34a', fillColor:'#fff', weight:3}).addTo(map);
+
+  // Filtrar tiendas cercanas a 20 km
+  nearbyStores = ALL_STORES.filter(s => {
+    var cfg = s.config || {};
+    var lat = parseFloat(cfg.locationLat);
+    var lng = parseFloat(cfg.locationLng);
+    if (isNaN(lat) || isNaN(lng)) return false;
+    return haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
+  }).sort((a,b) => {
+    var ca = a.config || {}, cb = b.config || {};
+    return haversineKm(userLat, userLng, parseFloat(ca.locationLat), parseFloat(ca.locationLng)) -
+           haversineKm(userLat, userLng, parseFloat(cb.locationLat), parseFloat(cb.locationLng));
+  });
+
+  // Agregar pines
+  nearbyStores.forEach(s => {
+    var cfg = s.config || {};
+    var lat = parseFloat(cfg.locationLat);
+    var lng = parseFloat(cfg.locationLng);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    var logoSrc = fixImgUrl(cfg.logo || cfg.logoUrl || '');
+    var ini = (s.name || '?')[0].toUpperCase();
+
+    var pinHtml = logoSrc 
+      ? `<img src="${esc(logoSrc)}" style="width:48px;height:48px;border-radius:50%;border:4px solid #fff;object-fit:cover;">`
+      : `<div style="width:48px;height:48px;background:#1a73e8;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;border:4px solid #fff;">${ini}</div>`;
+
+    var icon = L.divIcon({html: pinHtml, className:'', iconSize:[52,52], iconAnchor:[26,26]});
+
+    var marker = L.marker([lat, lng], {icon}).addTo(map);
+
+    marker.on('click', () => openPopup(s.storeId));
+  });
+}
+
+// ==================== POPUP ORIGINAL ====================
+function openPopup(id){
+  var s = ALL_STORES.find(x => x.storeId === id);
+  if(!s) return;
+
+  var cfg = s.config || {};
+  var logo = fixImgUrl(cfg.logo || cfg.logoUrl || '');
+  var banner = fixImgUrl(cfg.bannerUrl || '');
+  var ini = (s.name || '?')[0].toUpperCase();
+
+  document.getElementById('popup-banner').style.background = banner ? `url(${banner}) center/cover` : 'var(--primary)';
+  document.getElementById('popup-logo').innerHTML = logo 
+    ? `<img src="${esc(logo)}" style="width:100%;height:100%;object-fit:cover">` 
+    : ini;
+
+  document.getElementById('popup-name').textContent = s.name || '';
+  document.getElementById('popup-desc').textContent = cfg.description || 'Visita nuestra tienda';
+
+  var url = buildStoreUrl(id);
+  document.getElementById('popup-visit-btn').href = url;
+
+  document.getElementById('popup-bg').style.display = 'flex';
+}
+
+function closePopup(){
+  document.getElementById('popup-bg').style.display = 'none';
+}
+
+// Buscador simple
+function filterStores(){
+  // Puedes expandir esta función si quieres filtrar pines
+  console.log("Buscando:", document.getElementById('search-input').value);
+}
+
+// ==================== MODAL DE TIENDAS ENCONTRADAS ====================
+function showNearbyModal(){
+  alert(`Hay ${nearbyStores.length} tiendas cercanas a menos de 20 km.\n\nHaz clic en los pines del mapa para ver detalles.`);
+}
+
+</script>
+</body>
+</html>
