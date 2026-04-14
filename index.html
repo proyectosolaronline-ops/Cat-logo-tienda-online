@@ -346,69 +346,7 @@ function setupTripleTapOnLogo() {
 // Iniciar cuando cargue la página
 window.addEventListener('load', setupTripleTapOnLogo);
 </script>
-  // Configuración
-const DIRECTORIO_URL = "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/index1.html";
 
-// Variables para triple tap
-let tapCount = 0;
-let lastTapTime = 0;
-const TAP_DELAY = 400; // tiempo máximo entre taps (en milisegundos)
-
-function setupTripleTapOnLogo() {
-    // Buscamos el logo - Ajusta si tu logo tiene otro selector
-    const logo = document.querySelector('.header-logo') || 
-                 document.querySelector('header img') || 
-                 document.querySelector('.logo') ||
-                 document.querySelector('a.logo');
-
-    if (!logo) {
-        console.warn('No se encontró el logo para el triple tap');
-        return;
-    }
-
-    logo.style.cursor = 'pointer';
-
-    logo.addEventListener('click', function() {
-        const currentTime = new Date().getTime();
-        const timeSinceLastTap = currentTime - lastTapTime;
-
-        if (timeSinceLastTap < TAP_DELAY) {
-            tapCount++;
-        } else {
-            tapCount = 1;
-        }
-
-        lastTapTime = currentTime;
-
-        // === TRIPLE TAP DETECTADO ===
-        if (tapCount === 3) {
-            tapCount = 0;
-
-            // ==================== AQUÍ ESTÁ EL MODO VIBRADOR ====================
-            if (navigator.vibrate) {
-                // Patrón de vibración: corto - pausa - corto - pausa - medio
-                navigator.vibrate([60, 40, 60, 40, 100]);
-            }
-            // ===================================================================
-
-            // Efecto visual bonito
-            logo.style.transition = 'transform 0.4s ease';
-            logo.style.transform = 'scale(1.3) rotate(10deg)';
-
-            setTimeout(() => {
-                logo.style.transform = 'scale(1) rotate(0deg)';
-            }, 400);
-
-            // Redirigir al directorio
-            console.log('Triple tap detectado → Abriendo Directorio');
-            window.location.href = DIRECTORIO_URL;
-        }
-    });
-}
-
-// Iniciar cuando cargue la página
-window.addEventListener('load', setupTripleTapOnLogo);
-</script>
   
 </body>
 </html>
