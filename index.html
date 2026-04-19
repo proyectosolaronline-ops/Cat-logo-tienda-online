@@ -1029,6 +1029,505 @@ document.getElementById('header-logo').addEventListener('click', () => {
     window.location.href = DIRECTORIO_URL;
   }
 });
+
+/* ════════════════════════════════════════════════════════════════════════════
+   🔘 MÓDULO GOOGLE PLACES - COMPLETAMENTE AISLADO v3.0
+   ──────────────────────────────────────────────────────────────────────────
+   ✅ Tiendas Easylink: SIEMPRE VISIBLES (marcadores con logo)
+   🔄 Negocios Google:   Aparecen 12s después → visibles 3s → ocultos 20s → ciclo
+   ════════════════════════════════════════════════════════════════════════════ */
+
+// ⬇️⬇️⬇️ PARÁMETROS DE CONTROL (SOLO TOCA ESTO) ⬇️⬇️⬇️
+const GOOGLE_PLACES_ACTIVADO = false;        // ← PONER true CUANDO PAGUES API
+const GOOGLE_API_KEY = 'PON_TU_API_KEY_AQUI'; // ← TU KEY REAL
+const MOSTRAR_NEGOCIOS_GOOGLE = false;       // ← PONER true PARA ACTIVAR EXTERNOS
+
+// Configuración del efecto "latido" para negocios externos
+const RETRASO_INICIAL = 12000;    // 12 segundos antes de PRIMERA aparición
+const TIEMPO_VISIBLE = 3000;      // 3 segundos visibles
+const TIEMPO_OCULTO = 20000;      // 20 segundos ocultos entre pulsos
+// ⬆️⬆️⬆️ FIN DE PARÁMETROS DE CONTROL ⬆️⬆️⬆️
+
+(function() {
+  'use strict';
+  
+  // Si no está activado, no hacer absolutamente nada
+  if (!GOOGLE_PLACES_ACTIVADO) {
+    console.log('⏸️ Google Places: DESACTIVADO (modo Easylink puro)');
+    return;
+  }
+  
+  if (!GOOGLE_API_KEY || GOOGLE_API_KEY === 'PON_TU_API_KEY_AQUI' || GOOGLE_API_KEY.length < 20) {
+    console.warn('⚠️ API Key inválida. Usando buscador interno.');
+    return;
+  }
+  
+  console.log('🚀 Google Places: ACTIVADO');
+  console.log('📊 Modo:', MOSTRAR_NEGOCIOS_GOOGLE ? 'Easylink + Pulsos Google' : 'Solo Easylink');
+  
+  // ──────────────────────────────────────────────────────────────────────────
+  // VARIABLES PRIVADAS DEL MÓDULO
+  // ──────────────────────────────────────────────────────────────────────────
+  let _googleAutocomplete = null;
+  let _autocomplete2 = null;
+  let _scriptCargado = false;
+  let _inicializacionIntentada = false;
+  let _googleMapService = null;
+  
+  // Control de negocios externos
+  let _marcadoresExternos = [];           // Array con marcadores de Google
+  let _datosExternosCache = [];           // Cache de resultados para restaurar
+  let _timerInicial = null;               // Timer para primera aparición (12s)
+  let _timerVisible = null;               // Timer para ocultar después de 3s
+  let _timerOculto = null;                // Timer para reaparecer después de 20s
+  let _cicloActivo = false;               // Para saber si el ciclo está corriendo
+  let _ultimaBusqueda = null;             // Última búsqueda para restaurar
+  
+  // Mapeo de tipos de Google a keywords internas
+  const _MAPEO_TIPOS = {
+    'restaurant':      ['restaurante', 'comida', 'food', 'cenar'],
+    'cafe':            ['cafetería', 'cafe', 'café', 'desayuno'],
+    'bakery':          ['pastelería', 'pan', 'repostería', 'dulces'],
+    'bar':             ['bar', 'cantina', 'cerveza'],
+    'clothing_store':  ['ropa', 'moda', 'vestir', 'prendas'],
+    'shoe_store':      ['zapatos', 'calzado', 'tenis'],
+    'jewelry_store':   ['joyería', 'joyas', 'anillos'],
+    'electronics_store': ['electrónica', 'celulares', 'computadoras'],
+    'hardware_store':  ['ferretería', 'herramientas'],
+    'supermarket':     ['supermercado', 'abarrotes', 'despensa'],
+    'pharmacy':        ['farmacia', 'medicamentos'],
+    'beauty_salon':    ['salón', 'belleza', 'estética', 'spa'],
+    'gym':             ['gimnasio', 'fitness', 'ejercicio'],
+    'pet_store':       ['mascotas', 'veterinaria', 'perros'],
+    'book_store':      ['librería', 'libros'],
+    'furniture_store': ['muebles', 'decoración'],
+    'florist':         ['florería', 'flores']
+  };
+  
+  // ──────────────────────────────────────────────────────────────────────────
+  // FUNCIONES PARA TIENDAS EASYLINK (SIEMPRE VISIBLES)
+  // ──────────────────────────────────────────────────────────────────────────
+  
+  function _filtrarTiendasEasylink(googleTypes) {
+    if (!googleTypes || googleTypes.length === 0) {
+      return ALL_STORES.slice(0, 10);
+    }
+    
+    let keywordsDetectadas = [];
+    googleTypes.forEach(tipo => {
+      if (_MAPEO_TIPOS[tipo]) {
+        keywordsDetectadas = keywordsDetectadas.concat(_MAPEO_TIPOS[tipo]);
+      }
+    });
+    
+    if (keywordsDetectadas.length === 0) {
+      return ALL_STORES.slice(0, 10);
+    }
+    
+    const tiendasFiltradas = ALL_STORES.filter(tienda => {
+      const cfg = tienda.config || {};
+      const textoBusqueda = `${tienda.name || ''} ${cfg.keywords || ''} ${cfg.description || ''}`.toLowerCase();
+      return keywordsDetectadas.some(kw => textoBusqueda.includes(kw.toLowerCase()));
+    });
+    
+    return tiendasFiltradas.length > 0 ? tiendasFiltradas : ALL_STORES.slice(0, 5);
+  }
+  
+  function _actualizarMapaEasylink(tiendas) {
+    if (!tiendas.length) return;
+    
+    // Limpiar SOLO marcadores Easylink (no los externos)
+    map.eachLayer(layer => {
+      if (layer instanceof L.Marker && !_marcadoresExternos.includes(layer)) {
+        const esUbicacionUsuario = layer._tooltip && 
+          layer._tooltip._content === 'Tu ubicación';
+        if (!esUbicacionUsuario) {
+          map.removeLayer(layer);
+        }
+      }
+    });
+    
+    // Agregar marcadores Easylink (usando tu función existente)
+    if (typeof addMarkersToMap === 'function') {
+      addMarkersToMap(tiendas);
+    }
+    
+    window.nearbyStores = tiendas;
+    
+    if (tiendas.length > 0) {
+      const primera = tiendas[0];
+      const cfg = primera.config || {};
+      const lat = parseFloat(cfg.locationLat);
+      const lng = parseFloat(cfg.locationLng);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        map.setView([lat, lng], 14, { animate: true });
+      }
+    }
+  }
+  
+  function _mostrarResultadosPanel(tiendas) {
+    const container = document.getElementById('searchResults');
+    if (!container) return;
+    
+    if (typeof renderSearchResults === 'function') {
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        renderSearchResults(searchInput.value);
+      }
+    }
+    
+    const panel = document.getElementById('searchPanel');
+    if (panel) panel.classList.add('active');
+    
+    const header = document.getElementById('header');
+    if (header) header.classList.add('hidden');
+    
+    // Agregar indicador de pulso si está activado
+    if (MOSTRAR_NEGOCIOS_GOOGLE && container) {
+      const indicadorExistente = document.getElementById('google-pulso-indicador');
+      if (!indicadorExistente) {
+        const indicador = document.createElement('div');
+        indicador.id = 'google-pulso-indicador';
+        indicador.className = 'sp-empty';
+        indicador.style.cssText = 'margin-top:16px; padding:12px; background:#f0f4ff; border-radius:8px; font-size:12px; color:#1a73e8; border-left:3px solid #1a73e8;';
+        indicador.innerHTML = `🔄 Negocios Google Maps aparecerán en ${RETRASO_INICIAL/1000}s (pulsos de ${TIEMPO_VISIBLE/1000}s cada ${TIEMPO_OCULTO/1000}s)`;
+        container.appendChild(indicador);
+      }
+    }
+  }
+  
+  // ──────────────────────────────────────────────────────────────────────────
+  // FUNCIONES PARA NEGOCIOS GOOGLE (EFECTO PULSO)
+  // ──────────────────────────────────────────────────────────────────────────
+  
+  function _cancelarTodosLosTimers() {
+    if (_timerInicial) { clearTimeout(_timerInicial); _timerInicial = null; }
+    if (_timerVisible) { clearTimeout(_timerVisible); _timerVisible = null; }
+    if (_timerOculto) { clearTimeout(_timerOculto); _timerOculto = null; }
+    _cicloActivo = false;
+  }
+  
+  function _limpiarMarcadoresExternos() {
+    _marcadoresExternos.forEach(m => {
+      if (map && m) map.removeLayer(m);
+    });
+    _marcadoresExternos = [];
+  }
+  
+  function _mostrarMarcadoresExternos() {
+    if (!MOSTRAR_NEGOCIOS_GOOGLE) return;
+    if (!_datosExternosCache.length) return;
+    
+    console.log('📍 PULSO: Mostrando negocios Google (3 segundos)');
+    
+    // Limpiar antes de mostrar (evitar duplicados)
+    _limpiarMarcadoresExternos();
+    
+    // Crear marcadores desde cache
+    _datosExternosCache.forEach(place => {
+      if (!place.geometry) return;
+      
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+      
+      const iconoExterno = L.divIcon({
+        html: `<div style="
+          width: 42px;
+          height: 42px;
+          background: rgba(100, 100, 100, 0.9);
+          border: 2px solid #fff;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 18px;
+          box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+          opacity: 0.9;
+          animation: pulseGoogle 2s infinite;
+        ">📍</div>`,
+        className: '',
+        iconSize: [42, 42],
+        iconAnchor: [21, 21]
+      });
+      
+      const marcador = L.marker([lat, lng], { 
+        icon: iconoExterno, 
+        zIndexOffset: -50 
+      }).addTo(map);
+      
+      marcador.bindPopup(`
+        <div style="font-family:Inter,sans-serif; min-width:200px;">
+          <strong style="font-size:14px;">📍 ${place.name || 'Negocio'}</strong>
+          <p style="font-size:11px; color:#666; margin:4px 0;">${place.vicinity || ''}</p>
+          <p style="font-size:11px; color:#ff6900; margin:4px 0;">⭐ ${place.rating || 'N/A'} (${place.user_ratings_total || 0})</p>
+          <hr style="margin:8px 0; border-color:#eee;">
+          <small style="color:#1a73e8;">🌐 Google Maps • Visible en pulsos</small>
+        </div>
+      `);
+      
+      _marcadoresExternos.push(marcador);
+    });
+    
+    // Actualizar indicador en panel
+    const indicador = document.getElementById('google-pulso-indicador');
+    if (indicador) {
+      indicador.innerHTML = `📍 ${_datosExternosCache.length} negocios Google visibles (desaparecerán en 3s)`;
+      indicador.style.background = '#e8f5e9';
+      indicador.style.color = '#2e7d32';
+      indicador.style.borderLeftColor = '#2e7d32';
+    }
+  }
+  
+  function _ocultarMarcadoresExternos() {
+    console.log('💨 PULSO: Ocultando negocios Google (20 segundos)');
+    _limpiarMarcadoresExternos();
+    
+    const indicador = document.getElementById('google-pulso-indicador');
+    if (indicador) {
+      indicador.innerHTML = `⏳ Negocios Google reaparecerán en ${TIEMPO_OCULTO/1000}s`;
+      indicador.style.background = '#f0f4ff';
+      indicador.style.color = '#1a73e8';
+      indicador.style.borderLeftColor = '#1a73e8';
+    }
+  }
+  
+  function _iniciarCicloPulsos() {
+    if (!MOSTRAR_NEGOCIOS_GOOGLE) return;
+    if (_cicloActivo) return;
+    if (!_datosExternosCache.length) return;
+    
+    _cicloActivo = true;
+    
+    // Función que ejecuta UN ciclo completo: mostrar → esperar → ocultar → esperar → repetir
+    function ejecutarPulso() {
+      if (!_cicloActivo) return;
+      
+      _mostrarMarcadoresExternos();
+      
+      // Programar ocultar después de TIEMPO_VISIBLE
+      _timerVisible = setTimeout(() => {
+        _ocultarMarcadoresExternos();
+        
+        // Programar siguiente pulso después de TIEMPO_OCULTO
+        _timerOculto = setTimeout(() => {
+          ejecutarPulso();
+        }, TIEMPO_OCULTO);
+        
+      }, TIEMPO_VISIBLE);
+    }
+    
+    ejecutarPulso();
+  }
+  
+  function _detenerCicloPulsos() {
+    _cicloActivo = false;
+    _cancelarTodosLosTimers();
+    _limpiarMarcadoresExternos();
+    _datosExternosCache = [];
+    
+    const indicador = document.getElementById('google-pulso-indicador');
+    if (indicador) indicador.remove();
+  }
+  
+  function _buscarNegociosExternos(lat, lng, googleTypes, nombreBusqueda) {
+    if (!MOSTRAR_NEGOCIOS_GOOGLE) {
+      console.log('📍 Negocios externos DESACTIVADOS');
+      return;
+    }
+    
+    if (!_googleMapService) {
+      _googleMapService = new google.maps.places.PlacesService(
+        document.createElement('div')
+      );
+    }
+    
+    const tiposBusqueda = googleTypes.filter(t => 
+      ['restaurant', 'cafe', 'bakery', 'clothing_store', 'shoe_store', 
+       'electronics_store', 'supermarket', 'pharmacy', 'gym', 'pet_store',
+       'bar', 'hardware_store', 'beauty_salon', 'book_store', 'furniture_store'
+      ].includes(t)
+    );
+    
+    const request = {
+      location: new google.maps.LatLng(lat, lng),
+      radius: 2000,
+      type: tiposBusqueda.length > 0 ? [tiposBusqueda[0]] : ['store']
+    };
+    
+    if (nombreBusqueda && nombreBusqueda.length > 2) {
+      request.keyword = nombreBusqueda;
+    }
+    
+    console.log('🔍 Buscando negocios externos...');
+    
+    _googleMapService.nearbySearch(request, (results, status) => {
+      if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
+        console.log('📍 No se encontraron negocios externos');
+        const indicador = document.getElementById('google-pulso-indicador');
+        if (indicador) {
+          indicador.innerHTML = '😕 No se encontraron negocios Google en esta zona';
+        }
+        return;
+      }
+      
+      _datosExternosCache = results.slice(0, 8);
+      console.log(`✅ ${_datosExternosCache.length} negocios Google en caché`);
+      
+      // Iniciar ciclo de pulsos
+      _iniciarCicloPulsos();
+    });
+  }
+  
+  function _programarBusquedaExternos(lat, lng, googleTypes, nombreBusqueda) {
+    _detenerCicloPulsos();
+    
+    if (!MOSTRAR_NEGOCIOS_GOOGLE) return;
+    
+    console.log(`⏱️ Buscando externos en segundo plano... Aparecerán en ${RETRASO_INICIAL/1000}s`);
+    
+    // Buscar inmediatamente (en segundo plano)
+    if (!_googleMapService) {
+      _googleMapService = new google.maps.places.PlacesService(
+        document.createElement('div')
+      );
+    }
+    
+    const tiposBusqueda = googleTypes.filter(t => 
+      ['restaurant', 'cafe', 'bakery', 'clothing_store', 'shoe_store', 
+       'electronics_store', 'supermarket', 'pharmacy', 'gym', 'pet_store'
+      ].includes(t)
+    );
+    
+    const request = {
+      location: new google.maps.LatLng(lat, lng),
+      radius: 2000,
+      type: tiposBusqueda.length > 0 ? [tiposBusqueda[0]] : ['store']
+    };
+    
+    if (nombreBusqueda && nombreBusqueda.length > 2) {
+      request.keyword = nombreBusqueda;
+    }
+    
+    _googleMapService.nearbySearch(request, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+        _datosExternosCache = results.slice(0, 8);
+        console.log(`✅ ${_datosExternosCache.length} negocios Google listos para pulso`);
+      }
+      
+      // Programar PRIMERA aparición (después de RETRASO_INICIAL)
+      _timerInicial = setTimeout(() => {
+        _iniciarCicloPulsos();
+      }, RETRASO_INICIAL);
+    });
+  }
+  
+  // ──────────────────────────────────────────────────────────────────────────
+  // INICIALIZACIÓN DE GOOGLE PLACES
+  // ──────────────────────────────────────────────────────────────────────────
+  
+  window.initGoogleAutocomplete = function() {
+    if (_inicializacionIntentada) return;
+    _inicializacionIntentada = true;
+    
+    try {
+      if (typeof google === 'undefined') return;
+      
+      const input = document.getElementById('searchInput');
+      const input2 = document.getElementById('searchInput2');
+      
+      if (!input) return;
+      
+      const config = {
+        types: ['establishment'],
+        componentRestrictions: { country: 'mx' },
+        fields: ['place_id', 'name', 'formatted_address', 'geometry', 'types']
+      };
+      
+      _googleAutocomplete = new google.maps.places.Autocomplete(input, config);
+      if (input2) _autocomplete2 = new google.maps.places.Autocomplete(input2, config);
+      
+      _googleAutocomplete.addListener('place_changed', function() {
+        const place = _googleAutocomplete.getPlace();
+        if (!place || !place.geometry) return;
+        
+        const googleTypes = place.types || [];
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        const nombre = place.name || '';
+        
+        console.log('📍 Búsqueda Google:', nombre);
+        
+        // 1. MOSTRAR EASYLINK INMEDIATAMENTE
+        const tiendasFiltradas = _filtrarTiendasEasylink(googleTypes);
+        _actualizarMapaEasylink(tiendasFiltradas);
+        _mostrarResultadosPanel(tiendasFiltradas);
+        
+        // 2. PROGRAMAR PULSOS DE GOOGLE
+        _programarBusquedaExternos(lat, lng, googleTypes, nombre);
+      });
+      
+      if (_autocomplete2) {
+        _autocomplete2.addListener('place_changed', function() {
+          const place = _autocomplete2.getPlace();
+          if (!place || !place.geometry) return;
+          
+          const tiendasFiltradas = _filtrarTiendasEasylink(place.types || []);
+          _actualizarMapaEasylink(tiendasFiltradas);
+          _mostrarResultadosPanel(tiendasFiltradas);
+          
+          _programarBusquedaExternos(
+            place.geometry.location.lat(),
+            place.geometry.location.lng(),
+            place.types || [],
+            place.name || ''
+          );
+        });
+      }
+      
+      console.log('✅ Google Places inicializado - Modo Pulsos');
+      
+    } catch (error) {
+      console.error('❌ Error:', error.message);
+    }
+  };
+  
+  // Agregar animación CSS para el pulso
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes pulseGoogle {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 15px rgba(26,115,232,0.5); }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Cargar script de Google
+  function _cargarScriptGoogle() {
+    if (_scriptCargado) return;
+    _scriptCargado = true;
+    
+    const existente = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (existente) return;
+    
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initGoogleAutocomplete`;
+    script.async = true;
+    script.defer = true;
+    script.onerror = () => console.error('❌ No se pudo cargar Google Maps');
+    
+    document.head.appendChild(script);
+    console.log('📡 Cargando Google Maps API...');
+  }
+  
+  if (document.readyState === 'complete') {
+    _cargarScriptGoogle();
+  } else {
+    window.addEventListener('load', _cargarScriptGoogle);
+  }
+  
+})();
+  
 </script>
 </body>
 </html>
