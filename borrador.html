@@ -424,14 +424,114 @@ footer a:hover{color:#fff}
 .cat-modal-cart.on{display:flex}
 @media(min-width:1024px){.grid{grid-template-columns:repeat(4,1fr);gap:16px}}
 </style>
+<style>
+  /* Contenedor del mapa */
+  .map-container {
+    display: inline-block;
+    position: relative;
+  }
+  
+  /* Animación de flotación - Muy sutil, cada 6 segundos */
+  .map-container svg {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  
+  /* Brillo sutil en el punto del mapa - cada 4 segundos */
+  .map-container svg circle {
+    animation: softPulse 4s ease-in-out infinite;
+    transform-origin: center;
+  }
+  
+  @keyframes softPulse {
+    0%, 100% { opacity: 0.7; r: 2.5; }
+    50% { opacity: 1; r: 3; }
+  }
+  
+  /* Efecto hover - Suave y elegante */
+  .map-container:hover svg {
+    color: #38bdf8 !important;
+    transform: scale(1.05) translateY(-2px);
+  }
+  
+  .map-container:hover .directorio-text {
+    color: #0ea5e9 !important;
+    letter-spacing: 0.8px;
+  }
+  
+  .map-container:hover span:first-child {
+    color: #cbd5e1 !important;
+  }
+  
+  .map-container:hover span:nth-child(2) {
+    color: #94a3b8 !important;
+  }
+  
+  /* Transiciones suaves para todo */
+  .map-container,
+  .map-container svg,
+  .map-container span {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+</style>
+  
 </head>
 <body>
 
 <nav class="navbar" id="navbar">
   <div class="brand" id="store-brand" onclick="handleBrandTap()">
-    <div class="brand-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+
+//-------------------------- Activador de reedireccionamiento 
+
+    <!-- Icono: Mapa animado que redirige al catálogo externo -->
+<div class="brand-icon" style="display: flex; flex-direction: column; align-items: center;">
+  
+  <!-- Mapa animado con efecto suave -->
+  <a href="https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/" 
+     target="_blank" 
+     rel="noopener noreferrer"
+     style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
+    
+    <div class="map-container" style="position: relative; cursor: pointer;">
+      <!-- Mapa SVG con animación sutil -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" 
+           style="width: 44px; height: 44px; color: #e2e8f0; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
+        <!-- Sombra suave del mapa -->
+        <defs>
+          <filter id="mapGlow">
+            <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        
+        <!-- Mapa base -->
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" 
+              filter="url(#mapGlow)"/>
+        <!-- Punto de ubicación -->
+        <circle cx="12" cy="10" r="2.5"/>
+      </svg>
+      
+      <!-- Texto dividido encima del mapa - Moderno y discreto -->
+      <div style="position: absolute; top: -28px; left: 50%; transform: translateX(-50%); 
+                  white-space: nowrap; font-size: 11px; font-weight: 500; letter-spacing: 0.3px;
+                  display: flex; gap: 4px; font-family: system-ui, -apple-system, sans-serif;">
+        <span style="color: #94a3b8; transition: color 0.3s ease;">vamos</span>
+        <span style="color: #64748b; transition: color 0.3s ease;">al</span>
+        <span style="color: #38bdf8; transition: all 0.3s ease;" class="directorio-text">directorio</span>
+      </div>
     </div>
+  </a>
+</div>
+
+//------------------------ fin de activadores reedireccionadoress
+    
     <span id="brand-text">Tienda</span>
     <div class="tap-ring"></div>
     <div class="tap-count" id="tap-count">0</div>
@@ -1931,7 +2031,7 @@ function mostrarFormTelefono() {
   document.getElementById('csm-phone-block').style.display = 'block';
 }
 //---------------------------------------
-function confirmarConTelefono() {
+async function confirmarConTelefono() {
   var tel = (document.getElementById('csm-telefono').value || '').trim();
   var err = document.getElementById('csm-err');
   if (!tel || tel.replace(/\D/g,'').length < 8) {
@@ -1940,21 +2040,77 @@ function confirmarConTelefono() {
     return;
   }
   err.style.display = 'none';
-  var phone = storeWA.replace(/\D/g,'');
-  if (!phone) { toast('Esta tienda no tiene WhatsApp configurado'); return; }
-  
-  var msg = 'Hola! Quiero hacer un pedido en *' + storeName + '*:\n\n';
+
+  var btnConfirm = document.querySelector('#csm-phone-block .csm-btn-primary');
+  if (btnConfirm) { btnConfirm.disabled = true; btnConfirm.textContent = 'Registrando...'; }
+
+  // ── 1. DETECTAR CIUDAD POR IP ──
+  var ubicacion = '';
+  try {
+    var geoRes = await fetch('https://ipapi.co/json/').then(function(r){ return r.json(); });
+    if (geoRes && geoRes.city) {
+      ubicacion = (geoRes.city||'') + (geoRes.region ? ', '+geoRes.region : '') + (geoRes.country_name ? ', '+geoRes.country_name : '');
+    }
+  } catch(e) {}
+
+  // ── 2. REGISTRAR CLIENTE (evita duplicados por teléfono) ──
+  var customerId = '', customerName = 'Cliente Tel';
+  try {
+    var regRes = await post('customer.registerPhone', {
+      phone: tel,
+      location: ubicacion,
+      storeName: storeName
+    });
+    if (regRes && regRes.ok) {
+      customerId   = regRes.customerId || '';
+      customerName = regRes.name || ('Cliente ' + tel.slice(-4));
+    }
+  } catch(e) { console.warn('registerPhone:', e); }
+
+  // ── 3. CREAR PEDIDO EN BACKEND ──
+  var orderId = '', orderLink = '';
+  try {
+    var orderRes = await post('order.create', {
+      customerId:    customerId,
+      customerName:  customerName,
+      customerPhone: tel,
+      customerEmail: '',
+      items: cart.map(function(c){ return { productId: c.productId, qty: c.qty }; }),
+      notes: 'Pedido WhatsApp — Tel: ' + tel + (ubicacion ? ' — ' + ubicacion : ''),
+      source: 'whatsapp-phone'
+    });
+    if (orderRes && orderRes.ok) {
+      orderId   = orderRes.orderId   || '';
+      orderLink = orderRes.orderLink || '';
+    }
+  } catch(e) { console.warn('order.create:', e); }
+
+  // ── 4. ENVIAR POR WHATSAPP AL DUEÑO ──
+  var phone = (storeWA || '').replace(/\D/g,'');
+  if (!phone) {
+    toast('Esta tienda no tiene WhatsApp configurado');
+    if (btnConfirm) { btnConfirm.disabled=false; btnConfirm.textContent='Enviar pedido por WhatsApp'; }
+    return;
+  }
+
+  var msg = '🛍️ *Nuevo pedido* — ' + storeName + '\n';
+  msg += '━━━━━━━━━━━━━━━━━\n';
   cart.forEach(function(c, i) {
-    msg += (i+1) + '. ' + c.name + ' x' + c.qty + ' — ' + fmt(c.price * c.qty) + '\n';
+    msg += (i+1)+'. '+c.name+' x'+c.qty+' — '+fmt(c.price*c.qty)+(c.sinStock?' ⚠️':'')+'\n';
   });
-  msg += '\nTotal estimado: *' + fmt(cartTotal()) + '*';
-  msg += '\n\nMi número de contacto: *' + tel + '*';
-  
+  msg += '━━━━━━━━━━━━━━━━━\n';
+  msg += '💰 *Total: ' + fmt(cartTotal()) + '*\n';
+  msg += '📞 *Tel cliente: ' + tel + '*\n';
+  if (ubicacion) msg += '📍 ' + ubicacion + '\n';
+  if (orderId)   msg += '🔖 Pedido #' + orderId + '\n';
+  if (orderLink) msg += '🔗 ' + orderLink + '\n';
+
   window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(msg), '_blank');
-  
+
   cart = []; save(); renderGrid(); updateNav();
   closeSuggestModal(); closeCart();
-  toast('Pedido enviado — te contactaremos pronto');
+  if (btnConfirm) { btnConfirm.disabled=false; btnConfirm.textContent='Enviar pedido por WhatsApp'; }
+  toast('✅ Pedido registrado y enviado');
 }
 //---------------------------------------
 
