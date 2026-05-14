@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Directorio Externo — EasyLink</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:#f4f4f0}
+.topbar{background:#1a1a1a;color:#fff;padding:11px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:700;flex:1}
+.badge{background:#f97316;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px}
+.btn-top{background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+#map{flex:1;width:100%}
+#radio-bar{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-radius:99px;padding:5px 10px;box-shadow:0 4px 18px rgba(0,0,0,.2);z-index:900;border:1px solid rgba(0,0,0,.08)}
+.radio-label{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.05em;padding:0 4px}
+.radio-pill{padding:5px 11px;border-radius:99px;border:none;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:#555;transition:all .15s;font-family:inherit}
+.radio-pill.active{background:#f97316;color:#fff}
+.popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-end;justify-content:center}
+.popup-bg.open{display:flex}
+.popup{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;overflow:hidden}
+.pop-banner{height:140px;background:linear-gradient(135deg,#f97316,#ea580c);position:relative;overflow:hidden}
+.pop-banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85}
+.pop-close{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:14px;cursor:pointer;z-index:2}
+.pop-logo{position:absolute;bottom:12px;left:14px;width:50px;height:50px;border-radius:12px;background:#fff;border:3px solid #fff;overflow:hidden;z-index:2;display:flex;align-items:center;justify-content:center;font-size:22px}
+.pop-logo img{width:100%;height:100%;object-fit:cover}
+.pop-body{padding:14px 16px 28px}
+.pop-name{font-size:17px;font-weight:700;margin-bottom:3px}
+.pop-loc{font-size:12px;color:#888;margin-bottom:14px}
+.pop-btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;color:#fff;margin-bottom:8px}
+.pop-btn.azul{background:#1a73e8}
+.pop-btn.verde{background:#25d366}
+.lista-wrap{position:fixed;bottom:0;left:0;right:0;max-height:55vh;overflow-y:auto;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.15);transform:translateY(100%);transition:transform .28s ease;z-index:800}
+.lista-wrap.open{transform:translateY(0)}
+.lista-hdr{padding:13px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;position:sticky;top:0;background:#fff}
+.lista-hdr-title{font-weight:700;font-size:14px;flex:1}
+.btn-cerrar{background:#f0f0f0;color:#333;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.store-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f5f5f5;cursor:pointer}
+.store-row:hover{background:#fef9f5}
+.store-thumb{width:44px;height:44px;border-radius:10px;background:#f5f0eb;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden}
+.store-thumb img{width:100%;height:100%;object-fit:cover}
+.store-name{font-weight:600;font-size:14px;margin-bottom:2px}
+.store-loc{font-size:12px;color:#888}
+#status{position:fixed;top:60px;left:0;right:0;padding:12px 16px;font-size:13px;font-weight:600;text-align:center;z-index:500;display:none}
+#status.info{background:#e8f0fe;color:#1a73e8;display:block}
+#status.error{background:#fce8e6;color:#c5221f;display:block}
+#status.ok{background:#e6f4ea;color:#137333;display:block}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">🗺️ Tiendas Externas</div>
+  <span class="badge" id="badge">—</span>
+  <button class="btn-top" onclick="toggleLista()">☰ Lista</button>
+</div>
+
+<div id="map"></div>
+<div id="status"></div>
+
+<div id="radio-bar">
+  <span class="radio-label">Radio</span>
+  <button class="radio-pill active" onclick="setRadio(10,this)">10 km</button>
+  <button class="radio-pill"        onclick="setRadio(20,this)">20 km</button>
+  <button class="radio-pill"        onclick="setRadio(35,this)">35 km</button>
+  <button class="radio-pill"        onclick="setRadio(50,this)">50 km</button>
+</div>
+
+<div class="popup-bg" id="popup-bg" onclick="if(event.target===this)cerrarPopup()">
+  <div class="popup">
+    <div class="pop-banner" id="pop-banner">
+      <button class="pop-close" onclick="cerrarPopup()">✕</button>
+      <div class="pop-logo" id="pop-logo">🏪</div>
+    </div>
+    <div class="pop-body">
+      <div class="pop-name" id="pop-name"></div>
+      <div class="pop-loc"  id="pop-loc"></div>
+      <a id="pop-btn-link" class="pop-btn azul"  href="#" target="_blank" style="display:none">🔗 Ver negocio</a>
+      <a id="pop-btn-wa"   class="pop-btn verde" href="#" target="_blank" style="display:none">💬 WhatsApp</a>
+    </div>
+  </div>
+</div>
+
+<div class="lista-wrap" id="lista-wrap">
+  <div class="lista-hdr">
+    <div class="lista-hdr-title" id="lista-title">Tiendas externas</div>
+    <button class="btn-cerrar" onclick="toggleLista()">✕</button>
+  </div>
+  <div id="lista-body"></div>
+</div>
+
+<script>
+const BACKEND = 'https://<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Directorio Externo — EasyLink</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:#f4f4f0}
+.topbar{background:#1a1a1a;color:#fff;padding:11px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:700;flex:1}
+.badge{background:#f97316;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px}
+.btn-top{background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+#map{flex:1;width:100%}
+#radio-bar{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-radius:99px;padding:5px 10px;box-shadow:0 4px 18px rgba(0,0,0,.2);z-index:900;border:1px solid rgba(0,0,0,.08)}
+.radio-label{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.05em;padding:0 4px}
+.radio-pill{padding:5px 11px;border-radius:99px;border:none;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:#555;transition:all .15s;font-family:inherit}
+.radio-pill.active{background:#f97316;color:#fff}
+.popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-end;justify-content:center}
+.popup-bg.open{display:flex}
+.popup{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;overflow:hidden}
+.pop-banner{height:140px;background:linear-gradient(135deg,#f97316,#ea580c);position:relative;overflow:hidden}
+.pop-banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85}
+.pop-close{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:14px;cursor:pointer;z-index:2}
+.pop-logo{position:absolute;bottom:12px;left:14px;width:50px;height:50px;border-radius:12px;background:#fff;border:3px solid #fff;overflow:hidden;z-index:2;display:flex;align-items:center;justify-content:center;font-size:22px}
+.pop-logo img{width:100%;height:100%;object-fit:cover}
+.pop-body{padding:14px 16px 28px}
+.pop-name{font-size:17px;font-weight:700;margin-bottom:3px}
+.pop-loc{font-size:12px;color:#888;margin-bottom:14px}
+.pop-btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;color:#fff;margin-bottom:8px}
+.pop-btn.azul{background:#1a73e8}
+.pop-btn.verde{background:#25d366}
+.lista-wrap{position:fixed;bottom:0;left:0;right:0;max-height:55vh;overflow-y:auto;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.15);transform:translateY(100%);transition:transform .28s ease;z-index:800}
+.lista-wrap.open{transform:translateY(0)}
+.lista-hdr{padding:13px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;position:sticky;top:0;background:#fff}
+.lista-hdr-title{font-weight:700;font-size:14px;flex:1}
+.btn-cerrar{background:#f0f0f0;color:#333;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.store-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f5f5f5;cursor:pointer}
+.store-row:hover{background:#fef9f5}
+.store-thumb{width:44px;height:44px;border-radius:10px;background:#f5f0eb;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden}
+.store-thumb img{width:100%;height:100%;object-fit:cover}
+.store-name{font-weight:600;font-size:14px;margin-bottom:2px}
+.store-loc{font-size:12px;color:#888}
+#status{position:fixed;top:60px;left:0;right:0;padding:12px 16px;font-size:13px;font-weight:600;text-align:center;z-index:500;display:none}
+#status.info{background:#e8f0fe;color:#1a73e8;display:block}
+#status.error{background:#fce8e6;color:#c5221f;display:block}
+#status.ok{background:#e6f4ea;color:#137333;display:block}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">🗺️ Tiendas Externas</div>
+  <span class="badge" id="badge">—</span>
+  <button class="btn-top" onclick="toggleLista()">☰ Lista</button>
+</div>
+
+<div id="map"></div>
+<div id="status"></div>
+
+<div id="radio-bar">
+  <span class="radio-label">Radio</span>
+  <button class="radio-pill active" onclick="setRadio(10,this)">10 km</button>
+  <button class="radio-pill"        onclick="setRadio(20,this)">20 km</button>
+  <button class="radio-pill"        onclick="setRadio(35,this)">35 km</button>
+  <button class="radio-pill"        onclick="setRadio(50,this)">50 km</button>
+</div>
+
+<div class="popup-bg" id="popup-bg" onclick="if(event.target===this)cerrarPopup()">
+  <div class="popup">
+    <div class="pop-banner" id="pop-banner">
+      <button class="pop-close" onclick="cerrarPopup()">✕</button>
+      <div class="pop-logo" id="pop-logo">🏪</div>
+    </div>
+    <div class="pop-body">
+      <div class="pop-name" id="pop-name"></div>
+      <div class="pop-loc"  id="pop-loc"></div>
+      <a id="pop-btn-link" class="pop-btn azul"  href="#" target="_blank" style="display:none">🔗 Ver negocio</a>
+      <a id="pop-btn-wa"   class="pop-btn verde" href="#" target="_blank" style="display:none">💬 WhatsApp</a>
+    </div>
+  </div>
+</div>
+
+<div class="lista-wrap" id="lista-wrap">
+  <div class="lista-hdr">
+    <div class="lista-hdr-title" id="lista-title">Tiendas externas</div>
+    <button class="btn-cerrar" onclick="toggleLista()">✕</button>
+  </div>
+  <div id="lista-body"></div>
+</div>
+
+<script>
+const BACKEND = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
+let ALL=[], mapa=null, markers=[], userLat=null, userLng=null, radioKm=10;
+
+function status(msg, tipo) {
+  var el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = tipo || 'info';
+}
+
+window.addEventListener('load', async function() {
+  // Init mapa
+  try {
+    mapa = L.map('map').setView([23.6345, -102.5528], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OSM' }).addTo(mapa);
+  } catch(e) {
+    status('Error iniciando mapa: ' + e.message, 'error'); return;
+  }
+
+  status('Conectando al servidor...', 'info');
+
+  try {
+    var url = BACKEND + '?action=stores.directory';
+    var r   = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    var data = await r.json();
+
+    if (!data.ok && !data.stores) throw new Error(data.error || 'Respuesta inválida');
+
+    var stores = (data.stores || []).map(function(s) {
+      s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {});
+      return s;
+    });
+
+    ALL = stores.filter(function(s) { return s.isExternal === true; });
+
+    document.getElementById('badge').textContent       = ALL.length;
+    document.getElementById('lista-title').textContent = ALL.length + ' tiendas externas';
+
+    if (!ALL.length) {
+      status('⚠️ Sin tiendas externas — agrega una desde el panel admin', 'error');
+      return;
+    }
+
+    status('✓ ' + ALL.length + ' tienda(s) cargada(s)', 'ok');
+    setTimeout(function(){ document.getElementById('status').style.display='none'; }, 2500);
+
+    // GPS
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          userLat = pos.coords.latitude;
+          userLng = pos.coords.longitude;
+          L.circleMarker([userLat,userLng],{radius:8,color:'#16a34a',fillColor:'#fff',weight:3,fillOpacity:1})
+           .addTo(mapa).bindTooltip('Tú');
+          aplicarRadio();
+        },
+        function() { mostrarTodas(); },
+        { enableHighAccuracy:true, timeout:6000 }
+      );
+    } else {
+      mostrarTodas();
+    }
+
+  } catch(e) {
+    status('❌ Error: ' + e.message, 'error');
+    console.error(e);
+  }
+});
+
+function mostrarTodas() {
+  limpiarMarkers();
+  ALL.forEach(function(s){ agregarPin(s); });
+  if (markers.length) mapa.fitBounds(L.featureGroup(markers).getBounds().pad(.2));
+  renderLista(ALL);
+}
+
+function aplicarRadio() {
+  if (!userLat) { mostrarTodas(); return; }
+  limpiarMarkers();
+  var filtradas = ALL.filter(function(s) {
+    var cfg=s.config||{}, lat=parseFloat(cfg.locationLat), lng=parseFloat(cfg.locationLng);
+    return !isNaN(lat)&&!isNaN(lng)&&haversine(userLat,userLng,lat,lng)<=radioKm;
+  });
+  var lista = filtradas.length ? filtradas : ALL;
+  lista.forEach(function(s){ agregarPin(s); });
+  if (markers.length) mapa.fitBounds(L.featureGroup(markers).getBounds().pad(.25));
+  renderLista(lista);
+  if (!filtradas.length) status('Sin tiendas en '+radioKm+' km — mostrando todas','info');
+}
+
+function setRadio(km, btn) {
+  radioKm = km;
+  document.querySelectorAll('.radio-pill').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  aplicarRadio();
+}
+
+function agregarPin(s) {
+  var cfg=s.config||{}, lat=parseFloat(cfg.locationLat), lng=parseFloat(cfg.locationLng);
+  if (isNaN(lat)||isNaN(lng)) return;
+  var foto = fixImg(cfg.logo||cfg.logoUrl||'');
+  var html = foto
+    ? '<img src="'+foto+'" style="width:50px;height:50px;border-radius:50%;border:4px solid #f97316;object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,.3)">'
+    : '<div style="width:50px;height:50px;background:#f97316;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:4px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.3);color:#fff">🏪</div>';
+  var icon   = L.divIcon({ html:html, className:'', iconSize:[54,54], iconAnchor:[27,27] });
+  var marker = L.marker([lat,lng],{icon}).addTo(mapa);
+  marker.on('click', function(){ abrirPopup(s); });
+  markers.push(marker);
+}
+
+function limpiarMarkers() { markers.forEach(function(m){ mapa.removeLayer(m); }); markers=[]; }
+
+function abrirPopup(s) {
+  var cfg=s.config||{}, foto=fixImg(cfg.logo||cfg.logoUrl||'');
+  var banner=document.getElementById('pop-banner');
+  var old=banner.querySelector('.pop-banner-img'); if(old) old.remove();
+  if (foto) {
+    var img=document.createElement('img'); img.className='pop-banner-img'; img.src=foto;
+    img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85';
+    banner.appendChild(img);
+  }
+  document.getElementById('pop-logo').innerHTML = foto ? '<img src="'+foto+'">' : '🏪';
+  document.getElementById('pop-name').textContent = s.name||'—';
+  document.getElementById('pop-loc').textContent  = cfg.description||cfg.storeLocation||'';
+  var lnk=document.getElementById('pop-btn-link');
+  lnk.style.display=cfg.linkNegocio?'':'none'; if(cfg.linkNegocio) lnk.href=cfg.linkNegocio;
+  var wa=document.getElementById('pop-btn-wa');
+  var tel=(cfg.whatsapp||'').replace(/\D/g,'');
+  wa.style.display=tel?'':'none'; if(tel) wa.href='https://wa.me/52'+tel;
+  document.getElementById('popup-bg').classList.add('open');
+}
+function cerrarPopup(){ document.getElementById('popup-bg').classList.remove('open'); }
+
+function renderLista(lista) {
+  var body=document.getElementById('lista-body');
+  if (!lista.length){ body.innerHTML='<div style="padding:32px;text-align:center;color:#aaa">Sin tiendas</div>'; return; }
+  body.innerHTML=lista.map(function(s){
+    var cfg=s.config||{}, foto=fixImg(cfg.logo||cfg.logoUrl||'');
+    var loc=cfg.storeLocation||cfg.description||'Sin ubicación';
+    return '<div class="store-row" onclick="abrirPorId(\''+s.storeId+'\')">'
+      +'<div class="store-thumb">'+(foto?'<img src="'+foto+'">':'🏪')+'</div>'
+      +'<div style="flex:1;min-width:0"><div class="store-name">'+esc(s.name||'—')+'</div>'
+      +'<div class="store-loc">📍 '+esc(loc)+'</div></div></div>';
+  }).join('');
+}
+
+function abrirPorId(id){
+  var s=ALL.find(function(x){ return x.storeId===id; }); if(!s) return;
+  document.getElementById('lista-wrap').classList.remove('open');
+  setTimeout(function(){ abrirPopup(s); },280);
+}
+function toggleLista(){ document.getElementById('lista-wrap').classList.toggle('open'); }
+
+function haversine(la1,ln1,la2,ln2){
+  var R=6371,d1=(la2-la1)*Math.PI/180,d2=(ln2-ln1)*Math.PI/180;
+  var a=Math.sin(d1/2)*Math.sin(d1/2)+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(d2/2)*Math.sin(d2/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function fixImg(u){
+  if(!u) return '';
+  var m=u.match(/[?&]id=([\w-]+)/); if(m) return 'https://lh3.googleusercontent.com/d/'+m[1];
+  var m2=u.match(/\/d\/([\w-]+)/);  if(m2) return 'https://lh3.googleusercontent.com/d/'+m2[1];
+  return u;
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
