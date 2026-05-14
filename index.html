@@ -10,101 +10,129 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;width:100%;overflow:hidden;}
 #map{width:100%;height:100dvh;}
-
-/* ── PIN: círculo naranja, foto como fondo interior ── */
-.ext-pin-wrap{
-  width:56px;
-  height:56px;
-  border-radius:50%;
-  border:4px solid #f97316;
-  box-shadow:0 3px 14px rgba(249,115,22,.65);
-  overflow:hidden;
-  background:#f97316;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-/* Foto como background-image — evita el problema del <img> externo */
-.ext-pin-inner{
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-}
-/* Fallback emoji */
-.ext-pin-emoji{
-  font-size:26px;
-  line-height:1;
-}
-
-/* ── POPUP ── */
-.lf-popup .leaflet-popup-content-wrapper{
-  border-radius:16px;padding:0;overflow:hidden;
-  box-shadow:0 8px 28px rgba(0,0,0,.22);
-  min-width:230px;
-}
+.yo-dot{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #16a34a;box-shadow:0 0 0 4px rgba(22,163,74,.25);}
+/* popup */
+.lf-popup .leaflet-popup-content-wrapper{border-radius:16px;padding:0;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.22);min-width:230px;}
 .lf-popup .leaflet-popup-content{margin:0;width:100%!important;}
 .lf-popup .leaflet-popup-tip-container{display:none;}
-.pop-foto{
-  width:100%;height:120px;
-  background-size:cover;background-position:center;
-  background-color:#f97316;
-  display:flex;align-items:center;justify-content:center;
-  font-size:40px;
-}
-.pop-body{padding:12px 14px 16px;}
-.pop-name{font-size:15px;font-weight:700;color:#111;margin-bottom:3px;}
-.pop-loc{font-size:12px;color:#888;margin-bottom:10px;line-height:1.4;}
-.pop-actions{display:flex;flex-direction:column;gap:7px;}
-.pop-btn{
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  padding:10px;border-radius:10px;font-size:13px;font-weight:700;
-  text-decoration:none;color:#fff;
-}
-.pop-btn.azul{background:#1a73e8;}
-.pop-btn.verde{background:#25d366;}
-
-/* Tu ubicación */
-.yo-dot{
-  width:16px;height:16px;border-radius:50%;
-  background:#fff;border:3px solid #16a34a;
-  box-shadow:0 0 0 4px rgba(22,163,74,.25);
-}
 </style>
 </head>
 <body>
 <div id="map"></div>
-
 <script>
 const BACKEND = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
 
 function fixImg(u){
   if(!u) return '';
-  var m  = u.match(/[?&]id=([\w-]+)/);
-  if(m)  return 'https://lh3.googleusercontent.com/d/'+m[1];
+  var m = u.match(/[?&]id=([\w-]+)/);
+  if(m) return 'https://lh3.googleusercontent.com/d/'+m[1];
   var m2 = u.match(/\/d\/([\w-]+)/);
   if(m2) return 'https://lh3.googleusercontent.com/d/'+m2[1];
-  // Google Share: extraer ID largo
   var m3 = u.match(/\/([A-Za-z0-9_-]{15,})/g);
-  if(m3 && u.includes('google')){
-    var id = m3[m3.length-1].replace('/','');
-    return 'https://lh3.googleusercontent.com/d/'+id;
+  if(m3 && u.indexOf('google')>=0){
+    return 'https://lh3.googleusercontent.com/d/'+m3[m3.length-1].replace('/','');
   }
   return u;
 }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* Construye el pin usando un elemento DOM real — evita problemas de comillas en strings */
+function makePin(foto){
+  var wrap = document.createElement('div');
+  wrap.style.cssText = [
+    'width:56px','height:56px','border-radius:50%',
+    'border:4px solid #f97316',
+    'box-shadow:0 3px 14px rgba(249,115,22,.65)',
+    'overflow:hidden','background:#f97316',
+    'display:flex','align-items:center','justify-content:center'
+  ].join(';');
+
+  if(foto){
+    var inner = document.createElement('div');
+    inner.style.cssText = [
+      'width:100%','height:100%','border-radius:50%',
+      'background-size:cover','background-position:center',
+      'background-repeat:no-repeat',
+      'background-image:url(' + encodeURI(foto) + ')'
+    ].join(';');
+    wrap.appendChild(inner);
+  } else {
+    wrap.innerHTML = '<span style="font-size:24px">🏪</span>';
+  }
+
+  var container = document.createElement('div');
+  container.appendChild(wrap);
+  return container.innerHTML;
+}
+
+/* Construye popup usando DOM — sin concatenación frágil de HTML */
+function makePopup(s, cfg, foto){
+  var div = document.createElement('div');
+
+  // Banner foto
+  var banner = document.createElement('div');
+  banner.style.cssText = 'width:100%;height:120px;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:40px;';
+  if(foto){
+    banner.style.backgroundImage = 'url(' + encodeURI(foto) + ')';
+    banner.style.backgroundSize  = 'cover';
+    banner.style.backgroundPosition = 'center';
+    banner.textContent = '';
+  } else {
+    banner.textContent = '🏪';
+  }
+  div.appendChild(banner);
+
+  // Body
+  var body = document.createElement('div');
+  body.style.cssText = 'padding:12px 14px 16px;';
+
+  var nombre = document.createElement('div');
+  nombre.style.cssText = 'font-size:15px;font-weight:700;color:#111;margin-bottom:3px;font-family:sans-serif;';
+  nombre.textContent = s.name || 'Tienda';
+  body.appendChild(nombre);
+
+  var loc = cfg.description || cfg.storeLocation || '';
+  if(loc){
+    var locEl = document.createElement('div');
+    locEl.style.cssText = 'font-size:12px;color:#888;margin-bottom:10px;font-family:sans-serif;';
+    locEl.textContent = '📍 ' + loc;
+    body.appendChild(locEl);
+  }
+
+  var actions = document.createElement('div');
+  actions.style.cssText = 'display:flex;flex-direction:column;gap:7px;';
+
+  var link = cfg.linkNegocio || '';
+  if(link){
+    var btnLink = document.createElement('a');
+    btnLink.href = link; btnLink.target = '_blank';
+    btnLink.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;color:#fff;background:#1a73e8;font-family:sans-serif;';
+    btnLink.textContent = '🔗 Ver negocio';
+    actions.appendChild(btnLink);
+  }
+
+  var tel = String(cfg.whatsapp||'').replace(/\D/g,'');
+  if(tel && tel.length > 4){
+    var btnWa = document.createElement('a');
+    btnWa.href = 'https://wa.me/' + tel; btnWa.target = '_blank';
+    btnWa.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;color:#fff;background:#25d366;font-family:sans-serif;';
+    btnWa.textContent = '💬 WhatsApp';
+    actions.appendChild(btnWa);
+  }
+
+  body.appendChild(actions);
+  div.appendChild(body);
+  return div;
+}
 
 window.addEventListener('load', async function(){
 
   var mapa = L.map('map',{zoomControl:true}).setView([22.5,-102.5],5);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(mapa);
 
-  /* GPS */
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(function(pos){
-      var icon=L.divIcon({html:'<div class="yo-dot"></div>',className:'',iconSize:[16,16],iconAnchor:[8,8]});
+      var icon = L.divIcon({html:'<div class="yo-dot"></div>',className:'',iconSize:[16,16],iconAnchor:[8,8]});
       L.marker([pos.coords.latitude,pos.coords.longitude],{icon})
        .addTo(mapa).bindTooltip('Tú',{permanent:false,direction:'top'});
     },null,{enableHighAccuracy:true,timeout:8000});
@@ -128,45 +156,22 @@ window.addEventListener('load', async function(){
       var lng = parseFloat(String(cfg.locationLng||'').replace(',','.').trim());
       if(isNaN(lat)||isNaN(lng)) return;
 
-      var fotoRaw = cfg.logo || cfg.logoUrl || cfg.bannerUrl || '';
-      var foto    = fixImg(fotoRaw);
+      var foto = fixImg(cfg.logo||cfg.logoUrl||cfg.bannerUrl||'');
 
-      /* ── PIN: foto como background-image dentro del círculo naranja ── */
-      var pinHTML = foto
-        ? '<div class="ext-pin-wrap"><div class="ext-pin-inner" style="background-image:url('+foto+')"></div></div>'
-        : '<div class="ext-pin-wrap"><div class="ext-pin-emoji">🏪</div></div>';
-
+      // Pin construido con DOM
       var icon = L.divIcon({
-        html      : pinHTML,
+        html      : makePin(foto),
         className : '',
         iconSize  : [56,56],
         iconAnchor: [28,28]
       });
 
-      /* ── POPUP ── */
-      var loc  = cfg.description || cfg.storeLocation || '';
-      var link = cfg.linkNegocio || '';
-      var tel  = String(cfg.whatsapp||'').replace(/\D/g,'');
-
-      /* Foto en popup también como background-image */
-      var popFoto = foto
-        ? '<div class="pop-foto" style="background-image:url('+foto+')"></div>'
-        : '<div class="pop-foto">🏪</div>';
-
-      var popHTML =
-        popFoto+
-        '<div class="pop-body">'+
-          '<div class="pop-name">'+esc(s.name||'Tienda')+'</div>'+
-          (loc?'<div class="pop-loc">📍 '+esc(loc)+'</div>':'')+
-          '<div class="pop-actions">'+
-            (link?'<a href="'+esc(link)+'" target="_blank" class="pop-btn azul">🔗 Ver negocio</a>':'')+
-            (tel&&tel.length>4?'<a href="https://wa.me/'+tel+'" target="_blank" class="pop-btn verde">💬 WhatsApp</a>':'')+
-          '</div>'+
-        '</div>';
+      // Popup construido con DOM
+      var popupEl = makePopup(s, cfg, foto);
 
       L.marker([lat,lng],{icon})
         .addTo(mapa)
-        .bindPopup(popHTML,{className:'lf-popup',maxWidth:260,minWidth:230});
+        .bindPopup(popupEl,{className:'lf-popup',maxWidth:260,minWidth:230});
 
       bounds.push([lat,lng]);
     });
@@ -178,7 +183,7 @@ window.addEventListener('load', async function(){
     }
 
   } catch(e){
-    console.error('Error:',e);
+    console.error('Error tiendas externas:',e);
   }
 });
 </script>
