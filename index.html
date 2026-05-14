@@ -146,7 +146,7 @@ window.addEventListener('load', async function(){
       /* ── Popup ── */
       var loc  = cfg.description || cfg.storeLocation || '';
       var link = cfg.linkNegocio || '';
-      var tel  = (cfg.whatsapp||'').replace(/\D/g,'');
+      var tel  = String(cfg.whatsapp||'').replace(/\D/g,'');
 
       var popHTML =
         (foto
@@ -157,7 +157,7 @@ window.addEventListener('load', async function(){
           (loc?'<div class="pop-loc">📍 '+esc(loc)+'</div>':'')+
           '<div class="pop-actions">'+
             (link?'<a href="'+esc(link)+'" target="_blank" class="pop-btn azul">🔗 Ver negocio</a>':'')+
-            (tel?'<a href="https://wa.me/'+tel+'" target="_blank" class="pop-btn verde">💬 WhatsApp</a>':'')+
+            (tel&&tel.length>4?'<a href="https://wa.me/'+tel+'" target="_blank" class="pop-btn verde">💬 WhatsApp</a>':'')+
           '</div>'+
         '</div>';
 
