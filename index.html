@@ -483,8 +483,12 @@ async function buildPromosFromCatalogs(stores){
     return haversineKm(userLat,userLng,parseFloat(ca.locationLat||0),parseFloat(ca.locationLng||0))
           -haversineKm(userLat,userLng,parseFloat(cb.locationLat||0),parseFloat(cb.locationLng||0));
   }).slice(0,MAX_PROMO_FETCH);
-  const results=await Promise.allSettled(sorted.map(s=>fetchStorePromos(s.storeId)));
-  PROMOS_LIST=[];
+   const soloPropias=sorted.filter(s=>!s.isExternal);
+  // const results=await Promise.allSettled(sorted.map(s=>fetchStorePromos(s.storeId)));
+
+  const results=await Promise.allSettled(soloPropias.map(s=>fetchStorePromos(s.storeId))); 
+   
+   PROMOS_LIST=[];
   results.forEach((res,i)=>{
     const store=sorted[i],cfg=store.config||{};
     const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
