@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -10,31 +11,9 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;width:100%;overflow:hidden;}
 #map{width:100%;height:100dvh;}
-
-/* Pin con foto */
-.ext-pin{
-  width:52px;height:52px;border-radius:50%;
-  border:4px solid #f97316;
-  object-fit:cover;
-  box-shadow:0 3px 12px rgba(249,115,22,.55);
-  display:block;
-}
-.ext-pin-ph{
-  width:52px;height:52px;border-radius:50%;
-  border:4px solid #f97316;
-  background:linear-gradient(135deg,#f97316,#ea580c);
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;
-  box-shadow:0 3px 12px rgba(249,115,22,.55);
-  color:#fff;
-}
-
-/* Popup */
-.lf-popup .leaflet-popup-content-wrapper{
-  border-radius:16px;padding:0;overflow:hidden;
-  box-shadow:0 8px 28px rgba(0,0,0,.2);
-  min-width:220px;
-}
+.ext-pin{width:52px;height:52px;border-radius:50%;border:4px solid #f97316;object-fit:cover;display:block;box-shadow:0 3px 12px rgba(249,115,22,.6);}
+.ext-pin-ph{width:52px;height:52px;border-radius:50%;border:4px solid #f97316;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;box-shadow:0 3px 12px rgba(249,115,22,.6);}
+.lf-popup .leaflet-popup-content-wrapper{border-radius:16px;padding:0;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.22);min-width:220px;}
 .lf-popup .leaflet-popup-content{margin:0;width:100%!important;}
 .lf-popup .leaflet-popup-tip-container{display:none;}
 .pop-foto{width:100%;height:110px;object-fit:cover;display:block;}
@@ -46,22 +25,17 @@ html,body{height:100%;width:100%;overflow:hidden;}
 .pop-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;color:#fff;}
 .pop-btn.azul{background:#1a73e8;}
 .pop-btn.verde{background:#25d366;}
-
-/* Tu ubicación dot */
-.yo-dot{
-  width:16px;height:16px;border-radius:50%;
-  background:#fff;border:3px solid #16a34a;
-  box-shadow:0 0 0 4px rgba(22,163,74,.25);
-}
+.yo-dot{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #16a34a;box-shadow:0 0 0 4px rgba(22,163,74,.25);}
+/* Debug temporal — se oculta solo */
+#dbg{position:fixed;top:10px;left:10px;background:rgba(0,0,0,.75);color:#0f0;font-size:11px;font-family:monospace;padding:10px 14px;border-radius:10px;z-index:9999;max-width:300px;line-height:1.7;display:none;}
 </style>
 </head>
 <body>
 <div id="map"></div>
+<div id="dbg"></div>
 
 <script>
 const BACKEND = 'https://script.google.com/macros/s/AKfycbwUhTHQkBhLIvF9KgP2bHpVeufIEaPCXZWo9-azz7mYrEEA79BPFCQxE68YQQxE5iw/exec';
-
-let mapa, userLat = null, userLng = null;
 
 function fixImg(u){
   if(!u) return '';
@@ -71,90 +45,110 @@ function fixImg(u){
 }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-window.addEventListener('load', async function(){
-  /* ── Iniciar mapa ── */
-  mapa = L.map('map', { zoomControl: true }).setView([22.5, -102.5], 5);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(mapa);
+/* ── Debug visible en pantalla ── */
+var dbgEl = document.getElementById('dbg');
+function log(msg){
+  dbgEl.style.display='block';
+  dbgEl.innerHTML += msg + '<br>';
+  console.log(msg);
+}
 
-  /* ── GPS usuario ── */
+window.addEventListener('load', async function(){
+
+  var mapa = L.map('map',{zoomControl:true}).setView([22.5,-102.5],5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(mapa);
+
+  /* GPS usuario */
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(function(pos){
-      userLat = pos.coords.latitude;
-      userLng = pos.coords.longitude;
-      var yoIcon = L.divIcon({ html:'<div class="yo-dot"></div>', className:'', iconSize:[16,16], iconAnchor:[8,8] });
-      L.marker([userLat, userLng], { icon: yoIcon }).addTo(mapa)
-       .bindTooltip('Tú', { permanent:false, direction:'top' });
-    }, function(){}, { enableHighAccuracy:true, timeout:8000 });
+      var icon=L.divIcon({html:'<div class="yo-dot"></div>',className:'',iconSize:[16,16],iconAnchor:[8,8]});
+      L.marker([pos.coords.latitude,pos.coords.longitude],{icon}).addTo(mapa)
+       .bindTooltip('Tú',{permanent:false,direction:'top'});
+    },null,{enableHighAccuracy:true,timeout:8000});
   }
 
-  /* ── Cargar tiendas externas ── */
   try {
-    var r    = await fetch(BACKEND + '?action=stores.directory');
+    log('Cargando backend...');
+    var r    = await fetch(BACKEND+'?action=stores.directory');
     var data = await r.json();
-    var stores = (data.stores || []).map(function(s){
-      s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {});
-      return s;
-    });
-    var externas = stores.filter(function(s){ return s.isExternal === true; });
+    var total = (data.stores||[]).length;
+    log('Total stores: '+total);
 
-    if(!externas.length) return;
+    /* ── Filtrar externas con status activo ──
+       El backend solo mete externas con e.status==='activo'
+       así que cualquiera que llegue con isExternal:true ya es activa */
+    var externas = (data.stores||[]).filter(function(s){
+      return s.isExternal === true;
+    });
+    log('Externas activas: '+externas.length);
+
+    if(!externas.length){
+      log('⚠️ Sin tiendas externas. Verifica que tengan status=activo en el Sheet.');
+      return;
+    }
 
     var bounds = [];
 
     externas.forEach(function(s){
       var cfg = s.config || {};
-      var lat = parseFloat(cfg.locationLat);
-      var lng = parseFloat(cfg.locationLng);
-      if(isNaN(lat) || isNaN(lng)) return;
 
-      var foto = fixImg(cfg.logo || cfg.logoUrl || cfg.foto || '');
+      /* El backend arma config con locationLat/locationLng como strings */
+      var lat = parseFloat(String(cfg.locationLat).replace(',','.'));
+      var lng = parseFloat(String(cfg.locationLng).replace(',','.'));
 
-      /* ── Pin con foto o emoji ── */
+      log(esc(s.name||'?')+': lat='+lat+' lng='+lng);
+
+      if(isNaN(lat)||isNaN(lng)) return;
+
+      /* foto = cfg.logo que el backend mapea desde e.foto */
+      var foto = fixImg(cfg.logo||cfg.logoUrl||'');
+
       var pinHTML = foto
         ? '<img class="ext-pin" src="'+foto+'" onerror="this.outerHTML=\'<div class=ext-pin-ph>🏪</div>\'">'
         : '<div class="ext-pin-ph">🏪</div>';
 
-      var icon = L.divIcon({
-        html      : pinHTML,
-        className : '',
-        iconSize  : [52, 52],
-        iconAnchor: [26, 26]
-      });
+      var icon = L.divIcon({html:pinHTML,className:'',iconSize:[52,52],iconAnchor:[26,26]});
 
-      /* ── Contenido popup ── */
-      var loc  = cfg.description || cfg.storeLocation || '';
-      var link = cfg.linkNegocio || '';
-      var tel  = (cfg.whatsapp  || '').replace(/\D/g,'');
+      var loc  = cfg.description||cfg.storeLocation||'';
+      var link = cfg.linkNegocio||'';
+      var tel  = (cfg.whatsapp||'').replace(/\D/g,'');
 
       var popHTML =
         (foto
           ? '<img class="pop-foto" src="'+foto+'" onerror="this.outerHTML=\'<div class=pop-foto-ph>🏪</div>\'">'
-          : '<div class="pop-foto-ph">🏪</div>') +
-        '<div class="pop-body">' +
-          '<div class="pop-name">'+esc(s.name||'Tienda')+'</div>' +
-          (loc ? '<div class="pop-loc">📍 '+esc(loc)+'</div>' : '') +
-          '<div class="pop-actions">' +
-            (link ? '<a href="'+esc(link)+'" target="_blank" class="pop-btn azul">🔗 Ver negocio</a>' : '') +
-            (tel  ? '<a href="https://wa.me/52'+tel+'" target="_blank" class="pop-btn verde">💬 WhatsApp</a>' : '') +
-          '</div>' +
+          : '<div class="pop-foto-ph">🏪</div>')+
+        '<div class="pop-body">'+
+          '<div class="pop-name">'+esc(s.name||'Tienda')+'</div>'+
+          (loc?'<div class="pop-loc">📍 '+esc(loc)+'</div>':'')+
+          '<div class="pop-actions">'+
+            (link?'<a href="'+esc(link)+'" target="_blank" class="pop-btn azul">🔗 Ver negocio</a>':'')+
+            (tel?'<a href="https://wa.me/'+tel+'" target="_blank" class="pop-btn verde">💬 WhatsApp</a>':'')+
+          '</div>'+
         '</div>';
 
-      L.marker([lat, lng], { icon: icon })
+      L.marker([lat,lng],{icon})
         .addTo(mapa)
-        .bindPopup(popHTML, { className:'lf-popup', maxWidth:260, minWidth:220 });
+        .bindPopup(popHTML,{className:'lf-popup',maxWidth:260,minWidth:220});
 
-      bounds.push([lat, lng]);
+      bounds.push([lat,lng]);
     });
 
-    /* ── Centrar mapa en todas las tiendas ── */
-    if(bounds.length === 1){
-      mapa.setView(bounds[0], 14);
-    } else if(bounds.length > 1){
-      mapa.fitBounds(L.latLngBounds(bounds), { padding:[40,40], maxZoom:14 });
+    log('Pines dibujados: '+bounds.length);
+
+    if(bounds.length===1){
+      mapa.setView(bounds[0],14);
+    } else if(bounds.length>1){
+      mapa.fitBounds(L.latLngBounds(bounds),{padding:[50,50],maxZoom:14});
+    }
+
+    /* Ocultar debug a los 8s si hay pines */
+    if(bounds.length>0){
+      setTimeout(function(){ dbgEl.style.display='none'; },8000);
     }
 
   } catch(e){
-    console.error('Error cargando tiendas:', e);
+    log('❌ Error: '+e.message);
+    console.error(e);
   }
 });
 </script>
