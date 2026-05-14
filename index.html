@@ -11,20 +11,35 @@
 html,body{height:100%;width:100%;overflow:hidden;}
 #map{width:100%;height:100dvh;}
 
-.ext-pin{
-  width:52px;height:52px;border-radius:50%;
-  border:4px solid #f97316;object-fit:cover;display:block;
-  box-shadow:0 3px 14px rgba(249,115,22,.65);
-  background:#fff;
-}
-.ext-pin-ph{
-  width:52px;height:52px;border-radius:50%;
+/* ── PIN: círculo naranja, foto como fondo interior ── */
+.ext-pin-wrap{
+  width:56px;
+  height:56px;
+  border-radius:50%;
   border:4px solid #f97316;
-  background:linear-gradient(135deg,#f97316,#ea580c);
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;color:#fff;
   box-shadow:0 3px 14px rgba(249,115,22,.65);
+  overflow:hidden;
+  background:#f97316;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
+/* Foto como background-image — evita el problema del <img> externo */
+.ext-pin-inner{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+/* Fallback emoji */
+.ext-pin-emoji{
+  font-size:26px;
+  line-height:1;
+}
+
+/* ── POPUP ── */
 .lf-popup .leaflet-popup-content-wrapper{
   border-radius:16px;padding:0;overflow:hidden;
   box-shadow:0 8px 28px rgba(0,0,0,.22);
@@ -32,11 +47,12 @@ html,body{height:100%;width:100%;overflow:hidden;}
 }
 .lf-popup .leaflet-popup-content{margin:0;width:100%!important;}
 .lf-popup .leaflet-popup-tip-container{display:none;}
-.pop-foto{width:100%;height:120px;object-fit:cover;display:block;}
-.pop-foto-ph{
-  width:100%;height:90px;
-  background:linear-gradient(135deg,#f97316,#ea580c);
-  display:flex;align-items:center;justify-content:center;font-size:36px;
+.pop-foto{
+  width:100%;height:120px;
+  background-size:cover;background-position:center;
+  background-color:#f97316;
+  display:flex;align-items:center;justify-content:center;
+  font-size:40px;
 }
 .pop-body{padding:12px 14px 16px;}
 .pop-name{font-size:15px;font-weight:700;color:#111;margin-bottom:3px;}
@@ -49,6 +65,8 @@ html,body{height:100%;width:100%;overflow:hidden;}
 }
 .pop-btn.azul{background:#1a73e8;}
 .pop-btn.verde{background:#25d366;}
+
+/* Tu ubicación */
 .yo-dot{
   width:16px;height:16px;border-radius:50%;
   background:#fff;border:3px solid #16a34a;
@@ -60,42 +78,31 @@ html,body{height:100%;width:100%;overflow:hidden;}
 <div id="map"></div>
 
 <script>
+const BACKEND = 'https://script.google.com/macros/s/AKfycbwUhTHQkBhLIvF9KgP2bHpVeufIEaPCXZWo9-azz7mYrEEA79BPFCQxE68YQQxE5iw/exec';
 const BACKEND = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
 
-/* ══════════════════════════════════════════
-   fixImg — convierte cualquier URL de Google
-   a URL directa de imagen descargable
-   ══════════════════════════════════════════ */
 function fixImg(u){
   if(!u) return '';
-
-  // Google Drive: /file/d/ID/view  o  ?id=ID
   var m  = u.match(/[?&]id=([\w-]+)/);
   if(m)  return 'https://lh3.googleusercontent.com/d/'+m[1];
   var m2 = u.match(/\/d\/([\w-]+)/);
   if(m2) return 'https://lh3.googleusercontent.com/d/'+m2[1];
-
-  // Google Share link: share.google/... — no es imagen directa,
-  // intentamos extraer el ID de 19+ caracteres que suelen contener
-  var m3 = u.match(/\/([A-Za-z0-9_-]{19,})/);
-  if(m3 && u.includes('google')) return 'https://lh3.googleusercontent.com/d/'+m3[1];
-
-  // Google Photos / lh3
-  if(u.includes('lh3.googleusercontent') || u.includes('googleusercontent')) return u;
-
-  // URL normal
+  // Google Share: extraer ID largo
+  var m3 = u.match(/\/([A-Za-z0-9_-]{15,})/g);
+  if(m3 && u.includes('google')){
+    var id = m3[m3.length-1].replace('/','');
+    return 'https://lh3.googleusercontent.com/d/'+id;
+  }
   return u;
 }
-
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 window.addEventListener('load', async function(){
 
-  /* ── Mapa ── */
   var mapa = L.map('map',{zoomControl:true}).setView([22.5,-102.5],5);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(mapa);
 
-  /* ── GPS usuario ── */
+  /* GPS */
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(function(pos){
       var icon=L.divIcon({html:'<div class="yo-dot"></div>',className:'',iconSize:[16,16],iconAnchor:[8,8]});
@@ -104,13 +111,10 @@ window.addEventListener('load', async function(){
     },null,{enableHighAccuracy:true,timeout:8000});
   }
 
-  /* ── Cargar tiendas ── */
   try {
     var r    = await fetch(BACKEND+'?action=stores.directory');
     var data = await r.json();
 
-    /* El backend filtra internamente status='activo', así que
-       todo lo que llega con isExternal:true ya está activo */
     var externas = (data.stores||[]).filter(function(s){
       return s.isExternal === true;
     });
@@ -121,37 +125,37 @@ window.addEventListener('load', async function(){
 
     externas.forEach(function(s){
       var cfg = s.config || {};
-
-      /* Coordenadas — vienen como string en cfg */
       var lat = parseFloat(String(cfg.locationLat||'').replace(',','.').trim());
       var lng = parseFloat(String(cfg.locationLng||'').replace(',','.').trim());
       if(isNaN(lat)||isNaN(lng)) return;
 
-      /* Foto — cfg.logo = e.foto del sheet */
       var fotoRaw = cfg.logo || cfg.logoUrl || cfg.bannerUrl || '';
       var foto    = fixImg(fotoRaw);
 
-      /* ── Pin ── */
+      /* ── PIN: foto como background-image dentro del círculo naranja ── */
       var pinHTML = foto
-        ? '<img class="ext-pin" src="'+foto+'" onerror="this.outerHTML=\'<div class=\\\"ext-pin-ph\\\">🏪</div>\'">'
-        : '<div class="ext-pin-ph">🏪</div>';
+        ? '<div class="ext-pin-wrap"><div class="ext-pin-inner" style="background-image:url('+foto+')"></div></div>'
+        : '<div class="ext-pin-wrap"><div class="ext-pin-emoji">🏪</div></div>';
 
       var icon = L.divIcon({
         html      : pinHTML,
         className : '',
-        iconSize  : [52,52],
-        iconAnchor: [26,26]
+        iconSize  : [56,56],
+        iconAnchor: [28,28]
       });
 
-      /* ── Popup ── */
+      /* ── POPUP ── */
       var loc  = cfg.description || cfg.storeLocation || '';
       var link = cfg.linkNegocio || '';
       var tel  = String(cfg.whatsapp||'').replace(/\D/g,'');
 
+      /* Foto en popup también como background-image */
+      var popFoto = foto
+        ? '<div class="pop-foto" style="background-image:url('+foto+')"></div>'
+        : '<div class="pop-foto">🏪</div>';
+
       var popHTML =
-        (foto
-          ? '<img class="pop-foto" src="'+foto+'" onerror="this.style.display=\'none\'">'
-          : '<div class="pop-foto-ph">🏪</div>')+
+        popFoto+
         '<div class="pop-body">'+
           '<div class="pop-name">'+esc(s.name||'Tienda')+'</div>'+
           (loc?'<div class="pop-loc">📍 '+esc(loc)+'</div>':'')+
@@ -168,7 +172,6 @@ window.addEventListener('load', async function(){
       bounds.push([lat,lng]);
     });
 
-    /* ── Centrar ── */
     if(bounds.length===1){
       mapa.setView(bounds[0],15);
     } else if(bounds.length>1){
@@ -176,7 +179,7 @@ window.addEventListener('load', async function(){
     }
 
   } catch(e){
-    console.error('Error tiendas externas:',e);
+    console.error('Error:',e);
   }
 });
 </script>
