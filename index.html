@@ -710,17 +710,32 @@ function renderSearchResults(query){
     const nearby=dist&&parseFloat(dist)<=RADIO_KM;
     const tipo=s.isExternal?(s.tipo_negocio||cfg.tipo_negocio||''):'';
     const tel=s.isExternal?(s.telefono||cfg.telefono||''):'';
-    const item=document.createElement('div');item.className='sp-item';
+ const item=document.createElement('div');item.className='sp-item';
+    // Para externas: leer foto y campos directamente igual que en showStoresModal
+    const fotoUrlExt=s.isExternal?fixImgUrl(s.foto||cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||''):fotoUrl;
+    const telExt=s.isExternal?(cfg.whatsapp||s.telefono||cfg.telefono||'').replace(/\D/g,''):'';
+    const linkExt=s.isExternal?(cfg.linkNegocio||cfg.link_negocio||s.link_negocio||cfg.link||cfg.url||''):'';
+    const tipoExt=s.isExternal?(cfg.tipoNegocio||cfg.tipo_negocio||s.tipo_negocio||tipo):'';
+    const logoFinal=s.isExternal?fotoUrlExt:fotoUrl;
     item.innerHTML=`
-      <div class="sp-logo">${fotoUrl?`<img src="${fotoUrl}" alt="${s.nombre_tienda||s.name}">`:'🏪'}</div>
+      <div class="sp-logo" style="${s.isExternal?'background:#fff3e0;':''}">
+        ${logoFinal?`<img src="${logoFinal}" alt="${s.nombre_tienda||s.name}">`:'🏪'}
+      </div>
       <div class="sp-info">
         <h3>${s.nombre_tienda||s.name||'Tienda'}${s.isExternal?'<span style="font-size:10px;background:#fff3e0;color:#e65100;padding:1px 7px;border-radius:20px;font-weight:700;margin-left:4px;">🏪 Externa</span>':''}</h3>
         ${dist?`<div class="sp-dist">📍 ${dist} km${nearby?'<span class="sp-badge">Cercana</span>':''}</div>`:''}
-        <div class="sp-desc">${s.isExternal?[s.colonia||cfg.colonia,s.localidad||cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Tienda externa':cfg.description||'Tienda Easylink'}</div>
-        ${tipo?`<div style="font-size:11px;color:#1a73e8;font-weight:700;margin-top:2px;">🏷️ ${tipo}</div>`:''}
-        ${tel?`<div style="font-size:11px;color:#555;margin-top:1px;">📞 ${tel}</div>`:''}
+        <div class="sp-desc">${s.isExternal?([s.colonia||cfg.colonia,s.localidad||cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Tienda externa'):(cfg.description||'Tienda Easylink')}</div>
+        ${tipoExt?`<div style="font-size:11px;color:#1a73e8;font-weight:700;margin-top:2px;">🏷️ ${tipoExt}</div>`:''}
+        ${telExt?`<div style="font-size:11px;color:#555;margin-top:1px;">📞 ${telExt.replace(/(\d{3})(\d{3})(\d{4})/,'$1 $2 $3')}</div>`:''}
+        ${linkExt?`<div style="font-size:11px;margin-top:1px;"><a href="${linkExt}" target="_blank" onclick="event.stopPropagation()" style="color:#1a73e8;font-weight:600;text-decoration:none;">🔗 Ver tienda</a></div>`:''}
       </div>`;
-    item.onclick=()=>{clearSearch();if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],16,{animate:true});setTimeout(()=>openPopup(s.storeId),350);};
+    // Externas: abrir directamente openExtPopup para mostrar detalle completo
+    if(s.isExternal){
+      item.onclick=()=>{clearSearch();if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],16,{animate:true});setTimeout(()=>openExtPopup(s),350);};
+    } else {
+      item.onclick=()=>{clearSearch();if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],16,{animate:true});setTimeout(()=>openPopup(s.storeId),350);};
+    }
+    container.appendChild(item);
     container.appendChild(item);
   });
 }
