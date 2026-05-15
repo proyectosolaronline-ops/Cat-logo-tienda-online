@@ -711,25 +711,32 @@ async function extCargarYPintarTiendasExternas(){
 function extPintarPinEnMapa(tienda){
   const lat = parseFloat(tienda.locationLat);
   const lng = parseFloat(tienda.locationLng);
+  if(isNaN(lat) || isNaN(lng)) return;
+  
   const fotoUrl = extResolverFoto(tienda.foto);
-
-  /* Pin verde con foto o emoji de tipo negocio */
-  const icono = fotoUrl
-    ? `<img src="${fotoUrl}"
+  
+  /* Pin verde con foto o emoji */
+  let iconoHtml = '';
+  
+  if(fotoUrl) {
+    iconoHtml = `<img src="${fotoUrl}"
          style="width:52px;height:52px;border-radius:50%;border:4px solid #16a34a;
-                object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,.35);"
-         onerror="this.parentNode.innerHTML=extEmojitipo('${tienda.tipo_negocio||''}',true)">`
-    : `<div style="width:52px;height:52px;background:#16a34a;color:#fff;border-radius:50%;
+                object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,.35);background:#fff;"
+         onerror="this.onerror=null;this.parentNode.innerHTML='<div style=\"width:52px;height:52px;background:#16a34a;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.3);\">${extEmojiTipo(tienda.tipo_negocio||'')}</div>'">`;
+  } else {
+    iconoHtml = `<div style="width:52px;height:52px;background:#16a34a;color:#fff;border-radius:50%;
                    display:flex;align-items:center;justify-content:center;font-size:22px;
                    border:4px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.3);">
          ${extEmojiTipo(tienda.tipo_negocio||'')}
        </div>`;
+  }
 
   const icon = L.divIcon({
-    html      : icono,
-    className : '',
+    html      : iconoHtml,
+    className : 'custom-div-icon externa-marker',
     iconSize  : [56, 56],
-    iconAnchor: [28, 28]
+    iconAnchor: [28, 28],
+    popupAnchor: [0, -28]
   });
 
   L.marker([lat, lng], { icon, zIndexOffset: 500 })
@@ -961,6 +968,37 @@ function extBuscarEnExternas(query, contenedor){
 /* ═══════════════════════════════════════════
    PROMOS — ticker
    ═══════════════════════════════════════════ */
+async function extCargarYPintarTiendasExternas(){
+  try {
+    const res = await fetch(EXT_BACKEND, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'external.stores.list' })
+    });
+    const data = await res.json();
+    console.log('📦 Tiendas externas recibidas:', data);
+    
+    const lista = data.stores || [];
+    console.log(`✅ ${lista.length} tiendas externas encontradas`);
+    
+    EXT_TIENDAS_CACHE = lista.filter(t =>
+      t.status === 'activo' &&
+      t.locationLat && t.locationLng &&
+      !isNaN(parseFloat(t.locationLat)) &&
+      !isNaN(parseFloat(t.locationLng))
+    );
+    console.log(`📍 ${EXT_TIENDAS_CACHE.length} tiendas con coordenadas válidas`);
+    
+    EXT_TIENDAS_CACHE.forEach(t => extPintarPinEnMapa(t));
+  } catch(e){
+    console.error('❌ Error cargando tiendas externas:', e);
+  }
+}
+
+
+
+
+   
 async function buildPromosFromCatalogs(stores){
   const sorted = [...stores].sort((a,b) => {
     const ca = a.config||{}, cb = b.config||{};
