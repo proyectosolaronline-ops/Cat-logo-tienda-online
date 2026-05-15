@@ -514,12 +514,15 @@ function openExtPopup(s){
   const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
   const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
   document.getElementById('ext-ubicacion').innerHTML=
-    `<span>📍</span>${partes.join(', ')||'Ver en mapa'}${dist?' · <strong>'+dist+'</strong>':''}`;
-
+    `<span>📍</span>${partes.join(', ')||'Ver en mapa'}${dist?' · <strong>'+dist+'</strong>':''}${tipoNeg?' · <span style="background:#f0f9ff;color:#0369a1;padding:1px 7px;border-radius:99px;font-size:11px;font-weight:700;">🏷️ '+tipoNeg+'</span>':''}`;
   /* Datos */
   const mapsUrl=(!isNaN(lat)&&!isNaN(lng))?`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`:'';
-  const tel=(cfg.telefono||s.telefono||'').replace(/\D/g,'');
-  const link=cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+  
+  const tel=(cfg.whatsapp||cfg.telefono||s.telefono||s.whatsapp||'').replace(/\D/g,'');
+  const link=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+  const tipoNeg=cfg.tipoNegocio||s.tipo_negocio||'';
+
+  
   const nomNeg=s.nombre_tienda||s.name||'su tienda';
   const msgWpp=encodeURIComponent(`¡Hola! Voy en camino a ${nomNeg}. Por favor estén listos 🚗`);
   const wppUrl=tel?`https://wa.me/52${tel}?text=${msgWpp}`:'';
