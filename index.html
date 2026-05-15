@@ -553,9 +553,13 @@ function openPopup(id){
 }
 function closePopup(){document.getElementById('popup-bg').classList.remove('open');}
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════*/
    POPUP TIENDA EXTERNA — mejorado: foto, tipo, info, minimap GPS, botones
-function openExtPopup(s){
+
+
+
+
+  function openExtPopup(s){
   const cfg=s.config||{};
 
   const fotoUrl=fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
@@ -624,6 +628,9 @@ function openExtPopup(s){
   document.getElementById('ext-actions-wrap').innerHTML=html;
   document.getElementById('ext-popup-bg').classList.add('open');
 }
+
+
+
 function closeExtPopup(){
   document.getElementById('ext-popup-bg').classList.remove('open');
   if(extMiniMap){extMiniMap.remove();extMiniMap=null;extMiniMarker=null;}
