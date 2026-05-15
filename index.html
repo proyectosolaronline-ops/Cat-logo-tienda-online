@@ -494,56 +494,102 @@ function openPopup(id){
 }
 function closePopup(){document.getElementById('popup-bg').classList.remove('open');}
 
-/* ══════════════════════════════════════════════════════
-   POPUP TIENDA EXTERNA — botones dinámicos según datos
-   ══════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP TIENDA EXTERNA — con teléfono, link y tipo de negocio
+   ══════════════════════════════════════════════════════════════ */
 function openExtPopup(s){
   const cfg=s.config||{};
 
-  /* Foto */
+  /* ── Foto ── */
   const fotoUrl=fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
   document.getElementById('ext-foto-wrap').innerHTML=fotoUrl
     ?`<img class="ext-foto" src="${fotoUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
     :`<div class="ext-foto-ph">🏪</div>`;
 
-  /* Nombre */
+  /* ── Nombre ── */
   document.getElementById('ext-nombre').textContent=s.nombre_tienda||s.name||'Tienda externa';
 
-  /* Ubicación */
+  /* ── Tipo de negocio ── */
+  const tipoNegocio=cfg.tipoNegocio||cfg.tipo_negocio||s.tipo_negocio||'';
+  const tipoBadge=tipoNegocio
+    ?`<span style="display:inline-flex;align-items:center;gap:5px;background:#f3e5f5;color:#7b1fa2;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px;vertical-align:middle;">🏷️ ${tipoNegocio}</span>`
+    :'';
+
+  /* ── Ubicación ── */
   const partes=[cfg.colonia,cfg.localidad||cfg.city,cfg.estado||cfg.state].filter(Boolean);
   const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
   const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
   document.getElementById('ext-ubicacion').innerHTML=
-    `<span>📍</span>${partes.join(', ')||'Ver en mapa'}${dist?' · <strong>'+dist+'</strong>':''}`;
+    `<span>📍</span>${partes.join(', ')||'Ver en mapa'}${dist?' · <strong>'+dist+'</strong>':''}${tipoBadge?'<br>'+tipoBadge:''}`;
 
-  /* Datos */
+  /* ── Datos de contacto ── */
   const mapsUrl=(!isNaN(lat)&&!isNaN(lng))?`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`:'';
-  const tel=(cfg.telefono||s.telefono||'').replace(/\D/g,'');
-  const link=cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+  const tel=(cfg.telefono||s.telefono||cfg.whatsapp||'').replace(/\D/g,'');
+  const link=cfg.link_negocio||cfg.linkNegocio||cfg.link||cfg.url||s.link_negocio||'';
   const nomNeg=s.nombre_tienda||s.name||'su tienda';
   const msgWpp=encodeURIComponent(`¡Hola! Voy en camino a ${nomNeg}. Por favor estén listos 🚗`);
   const wppUrl=tel?`https://wa.me/52${tel}?text=${msgWpp}`:'';
 
+  /* ── Botón Cómo llegar ── */
   const btnLlegar=mapsUrl
     ?`<a class="ext-btn ext-btn-llegar" href="${mapsUrl}" target="_blank"><span class="ext-btn-icon">🗺️</span>Cómo llegar</a>`
-    :`<button class="ext-btn ext-btn-llegar" style="opacity:.4;cursor:default;"><span class="ext-btn-icon">🗺️</span>Cómo llegar</button>`;
+    :`<button class="ext-btn ext-btn-llegar" style="opacity:.4;cursor:default;" disabled><span class="ext-btn-icon">🗺️</span>Cómo llegar</button>`;
 
   let html='';
 
+  /* ── Información adicional (teléfono y link visibles) ── */
+  let infoExtra='';
+  
+  // Teléfono visible (formateado)
+  if(tel){
+    const telFormateado=tel.replace(/(\d{2})(\d{4})(\d{4})/,'($1) $2-$3');
+    infoExtra+=`
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;color:#333;">
+        <span style="font-size:18px;">📞</span>
+        <span style="font-weight:600;">${telFormateado}</span>
+        <a href="tel:${tel}" style="margin-left:auto;color:#1a73e8;text-decoration:none;font-weight:600;font-size:12px;">Llamar →</a>
+      </div>`;
+  }
+
+  // Link visible
+  if(link){
+    const linkCorto=link.replace(/^https?:\/\//,'').replace(/\/$/,'').substring(0,40)+(link.length>40?'...':'');
+    infoExtra+=`
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;color:#333;">
+        <span style="font-size:18px;">🔗</span>
+        <span style="color:#1a73e8;word-break:break-all;">${linkCorto}</span>
+        <a href="${link}" target="_blank" style="margin-left:auto;color:#1a73e8;text-decoration:none;font-weight:600;font-size:12px;">Abrir →</a>
+      </div>`;
+  }
+
+  // Si no hay ni teléfono ni link
+  if(!tel&&!link){
+    infoExtra=`
+      <div style="padding:10px 0;font-size:12px;color:#999;text-align:center;">
+        ⚠️ Sin datos de contacto disponibles
+      </div>`;
+  }
+
+  /* ── Construcción de botones de acción ── */
   if(tel && link){
-    /* Tel + Link → grid 2 cols + link full width abajo */
+    // Tel + Link → grid 2 cols + info arriba
     html=`
+      ${infoExtra}
+      <div style="border-top:1px solid #eee;margin:8px 0;"></div>
       <div class="ext-actions">
         ${btnLlegar}
         <button class="ext-btn ext-btn-wpp" onclick="window.open('${wppUrl}','_blank')">
           <span class="ext-btn-icon">💬</span>Voy en camino
         </button>
       </div>
-      <a class="ext-btn-link" href="${link}" target="_blank">🔗 Ver tienda en línea</a>`;
+      <a class="ext-btn-link" href="${link}" target="_blank">🔗 Visitar tienda en línea</a>`;
 
   } else if(tel && !link){
-    /* Solo tel → grid 2 cols, sin link */
+    // Solo tel → grid 2 cols
     html=`
+      ${infoExtra}
+      <div style="border-top:1px solid #eee;margin:8px 0;"></div>
       <div class="ext-actions">
         ${btnLlegar}
         <button class="ext-btn ext-btn-wpp" onclick="window.open('${wppUrl}','_blank')">
@@ -552,18 +598,22 @@ function openExtPopup(s){
       </div>`;
 
   } else if(!tel && link){
-    /* Sin tel, con link → WhatsApp desaparece, link ocupa su lugar en grid */
+    // Sin tel, con link → WhatsApp desaparece
     html=`
+      ${infoExtra}
+      <div style="border-top:1px solid #eee;margin:8px 0;"></div>
       <div class="ext-actions">
         ${btnLlegar}
         <a class="ext-btn ext-btn-link-grid" href="${link}" target="_blank">
-          <span class="ext-btn-icon">🔗</span>Ver tienda
+          <span class="ext-btn-icon">🔗</span>Visitar tienda
         </a>
       </div>`;
 
   } else {
-    /* Sin tel ni link → solo llegar, columna única */
+    // Sin tel ni link → solo llegar
     html=`
+      ${infoExtra}
+      <div style="border-top:1px solid #eee;margin:8px 0;"></div>
       <div class="ext-actions" style="grid-template-columns:1fr;">
         ${btnLlegar}
       </div>`;
@@ -572,6 +622,7 @@ function openExtPopup(s){
   document.getElementById('ext-actions-wrap').innerHTML=html;
   document.getElementById('ext-popup-bg').classList.add('open');
 }
+  
 function closeExtPopup(){document.getElementById('ext-popup-bg').classList.remove('open');}
 
 /* ══ MODAL LISTA ══ */
