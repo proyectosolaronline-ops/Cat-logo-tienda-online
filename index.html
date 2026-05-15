@@ -589,8 +589,8 @@ function openExtPopup(s){
 
   /* Datos */
   const mapsUrl=(!isNaN(lat)&&!isNaN(lng))?`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`:'';
-  const tel=(cfg.telefono||s.telefono||'').replace(/\D/g,'');
-  const link=cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+ const tel=(cfg.whatsapp||cfg.telefono||s.telefono||s.whatsapp||'').replace(/\D/g,'');
+const link=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
   const nomNeg=s.nombre_tienda||s.name||'su tienda';
   const msgWpp=encodeURIComponent(`¡Hola! Voy en camino a ${nomNeg}. Por favor estén listos 🚗`);
   const wppUrl=tel?`https://wa.me/52${tel}?text=${msgWpp}`:'';
