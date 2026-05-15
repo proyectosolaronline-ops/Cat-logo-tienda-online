@@ -554,12 +554,10 @@ function openPopup(id){
 function closePopup(){document.getElementById('popup-bg').classList.remove('open');}
 
 /* ══════════════════════════════════════════════════════
-   POPUP TIENDA EXTERNA — mejorado: foto, tipo, info, minimap GPS, botones
-*/
+   POPUP TIENDA EXTERNA — foto, tipo, info, botones
+   ══════════════════════════════════════════════════════ */
 
-
-
-  function openExtPopup(s){
+function openExtPopup(s){
   const cfg=s.config||{};
 
   const fotoUrl=fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
@@ -590,21 +588,7 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
     infoWrap.innerHTML='';
   }
 
-  const minimapWrap=document.getElementById('ext-minimap-wrap');
-  if(!isNaN(lat)&&!isNaN(lng)){
-    minimapWrap.style.display='block';
-    if(extMiniMap){extMiniMap.remove();extMiniMap=null;extMiniMarker=null;}
-    setTimeout(()=>{
-      extMiniMap=L.map('ext-minimap',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,touchZoom:false}).setView([lat,lng],16);
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:21}).addTo(extMiniMap);
-      const pinIcon=L.divIcon({html:`<div style="width:36px;height:36px;background:#fff3e0;border:3px solid #f97316;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.3);">🏪</div>`,className:'',iconSize:[36,36],iconAnchor:[18,18]});
-      extMiniMarker=L.marker([lat,lng],{icon:pinIcon}).addTo(extMiniMap);
-      if(userLat) L.circleMarker([userLat,userLng],{radius:6,color:'#16a34a',fillColor:'#fff',weight:2,fillOpacity:1}).addTo(extMiniMap);
-    },120);
-  } else {
-    minimapWrap.style.display='none';
-    if(extMiniMap){extMiniMap.remove();extMiniMap=null;}
-  }
+  document.getElementById('ext-minimap-wrap').style.display='none';
 
   const nomNeg=s.nombre_tienda||s.name||'su tienda';
   const msgWpp=encodeURIComponent(`¡Hola! Voy en camino a ${nomNeg}. Por favor estén listos 🚗`);
@@ -629,14 +613,9 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
   document.getElementById('ext-popup-bg').classList.add('open');
 }
 
-
-
 function closeExtPopup(){
   document.getElementById('ext-popup-bg').classList.remove('open');
-  if(extMiniMap){extMiniMap.remove();extMiniMap=null;extMiniMarker=null;}
-}
-
-/* ══ MODAL LISTA — tiendas externas mejoradas ══ */
+}/* ══ MODAL LISTA — tiendas externas mejoradas ══ */
 function showStoresModal(){
   const list=document.getElementById('modal-stores-list');list.innerHTML='';
   if(!nearbyStores.length){list.innerHTML='<div class="no-stores">No hay tiendas en un radio de 20 km.</div>';}
