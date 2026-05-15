@@ -462,7 +462,11 @@ function addMarkersToMap(stores){
       ?`<img src="${logoUrl}" style="width:52px;height:52px;border-radius:50%;border:4px solid ${pinColor};object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,.3);">`
       :`<div style="width:52px;height:52px;background:${bgColor};color:${s.isExternal?'#e65100':'#fff'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid ${pinColor};box-shadow:0 3px 10px rgba(0,0,0,.3);">🏪</div>`;
     const icon=L.divIcon({html:pinHTML,className:'',iconSize:[56,56],iconAnchor:[28,28]});
-    L.marker([lat,lng],{icon}).addTo(map).on('click',()=>openPopup(s.storeId));
+    //* L.marker([lat,lng],{icon}).addTo(map).on('click',()=>openPopup(s.storeId)); *//
+
+    L.marker([lat,lng],{icon}).addTo(map)
+  .bindTooltip(s.nombre_tienda||s.name||'Tienda',{permanent:false,direction:'top'})
+  .on('click',()=>openPopup(s.storeId));
   });
 }
 
