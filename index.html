@@ -266,8 +266,13 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
     <div class="ext-body">
       <button class="ext-close" onclick="closeExtPopup()">✕</button>
       <div class="ext-pill">🏪 Tienda externa</div>
-      <div class="ext-nombre" id="ext-nombre"></div>
-      <div class="ext-ubicacion" id="ext-ubicacion"></div>
+
+      
+<div class="ext-nombre" id="ext-nombre"></div>
+<div id="ext-tipo" style="display:none;font-size:12px;font-weight:700;color:#e65100;background:#fff3e0;padding:3px 12px;border-radius:20px;display:inline-block;margin-bottom:10px;"></div>
+<div class="ext-ubicacion" id="ext-ubicacion"></div>
+    
+      
       <!-- Botones se inyectan dinámicamente según datos disponibles -->
       <div id="ext-actions-wrap"></div>
     </div>
@@ -507,7 +512,17 @@ function openExtPopup(s){
     :`<div class="ext-foto-ph">🏪</div>`;
 
   /* Nombre */
-  document.getElementById('ext-nombre').textContent=s.nombre_tienda||s.name||'Tienda externa';
+
+   document.getElementById('ext-nombre').textContent=s.nombre_tienda||s.name||'Tienda externa';
+
+  /* Tipo negocio — NUEVO */
+  const tipoNeg=cfg.tipoNegocio||'';
+  const tipoEl=document.getElementById('ext-tipo');
+  if(tipoEl){if(tipoNeg){tipoEl.textContent='🏷️ '+tipoNeg;tipoEl.style.display='inline-block';}else{tipoEl.style.display='none';}}                                                                                                                               
+
+
+
+  
 
   /* Ubicación */
   const partes=[cfg.colonia,cfg.localidad||cfg.city,cfg.estado||cfg.state].filter(Boolean);
@@ -517,13 +532,13 @@ function openExtPopup(s){
     `<span>📍</span>${partes.join(', ')||'Ver en mapa'}${dist?' · <strong>'+dist+'</strong>':''}`;
 
   /* Datos */
-  const mapsUrl=(!isNaN(lat)&&!isNaN(lng))?`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`:'';
-  const tel=(cfg.telefono||s.telefono||'').replace(/\D/g,'');
-  const link=cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+const mapsUrl=(!isNaN(lat)&&!isNaN(lng))?`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`:'';
+  const tel=(cfg.whatsapp||'').replace(/\D/g,'');
+  const link=cfg.linkNegocio||'';
   const nomNeg=s.nombre_tienda||s.name||'su tienda';
   const msgWpp=encodeURIComponent(`¡Hola! Voy en camino a ${nomNeg}. Por favor estén listos 🚗`);
   const wppUrl=tel?`https://wa.me/52${tel}?text=${msgWpp}`:'';
-
+  
   const btnLlegar=mapsUrl
     ?`<a class="ext-btn ext-btn-llegar" href="${mapsUrl}" target="_blank"><span class="ext-btn-icon">🗺️</span>Cómo llegar</a>`
     :`<button class="ext-btn ext-btn-llegar" style="opacity:.4;cursor:default;"><span class="ext-btn-icon">🗺️</span>Cómo llegar</button>`;
