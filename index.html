@@ -555,7 +555,6 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
 
 /* ══════════════════════════════════════════════════════
    POPUP TIENDA EXTERNA — mejorado: foto, tipo, info, minimap GPS, botones
-   ══════════════════════════════════════════════════════ */
 function openExtPopup(s){
   const cfg=s.config||{};
 
@@ -580,7 +579,7 @@ function openExtPopup(s){
   document.getElementById('ext-ubicacion').innerHTML=
     `<span>📍</span>${partes.join(', ')||'Ver en mapa'}${dist?' · <strong>'+dist+'</strong>':''}`;
 
-  /* — Info card: teléfono + link — */
+  /* — Info card: teléfono + link visibles — */
   const tel=(cfg.whatsapp||cfg.telefono||'').replace(/\D/g,'');
   const link=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||'';
   const infoWrap=document.getElementById('ext-info-card-wrap');
