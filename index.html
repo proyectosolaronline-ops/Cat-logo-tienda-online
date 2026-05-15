@@ -558,28 +558,22 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
 function openExtPopup(s){
   const cfg=s.config||{};
 
-  /* — Foto — */
   const fotoUrl=fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
   document.getElementById('ext-foto-wrap').innerHTML=fotoUrl
     ?`<img class="ext-foto" src="${fotoUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
     :`<div class="ext-foto-ph">🏪</div>`;
 
-  /* — Nombre — */
   document.getElementById('ext-nombre').textContent=s.nombre_tienda||s.name||'Tienda externa';
 
-  /* — Tipo de negocio — */
   const tipo=cfg.tipoNegocio||cfg.tipo_negocio||'';
-  const tipoWrap=document.getElementById('ext-tipo-wrap');
-  tipoWrap.innerHTML=tipo?`<div class="ext-tipo-pill">🏷️ ${tipo}</div>`:'';
+  document.getElementById('ext-tipo-wrap').innerHTML=tipo?`<div class="ext-tipo-pill">🏷️ ${tipo}</div>`:'';
 
-  /* — Ubicación + distancia — */
   const partes=[cfg.colonia,cfg.localidad||cfg.city,cfg.estado||cfg.state].filter(Boolean);
   const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
   const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
   document.getElementById('ext-ubicacion').innerHTML=
     `<span>📍</span>${partes.join(', ')||'Ver en mapa'}${dist?' · <strong>'+dist+'</strong>':''}`;
 
-  /* — Info card: teléfono + link visibles — */
   const tel=(cfg.whatsapp||cfg.telefono||'').replace(/\D/g,'');
   const link=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||'';
   const infoWrap=document.getElementById('ext-info-card-wrap');
@@ -592,7 +586,6 @@ function openExtPopup(s){
     infoWrap.innerHTML='';
   }
 
-  /* — Mini mapa GPS — */
   const minimapWrap=document.getElementById('ext-minimap-wrap');
   if(!isNaN(lat)&&!isNaN(lng)){
     minimapWrap.style.display='block';
@@ -609,7 +602,6 @@ function openExtPopup(s){
     if(extMiniMap){extMiniMap.remove();extMiniMap=null;}
   }
 
-  /* — Botones dinámicos — */
   const nomNeg=s.nombre_tienda||s.name||'su tienda';
   const msgWpp=encodeURIComponent(`¡Hola! Voy en camino a ${nomNeg}. Por favor estén listos 🚗`);
   const wppUrl=tel?`https://wa.me/52${tel}?text=${msgWpp}`:'';
