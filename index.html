@@ -463,20 +463,7 @@ function addMarkersToMap(stores){
       :`<div style="width:52px;height:52px;background:${bgColor};color:${s.isExternal?'#e65100':'#fff'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid ${pinColor};box-shadow:0 3px 10px rgba(0,0,0,.3);">🏪</div>`;
     const icon=L.divIcon({html:pinHTML,className:'',iconSize:[56,56],iconAnchor:[28,28]});
     //* L.marker([lat,lng],{icon}).addTo(map).on('click',()=>openPopup(s.storeId)); *//
-L.marker([lat,lng],{icon}).addTo(map)
-  .bindPopup(
-    '<div style="font-family:Inter,sans-serif;text-align:center;padding:6px;min-width:160px;">'+
-    '<b style="font-size:14px;">'+(s.nombre_tienda||s.name||'Tienda')+'</b>'+
-    ((cfg.whatsapp||cfg.telefono||'')?
-      '<br><a href="https://wa.me/52'+(cfg.whatsapp||cfg.telefono||'').replace(/\D/g,'')+
-      '" target="_blank" style="display:inline-block;margin-top:6px;padding:6px 12px;background:#25D366;color:#fff;border-radius:20px;text-decoration:none;font-size:12px;font-weight:600;">💬 WhatsApp</a>':'')+
-    ((cfg.linkNegocio||cfg.link_negocio||'')?
-      '<br><a href="'+(cfg.linkNegocio||cfg.link_negocio)+
-      '" target="_blank" style="display:inline-block;margin-top:4px;padding:6px 12px;background:#1a73e8;color:#fff;border-radius:20px;text-decoration:none;font-size:12px;font-weight:600;">🔗 Visitar tienda</a>':'')+
-    '<br><a href="#" onclick="event.preventDefault();openPopup(\''+s.storeId+'\')" style="display:inline-block;margin-top:6px;padding:6px 12px;background:#f5f6fa;color:#333;border-radius:20px;text-decoration:none;font-size:11px;font-weight:600;border:1px solid #ddd;">📋 Ver detalles</a>'+
-    '</div>',
-    {closeButton:false,className:'ext-pin-popup'}
-  );
+L.marker([lat,lng],{icon}).addTo(map).bindTooltip(s.nombre_tienda||s.name||'Tienda',{direction:'top'}).on('click',()=>openPopup(s.storeId));
   });
 }
 
