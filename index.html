@@ -467,7 +467,7 @@ L.marker([lat,lng],{icon}).addTo(map)
   .bindTooltip(
     (s.nombre_tienda||s.name||'Tienda') +
     ((cfg.whatsapp||cfg.telefono||'') ? ' 📞 '+(cfg.whatsapp||cfg.telefono) : '') +
-    ((cfg.linkNegocio||cfg.link_negocio||'') ? ' 🔗 '+(cfg.linkNegocio||cfg.link_negocio) : ''),
+    ((cfg.linkNegocio||cfg.link_negocio||''),
     {direction:'top'}
   )
   .on('click',()=>openPopup(s.storeId));
