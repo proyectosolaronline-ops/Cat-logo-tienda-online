@@ -664,9 +664,9 @@ function showStoresModal(){
       const item=document.createElement('div');item.className='store-item';
       if(s.isExternal){
         const fotoUrl=fixImgUrl(s.foto||cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
-        const tel=s.telefono||cfg.telefono||'';
-        const link=s.link_negocio||cfg.link_negocio||cfg.link||cfg.url||'';
-        const tipo=s.tipo_negocio||cfg.tipo_negocio||'';
+const tel=cfg.whatsapp||s.telefono||cfg.telefono||'';
+const link=cfg.linkNegocio||cfg.link_negocio||s.link_negocio||cfg.link||cfg.url||'';
+const tipo=cfg.tipoNegocio||cfg.tipo_negocio||s.tipo_negocio||'';
         const loc=[s.colonia||cfg.colonia,s.localidad||cfg.localidad||cfg.city].filter(Boolean).join(', ')||'—';
         item.innerHTML=`
           <div class="store-logo" style="background:#fff3e0;">${fotoUrl?`<img src="${fotoUrl}" alt="${s.nombre_tienda||s.name}">`:'🏪'}</div>
