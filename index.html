@@ -557,11 +557,22 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
    POPUP TIENDA EXTERNA — mejorado: foto, tipo, info, minimap GPS, botones
    ══════════════════════════════════════════════════════ */
 function openExtPopup(s){
+
+
+
+  
   const cfg=s.config||{};
+
+    cfg.telefono    = cfg.telefono    || cfg.whatsapp    || s.telefono    || '';
+  cfg.link_negocio = cfg.link_negocio || cfg.linkNegocio || s.link_negocio || '';
+  cfg.tipo_negocio = cfg.tipo_negocio || cfg.tipoNegocio || s.tipo_negocio || '';
 
   /* — Foto — */
   const fotoUrl=fixImgUrl(s.foto||cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
   document.getElementById('ext-foto-wrap').innerHTML=fotoUrl
+
+ 
+    
     ?`<img class="ext-foto" src="${fotoUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
     :`<div class="ext-foto-ph">🏪</div>`;
 
