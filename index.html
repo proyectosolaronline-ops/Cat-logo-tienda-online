@@ -525,7 +525,7 @@ function openExtPopup(s){
   const tel=(cfg.telefono||s.telefono||'').replace(/\D/g,'');
 
   const link=cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
-  const tipoNeg=cfg.tipoNegocio||'';
+  const tiponeg=cfg.tiponegocio||'';
   
   const nomNeg=s.nombre_tienda||s.name||'su tienda';
   const msgWpp=encodeURIComponent(`¡Hola! Voy en camino a ${nomNeg}. Por favor estén listos 🚗`);
