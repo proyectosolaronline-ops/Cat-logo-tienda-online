@@ -465,7 +465,7 @@ function addMarkersToMap(stores){
     //* L.marker([lat,lng],{icon}).addTo(map).on('click',()=>openPopup(s.storeId)); *//
 L.marker([lat,lng],{icon}).addTo(map)
   .bindPopup(
-    '<div style="font-family:Inter,sans-serif;text-align:center;padding:4px;">'+
+    '<div style="font-family:Inter,sans-serif;text-align:center;padding:6px;">'+
     '<b style="font-size:14px;">'+(s.nombre_tienda||s.name||'Tienda')+'</b>'+
     ((cfg.whatsapp||cfg.telefono||'')?
       '<br><a href="https://wa.me/52'+(cfg.whatsapp||cfg.telefono||'').replace(/\D/g,'')+
@@ -474,7 +474,7 @@ L.marker([lat,lng],{icon}).addTo(map)
       '<br><a href="'+(cfg.linkNegocio||cfg.link_negocio)+
       '" target="_blank" style="display:inline-block;margin-top:4px;padding:6px 12px;background:#1a73e8;color:#fff;border-radius:20px;text-decoration:none;font-size:12px;font-weight:600;">🔗 Visitar tienda</a>':'')+
     '</div>',
-    {closeButton:false}
+    {closeButton:false,className:'ext-pin-popup'}
   )
   .on('click',()=>openPopup(s.storeId));
   });
