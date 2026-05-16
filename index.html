@@ -496,65 +496,58 @@ L.marker([lat,lng],{icon})
     </div>`;
   },{direction:'bottom',offset:[0,-30],permanent:true,opacity:1,className:'pin-label'})
   .bindPopup(()=>{
-    const cfg=s.config||{};
-        try {
-    const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
-    const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
-    const fotoUrl=s.isExternal?fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||logoUrl||''):logoUrl;
-    const nombre=s.nombre_tienda||s.name||'Tienda';
-    const desc=cfg.description||[cfg.colonia,cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Sin descripción';
-    const tipo=s.isExternal?(cfg.tipoNegocio||cfg.businessType||cfg.tipo_negocio||cfg.tipo||'Tienda externa'):'Tienda Easylink';
-    
-    let html='<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px;">';
-    if(fotoUrl) html+=`<img src="${fotoUrl}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:8px;" onerror="this.style.display='none'">`;
-    html+=`<strong style="font-size:15px;color:#111;">${nombre}</strong>`;
-    if(s.isExternal) html+=`<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:6px;">🏪 Externa</span>`;
-    html+=`<p style="font-size:11px;color:#888;margin:4px 0;">${tipo}</p>`;
-    html+=`<p style="font-size:12px;color:#444;margin:4px 0;">${desc}</p>`;
-    if(dist) html+=`<p style="font-size:13px;color:#16a34a;font-weight:700;margin:4px 0;">📍 ${dist}</p>`;
-
-    // Mostrar teléfono si tiene WhatsApp activado
-    if(s.isExternal){
-      var showW2=String(cfg.whatsapp||'').toUpperCase();
-      var tel2=String(cfg.telefono||'').replace(/\D/g,'');
-      if(showW2==='TRUE'&&tel2){
-        html+=`<p style="font-size:13px;color:#25D366;font-weight:600;margin:4px 0;">📞 ${tel2}</p>`;
-      }
-    }
-  
-    
-    // --- BOTÓN "Ver tienda completa" SOLO para tiendas Easylink ---
-    if(!s.isExternal){
-      html+=`<button onclick="event.stopPropagation();openPopup('${s.storeId}')" style="margin-top:8px;width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">Ver tienda completa →</button>`;
-    }
-
-    // --- BOTONES PARA TIENDAS EXTERNAS ---
-       // --- BOTONES PARA TIENDAS EXTERNAS ---
-    if(s.isExternal){
-      // Botón Cómo llegar
-      const showLlegar=String(cfg.llegar||'').toUpperCase();
-      if(showLlegar==='TRUE'&&!isNaN(lat)&&!isNaN(lng)){
-        html+=`<a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#1a73e8;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🗺️ Cómo llegar</a>`;
-      }
+    try {
+      const cfg=s.config||{};
+      const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
+      const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+      const fotoUrl=s.isExternal?fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||logoUrl||''):logoUrl;
+      const nombre=s.nombre_tienda||s.name||'Tienda';
+      const desc=cfg.description||[cfg.colonia,cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Sin descripción';
+      const tipo=s.isExternal?(cfg.tipoNegocio||cfg.businessType||cfg.tipo_negocio||cfg.tipo||'Tienda externa'):'Tienda Easylink';
       
-      // Botón WhatsApp
-      var showW=String(cfg.whatsapp||'').toUpperCase();
-      if(showW==='TRUE'){
-        var telefono=String(cfg.telefono||'').replace(/\D/g,'');
-        if(telefono){
+      let html='<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px;">';
+      if(fotoUrl) html+=`<img src="${fotoUrl}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:8px;" onerror="this.style.display='none'">`;
+      html+=`<strong style="font-size:15px;color:#111;">${nombre}</strong>`;
+      if(s.isExternal) html+=`<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:6px;">🏪 Externa</span>`;
+      html+=`<p style="font-size:11px;color:#888;margin:4px 0;">${tipo}</p>`;
+      html+=`<p style="font-size:12px;color:#444;margin:4px 0;">${desc}</p>`;
+      if(dist) html+=`<p style="font-size:13px;color:#16a34a;font-weight:700;margin:4px 0;">📍 ${dist}</p>`;
+
+      // --- BOTÓN "Ver tienda completa" SOLO para tiendas Easylink ---
+      if(!s.isExternal){
+        html+=`<button onclick="event.stopPropagation();openPopup('${s.storeId}')" style="margin-top:8px;width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">Ver tienda completa →</button>`;
+      }
+
+      // --- BOTONES PARA TIENDAS EXTERNAS ---
+      if(s.isExternal){
+        // Mostrar teléfono si WhatsApp está activado
+        var showW3=String(cfg.whatsapp||'').toUpperCase();
+        var tel3=String(cfg.telefono||'').replace(/\D/g,'');
+        if(showW3==='TRUE'&&tel3){
+          html+=`<p style="font-size:13px;color:#25D366;font-weight:600;margin:4px 0;">📞 ${tel3}</p>`;
+        }
+
+        // Botón Cómo llegar
+        var showLlegar=String(cfg.llegar||'').toUpperCase();
+        if(showLlegar==='TRUE'&&!isNaN(lat)&&!isNaN(lng)){
+          html+=`<a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#1a73e8;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🗺️ Cómo llegar</a>`;
+        }
+        
+        // Botón WhatsApp
+        if(showW3==='TRUE'&&tel3){
           var msgW=encodeURIComponent('¡Hola! Vi tu negocio en el directorio y quiero más información 🛍️');
-          html+=`<a href="https://wa.me/52${telefono}?text=${msgW}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#25D366;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">💬 WhatsApp</a>`;
+          html+=`<a href="https://wa.me/52${tel3}?text=${msgW}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#25D366;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">💬 WhatsApp</a>`;
+        }
+        
+        // Botón Link tienda
+        var extLink=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+        if(extLink){
+          html+=`<a href="${extLink}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#6366f1;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🔗 Visitar tienda</a>`;
         }
       }
-      
-      // Botón Link tienda
-      var extLink=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
-      if(extLink){
-        html+=`<a href="${extLink}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#6366f1;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🔗 Visitar tienda</a>`;
-      }
-    }
-    html+='</div>';
-       return html;
+
+      html+='</div>';
+      return html;
     } catch(e) {
       console.error('ERROR POPUP:', e.message);
       return '<div style="padding:20px;color:red;">Error: ' + e.message + '</div>';
@@ -562,7 +555,6 @@ L.marker([lat,lng],{icon})
   },{maxWidth:300,className:'custom-popup'});
   });
 }
-
   
 function renderTicker(){
   const track=document.getElementById('pticker-track'),dotsEl=document.getElementById('pticker-dots');
