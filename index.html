@@ -371,6 +371,67 @@ ALL_STORES=[...sl,...se].map(s=>{s.config=typeof s.config==='string'?JSON.parse(
   else{userLat=19.4326;userLng=-99.1332;initMap();}
 });
 
+
+  async function buildPromosFromCatalogs(stores){
+  const soloPropias=stores.filter(s=>!s.isExternal);
+  const sorted=[...soloPropias].sort((a,b)=>{
+    const ca=a.config||{},cb=b.config||{};
+    return haversineKm(userLat,userLng,parseFloat(ca.locationLat||0),parseFloat(ca.locationLng||0))-
+           haversineKm(userLat,userLng,parseFloat(cb.locationLat||0),parseFloat(cb.locationLng||0));
+  }).slice(0,MAX_PROMO_FETCH);
+  
+  const results=await Promise.allSettled(sorted.map(s=>fetchStorePromos(s.storeId)));
+  PROMOS_LIST=[];
+  
+  results.forEach((res,i)=>{
+    const store=sorted[i],cfg=store.config||{};
+    const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+    const dist=(userLat&&!isNaN(parseFloat(cfg.locationLat)))?
+      haversineKm(userLat,userLng,parseFloat(cfg.locationLat),parseFloat(cfg.locationLng)).toFixed(1)+' km':'';
+    const promoProducts=(res.status==='fulfilled')?res.value:[];
+    
+    if(promoProducts.length>0){
+      promoProducts.forEach(p=>{
+        PROMOS_LIST.push({
+          storeId:store.storeId,
+          storeName:store.name||'Tienda',
+          storeLogo:logoUrl,
+          storeUrl:buildStoreUrl(store.storeId),
+          title:p.name||p.nombre||p.title||store.name,
+          desc:p.description||p.descripcion||p.descripción||cfg.description||'Visita nuestra tienda.',
+          img:fixImgUrl(p.image||p.imagen||p.imageUrl||p.imgUrl||''),
+          price:p.price||p.precio||'',
+          isPromo:true,
+          dist
+        });
+      });
+    } else if(cfg.promoTitle||cfg.promoImage){
+      PROMOS_LIST.push({
+        storeId:store.storeId,
+        storeName:store.name||'Tienda',
+        storeLogo:logoUrl,
+        storeUrl:buildStoreUrl(store.storeId),
+        title:cfg.promoTitle||store.name,
+        desc:cfg.promoDesc||cfg.description||'Visita nuestra tienda.',
+        img:fixImgUrl(cfg.promoImage||''),
+        price:'',
+        isPromo:true,
+        dist
+      });
+    }
+  });
+  
+  if(!PROMOS_LIST.length){
+    document.getElementById('promo-ticker').style.display='none';
+    return;
+  }
+  
+  renderTicker();
+  startTickerAuto();
+  document.getElementById('promo-ticker').classList.add('has-promos');
+  document.getElementById('header').classList.add('promo-active');
+}
+
 async function fetchStorePromos(storeId){
   if(catalogCache[storeId])return catalogCache[storeId];
   try{const r=await fetch(BACKEND+'?action=stores.catalog&store='+encodeURIComponent(storeId));const d=await r.json();const all=d.products||d.items||(Array.isArray(d)?d:[]);const promos=all.filter(p=>{const cat=(p.category||p.categoria||p.categoría||'').toLowerCase();return cat.includes('promo');});catalogCache[storeId]=promos;return promos;}
@@ -396,9 +457,8 @@ function initMap(){
   nearbyStores=ALL_STORES.filter(s=>{const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;});
   addMarkersToMap(nearbyStores);
   map.whenReady(()=>setTimeout(fitToNearestStore,250));
-  buildPromosFromCatalogs(nearbyStores);
+  buildPromosFromCatalogs(nearbyStores);  // ← ESTA LÍNEA DEBE EXISTIR
 }
-
 function addMarkersToMap(stores){
   stores.forEach(s=>{
     const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
@@ -445,8 +505,10 @@ if(!s.isExternal){
   },{maxWidth:300,className:'custom-popup'});
   });
 }
+
 function renderTicker(){
   const track=document.getElementById('pticker-track'),dotsEl=document.getElementById('pticker-dots');
+  if(!track||!dotsEl)return;
   track.innerHTML=PROMOS_LIST.map((p,i)=>{
     const imgEl=p.img?`<img class="pticker-img" src="${p.img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` :'';
     const phEl=`<div class="pticker-img-ph" ${p.img?'style="display:none"':''}>${p.storeLogo?`<img src="${p.storeLogo}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;" onerror="this.parentNode.textContent='🛍️'">`:'🛍️'}</div>`;
@@ -455,6 +517,8 @@ function renderTicker(){
   dotsEl.innerHTML=PROMOS_LIST.map((_,i)=>`<div class="pticker-dot${i===0?' active':''}" id="dot-${i}"></div>`).join('');
   moveTicker(0);
 }
+
+  
 function moveTicker(idx){tickerIndex=idx;const t=document.getElementById('pticker-track');if(t)t.style.transform=`translateY(-${idx*70}px)`;document.querySelectorAll('.pticker-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));}
 function startTickerAuto(){stopTickerAuto();if(PROMOS_LIST.length<2)return;tickerTimer=setInterval(()=>moveTicker((tickerIndex+1)%PROMOS_LIST.length),3500);}
 function stopTickerAuto(){if(tickerTimer){clearInterval(tickerTimer);tickerTimer=null;}}
