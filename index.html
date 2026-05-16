@@ -497,6 +497,7 @@ L.marker([lat,lng],{icon})
   },{direction:'bottom',offset:[0,-30],permanent:true,opacity:1,className:'pin-label'})
   .bindPopup(()=>{
     const cfg=s.config||{};
+        try {
     const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
     const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
     const fotoUrl=s.isExternal?fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||logoUrl||''):logoUrl;
@@ -545,7 +546,11 @@ L.marker([lat,lng],{icon})
     }
 
     html+='</div>';
-    return html;
+       return html;
+    } catch(e) {
+      console.error('ERROR POPUP:', e.message);
+      return '<div style="padding:20px;color:red;">Error: ' + e.message + '</div>';
+    }
   },{maxWidth:300,className:'custom-popup'});
   });
 }
