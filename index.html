@@ -519,30 +519,18 @@ function renderTicker(){
 }
 
   
-function moveTicker(idx){tickerIndex=idx;const t=document.getElementById('pticker-track');if(t)t.style.transform=`translateY(-${idx*70}px)`;document.querySelectorAll('.pticker-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));}
-function startTickerAuto(){stopTickerAuto();if(PROMOS_LIST.length<2)return;
-  
-                           
-                           
-               tickerTimer=setInterval(()=>moveTicker((tickerIndex+1)%PROMOS_LIST.length),1000);
-  
-  
-  
-  function stopTickerAuto(){if(tickerTimer){clearInterval(tickerTimer);tickerTimer=null;}}
+function moveTicker(idx){tickerIndex=idx;const t=document.getElementById('pticker-track');
+                         
+                         function startTickerAuto(){stopTickerAuto();if(PROMOS_LIST.length<2)return;tickerTimer=setInterval(()=>moveTicker((tickerIndex+1)%PROMOS_LIST.length),1000);}
+function stopTickerAuto(){if(tickerTimer){clearInterval(tickerTimer);tickerTimer=null;}}
 function openPromoDetail(idx){
-  stopTickerAuto();const p=PROMOS_LIST[idx];if(!p)return;
+  stopTickerAuto();
+  const p=PROMOS_LIST[idx];
+  if(!p)return;
   currentPromoStoreId=p.storeId;
-  document.getElementById('pp-img-wrap').innerHTML=p.img?`<img class="pp-img" src="${p.img}" onerror="this.parentNode.innerHTML='<div class=pp-img-ph>🛍️</div>'">`:`<div class="pp-img-ph">🛍️</div>`;
-  document.getElementById('pp-badge').textContent='🔥 Promoción';
-  document.getElementById('pp-name').textContent=p.title;
-  const logoHtml=p.storeLogo?`<div class="pp-store-logo"><img src="${p.storeLogo}" onerror="this.parentNode.textContent='🏪'"></div>`:`<div class="pp-store-logo">🏪</div>`;
-  document.getElementById('pp-store').innerHTML=`${logoHtml}${p.storeName}${p.dist?' · '+p.dist:''}`;
-  const pe=document.getElementById('pp-price');if(p.price){pe.textContent='$'+p.price;pe.style.display='';}else pe.style.display='none';
-  document.getElementById('pp-desc').textContent=p.desc;
-  document.getElementById('pp-btn-visit').onclick=()=>window.open(p.storeUrl,'_blank');
-  document.getElementById('prod-popup-bg').classList.add('open');
+  const store=ALL_STORES.find(x=>x.storeId===p.storeId);
+  if(store){openPromoGrid(store);}
 }
-
 // --- NUEVO: Grid de 4 columnas para promos ---
 async function openPromoGrid(store){
   const cfg=store.config||{};
