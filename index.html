@@ -512,6 +512,16 @@ L.marker([lat,lng],{icon})
     html+=`<p style="font-size:11px;color:#888;margin:4px 0;">${tipo}</p>`;
     html+=`<p style="font-size:12px;color:#444;margin:4px 0;">${desc}</p>`;
     if(dist) html+=`<p style="font-size:13px;color:#16a34a;font-weight:700;margin:4px 0;">📍 ${dist}</p>`;
+
+    // Mostrar teléfono si tiene WhatsApp activado
+    if(s.isExternal){
+      var showW2=String(cfg.whatsapp||'').toUpperCase();
+      var tel2=String(cfg.telefono||'').replace(/\D/g,'');
+      if(showW2==='TRUE'&&tel2){
+        html+=`<p style="font-size:13px;color:#25D366;font-weight:600;margin:4px 0;">📞 ${tel2}</p>`;
+      }
+    }
+  
     
     // --- BOTÓN "Ver tienda completa" SOLO para tiendas Easylink ---
     if(!s.isExternal){
