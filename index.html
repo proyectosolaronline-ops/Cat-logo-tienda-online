@@ -520,7 +520,7 @@ function renderTicker(){
 
   
 function moveTicker(idx){tickerIndex=idx;const t=document.getElementById('pticker-track');if(t)t.style.transform=`translateY(-${idx*70}px)`;document.querySelectorAll('.pticker-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));}
-function startTickerAuto(){stopTickerAuto();if(PROMOS_LIST.length<2)return;tickerTimer=setInterval(()=>moveTicker((tickerIndex+1)%PROMOS_LIST.length),3500);}
+function startTickerAuto(){stopTickerAuto();if(PROMOS_LIST.length<2)return;tickerTimer=setInterval(()=>moveTicker((tickerIndex+1)%PROMOS_LIST.length),3000);}
 function stopTickerAuto(){if(tickerTimer){clearInterval(tickerTimer);tickerTimer=null;}}
 
 function openPromoDetail(idx){
