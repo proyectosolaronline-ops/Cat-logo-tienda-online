@@ -676,7 +676,16 @@ function applyFilter(){
       return !!(cfg.promoTitle||cfg.promoImage);
     });
   }
-  map.eachLayer(l=>{if(l instanceof L.Marker&&l._tooltip?.getContent()!=='Tu ubicación')map.removeLayer(l);});
+  
+  // Quitar solo marcadores de tiendas (no la capa del mapa)
+  map.eachLayer(l=>{
+    if(l instanceof L.Marker){
+      const content=l._tooltip?.getContent?.()||l._tooltip?.options?.content||'';
+      if(content!=='Tu ubicación') map.removeLayer(l);
+    }
+  });
+  
+  // Agregar marcadores filtrados
   addMarkersToMap(filtered);
   document.getElementById('btnList').textContent=`📋 ${filtered.length} tiendas`;
 }
