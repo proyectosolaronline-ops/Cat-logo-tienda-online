@@ -457,7 +457,7 @@ function initMap(){
   nearbyStores=ALL_STORES.filter(s=>{const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;});
   addMarkersToMap(nearbyStores);
   map.whenReady(()=>setTimeout(fitToNearestStore,250));
-  buildPromosFromCatalogs(nearbyStores);  // ← ESTA LÍNEA DEBE EXISTIR
+  setTimeout(()=>buildPromosFromCatalogs(nearbyStores),500);// ← ESTA LÍNEA DEBE EXISTIR
 }
 function addMarkersToMap(stores){
   stores.forEach(s=>{
@@ -530,17 +530,17 @@ function startTickerAuto(){stopTickerAuto();if(PROMOS_LIST.length<2)return;
   
   function stopTickerAuto(){if(tickerTimer){clearInterval(tickerTimer);tickerTimer=null;}}
 function openPromoDetail(idx){
-  stopTickerAuto();
-  const p=PROMOS_LIST[idx];
-  if(!p)return;
+  stopTickerAuto();const p=PROMOS_LIST[idx];if(!p)return;
   currentPromoStoreId=p.storeId;
-  
-  // Buscar la tienda
-  const store=ALL_STORES.find(x=>x.storeId===p.storeId);
-  if(!store)return;
-  
-  // Mostrar catálogo de 4 columnas
-  openPromoGrid(store);
+  document.getElementById('pp-img-wrap').innerHTML=p.img?`<img class="pp-img" src="${p.img}" onerror="this.parentNode.innerHTML='<div class=pp-img-ph>🛍️</div>'">`:`<div class="pp-img-ph">🛍️</div>`;
+  document.getElementById('pp-badge').textContent='🔥 Promoción';
+  document.getElementById('pp-name').textContent=p.title;
+  const logoHtml=p.storeLogo?`<div class="pp-store-logo"><img src="${p.storeLogo}" onerror="this.parentNode.textContent='🏪'"></div>`:`<div class="pp-store-logo">🏪</div>`;
+  document.getElementById('pp-store').innerHTML=`${logoHtml}${p.storeName}${p.dist?' · '+p.dist:''}`;
+  const pe=document.getElementById('pp-price');if(p.price){pe.textContent='$'+p.price;pe.style.display='';}else pe.style.display='none';
+  document.getElementById('pp-desc').textContent=p.desc;
+  document.getElementById('pp-btn-visit').onclick=()=>window.open(p.storeUrl,'_blank');
+  document.getElementById('prod-popup-bg').classList.add('open');
 }
 
 // --- NUEVO: Grid de 4 columnas para promos ---
