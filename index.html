@@ -408,6 +408,7 @@ function initMap(){
   buildPromosFromCatalogs(nearbyStores);
 }
 
+
 function addMarkersToMap(stores){
   stores.forEach(s=>{
     const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
@@ -437,60 +438,12 @@ L.marker([lat,lng],{icon})
     html+=`<p style="font-size:11px;color:#888;margin:4px 0;">${tipo}</p>`;
     html+=`<p style="font-size:12px;color:#444;margin:4px 0;">${desc}</p>`;
     if(dist) html+=`<p style="font-size:13px;color:#16a34a;font-weight:700;margin:4px 0;">📍 ${dist}</p>`;
-    
-    // --- BOTÓN PRINCIPAL (abre popup completo) ---
     html+=`<button onclick="event.stopPropagation();openPopup('${s.storeId}')" style="margin-top:8px;width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">Ver tienda completa →</button>`;
-
-    // --- SI ES EXTERNA: WHATSAPP + LINK ---
-    if(s.isExternal){
-      const extLink=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
-      const tel=(cfg.whatsapp||cfg.telefono||s.telefono||'').replace(/\D/g,'');
-      const nomNeg=s.nombre_tienda||s.name||'su tienda';
-      const msgWpp=encodeURIComponent(`¡Hola! Vi ${nomNeg} en el directorio y quiero más información 🛍️`);
-      const wppUrl=tel?`https://wa.me/52${tel}?text=${msgWpp}`:'';
-
-      // Solo mostrar fila si hay al menos un dato
-      if(wppUrl || extLink){
-        html+=`<div style="display:flex;gap:6px;margin-top:6px;">`;
-
-        // Botón WhatsApp (si hay teléfono)
-        if(wppUrl){
-          html+=`<a href="${wppUrl}" target="_blank" onclick="event.stopPropagation();" style="flex:1;padding:9px 6px;background:#25D366;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:11px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;">💬 WhatsApp</a>`;
-        }
-
-        // Botón Link tienda (si hay link)
-        if(extLink){
-          html+=`<a href="${extLink}" target="_blank" onclick="event.stopPropagation();" style="flex:1;padding:9px 6px;background:#1a73e8;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:11px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;">🔗 Tienda</a>`;
-        }
-
-        html+=`</div>`;
-      }
-    }
-
     html+='</div>';
     return html;
-  },{maxWidth:300,className:'custom-popup'});
-  });
+  },{maxWidth:300,className:'custom-popup'});  });
 }
-  async function buildPromosFromCatalogs(stores){
-  const soloPropias=stores.filter(s=>!s.isExternal);
-  const sorted=[...soloPropias].sort((a,b)=>{const ca=a.config||{},cb=b.config||{};return haversineKm(userLat,userLng,parseFloat(ca.locationLat||0),parseFloat(ca.locationLng||0))-haversineKm(userLat,userLng,parseFloat(cb.locationLat||0),parseFloat(cb.locationLng||0));}).slice(0,MAX_PROMO_FETCH);
-  const results=await Promise.allSettled(sorted.map(s=>fetchStorePromos(s.storeId)));
-  PROMOS_LIST=[];
-  results.forEach((res,i)=>{
-    const store=sorted[i],cfg=store.config||{};
-    const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
-    const dist=(userLat&&!isNaN(parseFloat(cfg.locationLat)))?haversineKm(userLat,userLng,parseFloat(cfg.locationLat),parseFloat(cfg.locationLng)).toFixed(1)+' km':'';
-    const promoProducts=(res.status==='fulfilled')?res.value:[];
-    if(promoProducts.length>0){promoProducts.forEach(p=>{PROMOS_LIST.push({storeId:store.storeId,storeName:store.name||'Tienda',storeLogo:logoUrl,storeUrl:buildStoreUrl(store.storeId),title:p.name||p.nombre||p.title||store.name,desc:p.description||p.descripcion||p.descripción||cfg.description||'Visita nuestra tienda.',img:fixImgUrl(p.image||p.imagen||p.imageUrl||p.imgUrl||''),price:p.price||p.precio||'',isPromo:true,dist});});}
-    else if(cfg.promoTitle||cfg.promoImage){PROMOS_LIST.push({storeId:store.storeId,storeName:store.name||'Tienda',storeLogo:logoUrl,storeUrl:buildStoreUrl(store.storeId),title:cfg.promoTitle||store.name,desc:cfg.promoDesc||cfg.description||'Visita nuestra tienda.',img:fixImgUrl(cfg.promoImage||''),price:'',isPromo:true,dist});}
-  });
-  if(!PROMOS_LIST.length){document.getElementById('promo-ticker').style.display='none';return;}
-  renderTicker();startTickerAuto();
-  document.getElementById('promo-ticker').classList.add('has-promos');
-  document.getElementById('header').classList.add('promo-active');
-}
-
+  
 function renderTicker(){
   const track=document.getElementById('pticker-track'),dotsEl=document.getElementById('pticker-dots');
   track.innerHTML=PROMOS_LIST.map((p,i)=>{
