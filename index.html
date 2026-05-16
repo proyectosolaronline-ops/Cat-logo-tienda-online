@@ -419,8 +419,28 @@ function addMarkersToMap(stores){
       ?`<img src="${logoUrl}" style="width:52px;height:52px;border-radius:50%;border:4px solid ${pinColor};object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,.3);">`
       :`<div style="width:52px;height:52px;background:${bgColor};color:${s.isExternal?'#e65100':'#fff'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid ${pinColor};box-shadow:0 3px 10px rgba(0,0,0,.3);">🏪</div>`;
     const icon=L.divIcon({html:pinHTML,className:'',iconSize:[56,56],iconAnchor:[28,28]});
-    L.marker([lat,lng],{icon}).addTo(map).on('click',()=>openPopup(s.storeId));
-  });
+L.marker([lat,lng],{icon})
+  .addTo(map)
+  .bindPopup(()=>{
+    const cfg=s.config||{};
+    const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
+    const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+    const fotoUrl=s.isExternal?fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||logoUrl||''):logoUrl;
+    const nombre=s.nombre_tienda||s.name||'Tienda';
+    const desc=cfg.description||[cfg.colonia,cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Sin descripción';
+    const tipo=s.isExternal?(cfg.tipoNegocio||cfg.businessType||cfg.tipo_negocio||cfg.tipo||'Tienda externa'):'Tienda Easylink';
+    
+    let html='<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px;">';
+    if(fotoUrl) html+=`<img src="${fotoUrl}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:8px;" onerror="this.style.display='none'">`;
+    html+=`<strong style="font-size:15px;color:#111;">${nombre}</strong>`;
+    if(s.isExternal) html+=`<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:6px;">🏪 Externa</span>`;
+    html+=`<p style="font-size:11px;color:#888;margin:4px 0;">${tipo}</p>`;
+    html+=`<p style="font-size:12px;color:#444;margin:4px 0;">${desc}</p>`;
+    if(dist) html+=`<p style="font-size:13px;color:#16a34a;font-weight:700;margin:4px 0;">📍 ${dist}</p>`;
+    html+=`<button onclick="event.stopPropagation();openPopup('${s.storeId}')" style="margin-top:8px;width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">Ver tienda completa →</button>`;
+    html+='</div>';
+    return html;
+  },{maxWidth:300,className:'custom-popup'});  });
 }
 
 async function buildPromosFromCatalogs(stores){
