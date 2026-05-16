@@ -361,15 +361,6 @@ window.addEventListener('load',async()=>{
     if(r2.status==='fulfilled'){const d=await r2.value.json();se=(d.stores||[]).filter(s=>s.isExternal===true);}
 ALL_STORES=[...sl,...se].map(s=>{s.config=typeof s.config==='string'?JSON.parse(s.config):(s.config||{});return s;});
 
-setTimeout(()=>{
-  var ext = ALL_STORES.filter(s=>s.isExternal===true);
-  if(ext.length){
-    var c = ext[0].config||{};
-    var keys = Object.keys(c).filter(k=>{ try{ return !c[k].toString().startsWith('data:'); }catch(e){ return true; }});
-    alert('TIENDA: '+ext[0].name+'\nCLAVES CONFIG: '+keys.join(', ')+'\nTEL: '+(c.telefono||c.phone||ext[0].telefono||'NO')+'\nLINK: '+(c.link_negocio||c.link||c.url||'NO')+'\nTIPO: '+(c.tipo||c.tipo_negocio||c.category||'NO'));
-  }
-}, 4000);
-
 
 
 
