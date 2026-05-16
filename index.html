@@ -519,32 +519,30 @@ L.marker([lat,lng],{icon})
     }
 
     // --- BOTONES PARA TIENDAS EXTERNAS ---
+       // --- BOTONES PARA TIENDAS EXTERNAS ---
     if(s.isExternal){
-      // Botón Cómo llegar (solo si está activado)
-      const showLlegar=cfg.llegar;
-      if((showLlegar===true||showLlegar==='TRUE'||showLlegar==='true')&&!isNaN(lat)&&!isNaN(lng)){
+      // Botón Cómo llegar
+      const showLlegar=String(cfg.llegar||'').toUpperCase();
+      if(showLlegar==='TRUE'&&!isNaN(lat)&&!isNaN(lng)){
         html+=`<a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#1a73e8;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🗺️ Cómo llegar</a>`;
       }
       
-      // Botón WhatsApp (solo si está activado)    const showWhatsapp=String(cfg.whatsapp||'').toUpperCase();
-
-      console.log('DEBUG whatsapp:', cfg.whatsapp, 'telefono:', cfg.telefono);
-      
-      if(showWhatsapp==='TRUE'){
-        const tel=(String(cfg.telefono||cfg.whatsappNum||'')).replace(/\D/g,'');
-        if(tel){
-          const msg=encodeURIComponent('¡Hola! Vi tu negocio en el directorio y quiero más información 🛍️');
-          html+=`<a href="https://wa.me/52${tel}?text=${msg}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#25D366;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">💬 WhatsApp</a>`;
+      // Botón WhatsApp
+      var showW=String(cfg.whatsapp||'').toUpperCase();
+      if(showW==='TRUE'){
+        var telefono=String(cfg.telefono||'').replace(/\D/g,'');
+        if(telefono){
+          var msgW=encodeURIComponent('¡Hola! Vi tu negocio en el directorio y quiero más información 🛍️');
+          html+=`<a href="https://wa.me/52${telefono}?text=${msgW}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#25D366;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">💬 WhatsApp</a>`;
         }
       }
       
       // Botón Link tienda
-      const extLink=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+      var extLink=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
       if(extLink){
         html+=`<a href="${extLink}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#6366f1;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🔗 Visitar tienda</a>`;
       }
     }
-
     html+='</div>';
        return html;
     } catch(e) {
