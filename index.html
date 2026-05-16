@@ -457,7 +457,7 @@ function initMap(){
   nearbyStores=ALL_STORES.filter(s=>{const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;});
   addMarkersToMap(nearbyStores);
   map.whenReady(()=>setTimeout(fitToNearestStore,250));
-  setTimeout(()=>buildPromosFromCatalogs(nearbyStores),500);// ← ESTA LÍNEA DEBE EXISTIR
+  buildPromosFromCatalogs(nearbyStores);  // ← ESTA LÍNEA DEBE EXISTIR
 }
 function addMarkersToMap(stores){
   stores.forEach(s=>{
@@ -519,152 +519,22 @@ function renderTicker(){
 }
 
   
-function moveTicker(idx){tickerIndex=idx;const t=document.getElementById('pticker-track');
-                         
-                         function startTickerAuto(){stopTickerAuto();if(PROMOS_LIST.length<2)return;tickerTimer=setInterval(()=>moveTicker((tickerIndex+1)%PROMOS_LIST.length),1000);}
+function moveTicker(idx){tickerIndex=idx;const t=document.getElementById('pticker-track');if(t)t.style.transform=`translateY(-${idx*70}px)`;document.querySelectorAll('.pticker-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));}
+function startTickerAuto(){stopTickerAuto();if(PROMOS_LIST.length<2)return;tickerTimer=setInterval(()=>moveTicker((tickerIndex+1)%PROMOS_LIST.length),3500);}
 function stopTickerAuto(){if(tickerTimer){clearInterval(tickerTimer);tickerTimer=null;}}
+
 function openPromoDetail(idx){
-  stopTickerAuto();
-  const p=PROMOS_LIST[idx];
-  if(!p)return;
+  stopTickerAuto();const p=PROMOS_LIST[idx];if(!p)return;
   currentPromoStoreId=p.storeId;
-  const store=ALL_STORES.find(x=>x.storeId===p.storeId);
-  if(store){openPromoGrid(store);}
-}
-// --- NUEVO: Grid de 4 columnas para promos ---
-async function openPromoGrid(store){
-  const cfg=store.config||{};
-  const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
-  const dist=(userLat&&!isNaN(parseFloat(cfg.locationLat)))?
-    haversineKm(userLat,userLng,parseFloat(cfg.locationLat),parseFloat(cfg.locationLng)).toFixed(1)+' km':'';
-  
-  // Crear modal si no existe
-  let gridBg=document.getElementById('promo-grid-bg');
-  if(!gridBg){
-    gridBg=document.createElement('div');
-    gridBg.id='promo-grid-bg';
-    gridBg.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2500;align-items:flex-end;justify-content:center;';
-    gridBg.onclick=function(e){if(e.target===this)closePromoGrid();};
-    document.body.appendChild(gridBg);
-    
-    gridBg.innerHTML=`
-      <div id="promo-grid-sheet" style="background:#fff;color:#222;width:100%;border-radius:24px 24px 0 0;max-height:85dvh;overflow:hidden;display:flex;flex-direction:column;animation:slideUp .35s cubic-bezier(.4,0,.2,1);">
-        <span style="width:36px;height:4px;background:#ddd;border-radius:2px;margin:10px auto 4px;display:block;"></span>
-        <div style="padding:8px 18px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div id="pg-store-logo" style="width:40px;height:40px;border-radius:10px;overflow:hidden;background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;"></div>
-            <div>
-              <div id="pg-store-name" style="font-family:Outfit,sans-serif;font-size:16px;font-weight:700;color:#111;"></div>
-              <div id="pg-store-dist" style="font-size:11px;color:#16a34a;font-weight:600;"></div>
-            </div>
-          </div>
-          <button onclick="closePromoGrid()" style="width:32px;height:32px;border-radius:50%;background:#f1f3f6;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:#555;">✕</button>
-        </div>
-        <div id="pg-body" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;">
-          <div class="cs-skel" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
-            <div class="cs-skel-card" style="height:100px;"></div>
-            <div class="cs-skel-card" style="height:100px;"></div>
-            <div class="cs-skel-card" style="height:100px;"></div>
-            <div class="cs-skel-card" style="height:100px;"></div>
-          </div>
-        </div>
-        <div style="padding:14px 18px 18px;border-top:1px solid #f0f0f0;flex-shrink:0;">
-          <a id="pg-visit-btn" href="#" target="_blank" style="display:block;width:100%;padding:14px;background:#1a73e8;color:#fff;text-align:center;border-radius:14px;text-decoration:none;font-weight:700;font-size:15px;font-family:Outfit,sans-serif;">🏪 Ir a la tienda completa →</a>
-        </div>
-      </div>`;
-  }
-  
-  // Llenar datos
-  document.getElementById('pg-store-logo').innerHTML=logoUrl?
-    `<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.textContent='🏪'">`:'🏪';
-  document.getElementById('pg-store-name').textContent=store.name||'Tienda';
-  document.getElementById('pg-store-dist').textContent=dist?'📍 '+dist:'';
-  document.getElementById('pg-visit-btn').href=buildStoreUrl(store.storeId);
-  
-  gridBg.classList.add('open');
-  gridBg.style.display='flex';
-  
-  // Cargar promos
-  const promos=await fetchStorePromos(store.storeId);
-  const cfg2=store.config||{};
-  const pgBody=document.getElementById('pg-body');
-  pgBody.innerHTML='';
-  
-  const grid=document.createElement('div');
-  grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:8px;';
-  
-  // Productos promo
-  if(promos.length>0){
-    promos.forEach(prod=>{
-      const img=fixImgUrl(prod.image||prod.imagen||prod.imageUrl||prod.imgUrl||'');
-      const card=document.createElement('div');
-      card.style.cssText='border-radius:10px;overflow:hidden;background:#f8f9fb;border:1px solid #eee;cursor:pointer;transition:transform .15s;';
-      card.onclick=()=>openPromoProdPopup(prod,store);
-      card.innerHTML=`
-        ${img?`<img src="${img}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:''
-        }<div style="width:100%;aspect-ratio:1/1;background:linear-gradient(135deg,#e8f0fe,#dde8ff);display:${img?'none':'flex'};align-items:center;justify-content:center;font-size:24px;">🛍️</div>
-        <div style="padding:6px 7px 7px;">
-          <span style="display:inline-block;font-size:7px;font-weight:700;padding:1px 5px;border-radius:10px;background:#ff6900;color:#fff;margin-bottom:3px;">🔥 Promo</span>
-          <div style="font-size:10px;font-weight:700;color:#111;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${prod.name||prod.nombre||prod.title||'Producto'}</div>
-          ${prod.price||prod.precio?`<div style="font-size:11px;font-weight:700;color:#1a73e8;margin-top:2px;">$${prod.price||prod.precio}</div>`:''}
-        </div>`;
-      grid.appendChild(card);
-    });
-  }
-  
-  // Card "Ver catálogo completo"
-  const fullCard=document.createElement('div');
-  fullCard.style.cssText='border-radius:10px;overflow:hidden;background:#f8f9fb;border:1px solid #eee;cursor:pointer;transition:transform .15s;';
-  fullCard.onclick=()=>window.open(buildStoreUrl(store.storeId),'_blank');
-  fullCard.innerHTML=`
-    <div style="width:100%;aspect-ratio:1/1;background:linear-gradient(135deg,#1a73e8,#0d47a1);display:flex;align-items:center;justify-content:center;font-size:28px;">🛒</div>
-    <div style="padding:6px 7px 7px;">
-      <span style="display:inline-block;font-size:7px;font-weight:700;padding:1px 5px;border-radius:10px;background:#1a73e8;color:#fff;margin-bottom:3px;">Ver todo</span>
-      <div style="font-size:10px;font-weight:700;color:#111;line-height:1.2;">Catálogo completo</div>
-    </div>`;
-  grid.appendChild(fullCard);
-  
-  pgBody.appendChild(grid);
-}
-
-// --- Popup individual de producto (Easylink) ---
-function openPromoProdPopup(prod,store){
-  const cfg=store.config||{};
-  const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
-  const img=fixImgUrl(prod.image||prod.imagen||prod.imageUrl||prod.imgUrl||'');
-  
-  document.getElementById('pp-img-wrap').innerHTML=img?
-    `<img class="pp-img" src="${img}" onerror="this.parentNode.innerHTML='<div class=pp-img-ph>🛍️</div>'">`:
-    `<div class="pp-img-ph">🛍️</div>`;
+  document.getElementById('pp-img-wrap').innerHTML=p.img?`<img class="pp-img" src="${p.img}" onerror="this.parentNode.innerHTML='<div class=pp-img-ph>🛍️</div>'">`:`<div class="pp-img-ph">🛍️</div>`;
   document.getElementById('pp-badge').textContent='🔥 Promoción';
-  document.getElementById('pp-name').textContent=prod.name||prod.nombre||prod.title||'Producto';
-  
-  const logoHtml=logoUrl?
-    `<div class="pp-store-logo"><img src="${logoUrl}" onerror="this.parentNode.textContent='🏪'"></div>`:
-    `<div class="pp-store-logo">🏪</div>`;
-  document.getElementById('pp-store').innerHTML=`${logoHtml}${store.name||'Tienda'}`;
-  
-  const pe=document.getElementById('pp-price');
-  if(prod.price||prod.precio){
-    pe.textContent='$'+(prod.price||prod.precio);
-    pe.style.display='';
-  }else{
-    pe.style.display='none';
-  }
-  
-  document.getElementById('pp-desc').textContent=prod.description||prod.descripcion||prod.descripción||cfg.description||'';
-  document.getElementById('pp-btn-visit').onclick=()=>window.open(buildStoreUrl(store.storeId),'_blank');
+  document.getElementById('pp-name').textContent=p.title;
+  const logoHtml=p.storeLogo?`<div class="pp-store-logo"><img src="${p.storeLogo}" onerror="this.parentNode.textContent='🏪'"></div>`:`<div class="pp-store-logo">🏪</div>`;
+  document.getElementById('pp-store').innerHTML=`${logoHtml}${p.storeName}${p.dist?' · '+p.dist:''}`;
+  const pe=document.getElementById('pp-price');if(p.price){pe.textContent='$'+p.price;pe.style.display='';}else pe.style.display='none';
+  document.getElementById('pp-desc').textContent=p.desc;
+  document.getElementById('pp-btn-visit').onclick=()=>window.open(p.storeUrl,'_blank');
   document.getElementById('prod-popup-bg').classList.add('open');
-}
-
-// --- Cerrar grid de promos ---
-function closePromoGrid(){
-  const gridBg=document.getElementById('promo-grid-bg');
-  if(gridBg){
-    gridBg.classList.remove('open');
-    gridBg.style.display='none';
-  }
-  startTickerAuto();
 }
 function showMoreFromStore(){closeProdPopup();if(!currentPromoStoreId)return;const store=ALL_STORES.find(x=>x.storeId===currentPromoStoreId);if(store)openCatalogSheet(store);}
 function closeProdPopup(){document.getElementById('prod-popup-bg').classList.remove('open');startTickerAuto();}
