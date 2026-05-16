@@ -525,11 +525,12 @@ L.marker([lat,lng],{icon})
         html+=`<a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#1a73e8;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🗺️ Cómo llegar</a>`;
       }
       
-      // Botón WhatsApp (solo si está activado)
-      const showWhatsapp=cfg.whatsapp;
-      if(showWhatsapp===true||showWhatsapp==='TRUE'||showWhatsapp==='true'){
-        
-        const tel=(cfg.telefono||'').replace(/\D/g,'');
+      // Botón WhatsApp (solo si está activado)    const showWhatsapp=String(cfg.whatsapp||'').toUpperCase();
+
+      console.log('DEBUG whatsapp:', cfg.whatsapp, 'telefono:', cfg.telefono);
+      
+      if(showWhatsapp==='TRUE'){
+        const tel=(String(cfg.telefono||cfg.whatsappNum||'')).replace(/\D/g,'');
         if(tel){
           const msg=encodeURIComponent('¡Hola! Vi tu negocio en el directorio y quiero más información 🛍️');
           html+=`<a href="https://wa.me/52${tel}?text=${msg}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#25D366;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">💬 WhatsApp</a>`;
