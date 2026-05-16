@@ -408,7 +408,6 @@ function initMap(){
   buildPromosFromCatalogs(nearbyStores);
 }
 
-
 function addMarkersToMap(stores){
   stores.forEach(s=>{
     const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
@@ -439,11 +438,20 @@ L.marker([lat,lng],{icon})
     html+=`<p style="font-size:12px;color:#444;margin:4px 0;">${desc}</p>`;
     if(dist) html+=`<p style="font-size:13px;color:#16a34a;font-weight:700;margin:4px 0;">📍 ${dist}</p>`;
     html+=`<button onclick="event.stopPropagation();openPopup('${s.storeId}')" style="margin-top:8px;width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">Ver tienda completa →</button>`;
+
+    // --- SOLO SI ES TIENDA EXTERNA Y TIENE LINK ---
+    if(s.isExternal){
+      const extLink=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+      if(extLink){
+        html+=`<a href="${extLink}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#25D366;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🔗 Visitar tienda en línea</a>`;
+      }
+    }
+
     html+='</div>';
     return html;
-  },{maxWidth:300,className:'custom-popup'});  });
+  },{maxWidth:300,className:'custom-popup'});
+  });
 }
-  
 function renderTicker(){
   const track=document.getElementById('pticker-track'),dotsEl=document.getElementById('pticker-dots');
   track.innerHTML=PROMOS_LIST.map((p,i)=>{
