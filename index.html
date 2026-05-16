@@ -267,6 +267,7 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
       <button class="ext-close" onclick="closeExtPopup()">✕</button>
       <div class="ext-pill">🏪 Tienda externa</div>
       <div class="ext-nombre" id="ext-nombre"></div>
+      <div id="ext-tipo" style="font-size:12px;color:#888;font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;"></div>
       <div class="ext-ubicacion" id="ext-ubicacion"></div>
       <!-- Botones se inyectan dinámicamente según datos disponibles -->
       <div id="ext-actions-wrap"></div>
@@ -508,6 +509,10 @@ function openExtPopup(s){
 
   /* Nombre */
   document.getElementById('ext-nombre').textContent=s.nombre_tienda||s.name||'Tienda externa';
+// Tipo de negocio
+const tipo = cfg.tipo_negocio || cfg.tipo || cfg.category || cfg.categoria || '';
+const tipoEl = document.getElementById('ext-tipo');
+if (tipoEl) tipoEl.textContent = tipo;
 
   /* Ubicación */
   const partes=[cfg.colonia,cfg.localidad||cfg.city,cfg.estado||cfg.state].filter(Boolean);
