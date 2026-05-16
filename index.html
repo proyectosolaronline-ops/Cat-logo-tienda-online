@@ -522,6 +522,8 @@ L.marker([lat,lng],{icon})
       if(s.isExternal){
         // Mostrar teléfono si WhatsApp está activado
         var showW3=String(cfg.whatsapp||'').toUpperCase();
+        console.log('DEBUG:', 'whatsapp=', cfg.whatsapp, 'telefono=', cfg.telefono, 'llegar=', cfg.llegar);
+        
         var tel3=String(cfg.telefono||'').replace(/\D/g,'');
         if(showW3==='TRUE'&&tel3){
           html+=`<p style="font-size:13px;color:#25D366;font-weight:600;margin:4px 0;">📞 ${tel3}</p>`;
