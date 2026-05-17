@@ -1047,7 +1047,18 @@ function verificarCodigoFlyer(){
   
   cerrarLoginFlyer();
 }
-  
+  dataPollingInterval=setInterval(refreshData,10000);
+  // Guardar estadísticas cada 30 segundos
+setInterval(function(){
+  if(stats.clicks>0||stats.searches>0||stats.qr>0){
+    fetch(BACKEND_MAESTRO,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'estadisticas.save',clicks:stats.clicks,busquedas:stats.searches,qr:stats.qr})
+    }).catch(function(){});
+    stats.clicks=0;stats.searches=0;stats.qr=0;
+  }
+},30000);
 </script>
 </body>
 </html>
