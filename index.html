@@ -525,7 +525,8 @@ L.marker([lat,lng],{icon})
         console.log('DEBUG ALL KEYS:', Object.keys(cfg));
         console.log('DEBUG FULL CONFIG:', JSON.stringify(cfg));
         console.log('DEBUG:', 'whatsapp=', cfg.whatsapp, 'telefono=', cfg.telefono, 'llegar=', cfg.llegar);
-        
+        console.log('DEBUG s.telefono:', s.telefono);
+        console.log('DEBUG s completo:', Object.keys(s));
         var tel3=String(s.telefono||cfg.telefono||'').replace(/\D/g,'');
         if(showW3==='TRUE'&&tel3){
           html+=`<p style="font-size:13px;color:#25D366;font-weight:600;margin:4px 0;">📞 ${tel3}</p>`;
