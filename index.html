@@ -38,8 +38,7 @@ body{font-family:'Inter',sans-serif;background:#000;color:#fff;height:100dvh;ove
 .pticker-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.25);transition:background .3s,transform .3s;}
 .pticker-dot.active{background:#fff;transform:scale(1.3);}
 .search-wrap{padding:10px 16px 12px;background:linear-gradient(180deg,rgba(26,115,232,.08) 0%,transparent 100%);flex-shrink:0;z-index:1050;}
-#header.hidden~.search-wrap{padding-top:58px;}
-.search-inner{display:flex;align-items:center;gap:10px;background:#fff;border-radius:50px;padding:0 14px;box-shadow:0 4px 20px rgba(0,0,0,.25);height:46px;}
+#header.hidden~.search-wrap{padding-top:0px;}.search-inner{display:flex;align-items:center;gap:10px;background:#fff;border-radius:50px;padding:0 14px;box-shadow:0 4px 20px rgba(0,0,0,.25);height:46px;}
 .search-inner svg{flex-shrink:0;opacity:.45;}
 #searchInput{flex:1;border:none;outline:none;font-size:15px;color:#222;background:transparent;font-family:'Inter',sans-serif;}
 #searchInput::placeholder{color:#aaa;}
@@ -53,8 +52,11 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 .fab-fs{background:#fff;color:#333;}
 .fab-qr{background:#fff;color:var(--primary);}
 .btn-mostrar-bottom{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:1200;background:var(--primary);color:#fff;border:none;padding:13px 26px;border-radius:50px;font-size:14px;font-weight:600;box-shadow:0 6px 22px rgba(26,115,232,.5);cursor:pointer;white-space:nowrap;}
-#searchPanel{display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:1300;flex-direction:column;overflow:hidden;}
-#searchPanel.active{display:flex;}
+
+#searchPanel{display:none;position:absolute;top:80px;left:0;right:0;bottom:0;background:var(--bg);z-index:1300;flex-direction:column;overflow:hidden;}
+  
+  
+               #searchPanel.active{display:flex;}
 .sp-header{background:#fff;padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;}
 .sp-search-inner{flex:1;display:flex;align-items:center;gap:8px;background:#f1f3f6;border-radius:50px;padding:0 14px;height:42px;}
 .sp-search-inner input{flex:1;border:none;outline:none;font-size:15px;background:transparent;font-family:'Inter',sans-serif;}
