@@ -821,8 +821,7 @@ function handleSearch(val){
     clearSearch();
   }
 }
-  if(val.trim()){stats.searches++;document.getElementById('stats-searches').textContent=stats.searches;}
-  function clearSearch(){syncSearch('');clearBtn.style.display='none';document.getElementById('header').classList.remove('hidden');document.getElementById('searchPanel').classList.remove('active');}
+function clearSearch(){syncSearch('');clearBtn.style.display='none';document.getElementById('header').classList.remove('hidden');document.getElementById('searchPanel').classList.remove('active');}
 function renderSearchResults(query){
   const q=query.trim().toLowerCase();
   function matchesQuery(s){const cfg=s.config||{};const nombre=(s.nombre_tienda||s.name||'').toLowerCase();const kwString=(cfg.keywords||'').toLowerCase();const ciudad=(cfg.directoryCity||cfg.city||cfg.localidad||'').toLowerCase();if(nombre.includes(q)||ciudad.includes(q))return true;return kwString.split(',').map(k=>k.trim()).filter(Boolean).some(k=>k.includes(q)||q.includes(k));}
