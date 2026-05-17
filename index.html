@@ -216,11 +216,11 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 </div>
 
 <div id="map"></div>
+  <button onclick="refreshGPS()" style="position:absolute;bottom:100px;left:10px;z-index:1000;background:rgba(255,255,255,.85);border:1px solid #ddd;border-radius:20px;width:36px;height:36px;font-size:16px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;" title="Actualizar ubicación">📍</button>
 <button onclick="showStoresModal()" style="position:absolute;top:10px;right:10px;z-index:1000;background:white;border:none;border-radius:50%;width:40px;height:40px;box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:18px;">📋</button>
 <!--  boton tiendas cercas   <button class="btn-mostrar-bottom" id="btnList" onclick="showStoresModal()">
   📋 Tiendas cercanas
 </button> -->
-  <button onclick="refreshGPS()" style="position:absolute;top:58px;right:10px;z-index:1000;background:white;border:none;border-radius:50%;width:40px;height:40px;box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:18px;">📍</button>
 
 
 <div class="fab-group">
@@ -825,7 +825,8 @@ let gpsPollingInterval=null;
 let lastLat=null,lastLng=null;
 
 function refreshGPS(){
-  if(!navigator.geolocation){toast('GPS no disponible','warn');return;}
+  if(!map)return;
+  if(!navigator.geolocation){alert('GPS no disponible');return;}
   
   // Mostrar indicador visual
   var btn=document.querySelector('button[onclick="refreshGPS()"]');
@@ -865,7 +866,7 @@ function refreshGPS(){
         });
         addMarkersToMap(nearbyStores);
         
-        toast('📍 GPS actualizado','success');
+                // GPS actualizado silenciosamente
       }
       lastLat=newLat;
       lastLng=newLng;
