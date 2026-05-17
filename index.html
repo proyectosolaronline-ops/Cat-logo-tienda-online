@@ -993,6 +993,9 @@ function abrirLoginFlyer(){
 
 function cerrarLoginFlyer(){
   document.getElementById('login-flyer-bg').style.display='none';
+  // Abrir QR general del directorio
+  var flyerUrl='flayerFormatos.html?nombre=Directorio+Easylink&url='+encodeURIComponent(window.location.href)+'&tag=Escanea+y+visita+tiendas+cerca+de+ti+🛍️';
+  window.open(flyerUrl,'_blank');
 }
 
 async function enviarCodigoFlyer(){
