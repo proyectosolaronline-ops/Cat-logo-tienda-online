@@ -217,6 +217,12 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 
 <div id="map"></div>
 
+<!-- PANEL ESTADÍSTICAS -->
+<div id="stats-panel" style="display:none;position:absolute;bottom:90px;left:10px;z-index:999;background:rgba(0,0,0,.55);color:#fff;padding:4px 8px;border-radius:6px;font-family:Inter,sans-serif;font-size:9px;transition:opacity .4s;pointer-events:none;">
+  🖱️ <span id="stats-clicks">0</span> · 🔍 <span id="stats-searches">0</span> · 📱 <span id="stats-qr">0</span>
+</div>
+
+  
 <!-- LOGIN FLYER QR -->
 <div id="login-flyer-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:3000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:20px;padding:28px 22px;max-width:360px;width:90%;text-align:center;font-family:Inter,sans-serif;">
@@ -379,6 +385,8 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 </div>
 
 <script>
+
+  
 const BACKEND         = 'https://script.google.com/macros/s/AKfycbwUhTHQkBhLIvF9KgP2bHpVeufIEaPCXZWo9-azz7mYrEEA79BPFCQxE68YQQxE5iw/exec';
 const BACKEND_MAESTRO = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
 const STORE_BASE      = 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
@@ -386,6 +394,7 @@ let RADIO_KM = 20;
 const MAX_PROMO_FETCH = 8;
 let ALL_STORES=[],map,userLat=null,userLng=null,nearbyStores=[];
 let qrInstance=null,isFsMode=false;
+  let stats={clicks:0,searches:0,qr:0};
 let PROMOS_LIST=[],tickerIndex=0,tickerTimer=null,currentPromoStoreId=null;
 const catalogCache={};
 
@@ -500,6 +509,7 @@ function initMap(){
   buildPromosFromCatalogs(nearbyStores);  // ← ESTA LÍNEA DEBE EXISTIR
 }
 function addMarkersToMap(stores){
+  
   stores.forEach(s=>{
     const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
     if(isNaN(lat)||isNaN(lng))return;
@@ -514,6 +524,8 @@ function addMarkersToMap(stores){
 L.marker([lat,lng],{icon})
   .addTo(map)
   .bindTooltip(()=>{
+        stats.clicks++;document.getElementById('stats-clicks').textContent=stats.clicks;
+
     const cfg=s.config||{};
     const nombre=s.nombre_tienda||s.name||'Tienda';
     const tipo=s.isExternal?(cfg.tipoNegocio||cfg.businessType||cfg.tipo_negocio||cfg.tipo||'Tienda externa'):'Tienda Easylink';
@@ -523,6 +535,7 @@ L.marker([lat,lng],{icon})
     </div>`;
   },{direction:'bottom',offset:[0,-30],permanent:true,opacity:1,className:'pin-label'})
   .bindPopup(()=>{
+    
     try {
       const cfg=s.config||{};
       const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
@@ -795,8 +808,21 @@ const clearBtn=document.getElementById('clearBtn');
 function syncSearch(v){searchInput.value=v;searchInput2.value=v;}
 searchInput.addEventListener('input',e=>handleSearch(e.target.value));
 searchInput2.addEventListener('input',e=>{syncSearch(e.target.value);renderSearchResults(e.target.value);});
-function handleSearch(val){syncSearch(val);clearBtn.style.display=val?'block':'none';if(val.trim()){document.getElementById('header').classList.add('hidden');document.getElementById('searchPanel').classList.add('active');renderSearchResults(val);}else clearSearch();}
-function clearSearch(){syncSearch('');clearBtn.style.display='none';document.getElementById('header').classList.remove('hidden');document.getElementById('searchPanel').classList.remove('active');}
+function handleSearch(val){
+  syncSearch(val);
+  clearBtn.style.display=val?'block':'none';
+  if(val.trim()){
+    stats.searches++;
+    document.getElementById('stats-searches').textContent=stats.searches;
+    document.getElementById('header').classList.add('hidden');
+    document.getElementById('searchPanel').classList.add('active');
+    renderSearchResults(val);
+  } else {
+    clearSearch();
+  }
+}
+  if(val.trim()){stats.searches++;document.getElementById('stats-searches').textContent=stats.searches;}
+  function clearSearch(){syncSearch('');clearBtn.style.display='none';document.getElementById('header').classList.remove('hidden');document.getElementById('searchPanel').classList.remove('active');}
 function renderSearchResults(query){
   const q=query.trim().toLowerCase();
   function matchesQuery(s){const cfg=s.config||{};const nombre=(s.nombre_tienda||s.name||'').toLowerCase();const kwString=(cfg.keywords||'').toLowerCase();const ciudad=(cfg.directoryCity||cfg.city||cfg.localidad||'').toLowerCase();if(nombre.includes(q)||ciudad.includes(q))return true;return kwString.split(',').map(k=>k.trim()).filter(Boolean).some(k=>k.includes(q)||q.includes(k));}
@@ -844,7 +870,15 @@ async function shareQR(){const url=window.location.href;if(navigator.share){try{
 const DIRECTORIO_URL='https://proyectosolaronline-ops.github.io/SuperOnline-Stores/';
 let tapCount=0,lastTapTime=0;
 document.getElementById('header-logo').addEventListener('click',()=>{const now=Date.now();tapCount=(now-lastTapTime<400)?tapCount+1:1;lastTapTime=now;if(tapCount===3){tapCount=0;if(navigator.vibrate)navigator.vibrate([60,40,60,40,100]);const el=document.getElementById('header-logo');el.style.transition='transform .4s ease';el.style.transform='scale(1.3) rotate(10deg)';setTimeout(()=>{el.style.transform='scale(1) rotate(0deg)';},400);window.location.href=DIRECTORIO_URL;}});
-
+// Doble tap en logo = mostrar/ocultar stats
+document.getElementById('header-logo').addEventListener('dblclick',function(){
+  var p=document.getElementById('stats-panel');
+  if(p.style.display==='none'||p.style.display===''){
+    p.style.display='block';
+  } else {
+    p.style.display='none';
+  }
+});
 /* ══ GOOGLE PLACES — intacto ══ */
 const GOOGLE_PLACES_ACTIVADO=false;
 const GOOGLE_API_KEY='PON_TU_API_KEY_AQUI';
@@ -982,8 +1016,9 @@ document.head.appendChild(gpsBtnStyle);
 /* ══ LOGIN FLYER QR ══ */
 let codigoFlyerActual='';
 let tiendaFlyerEncontrada=null;
-
 function abrirLoginFlyer(){
+  stats.qr++;
+  document.getElementById('stats-qr').textContent=stats.qr;
   document.getElementById('login-flyer-bg').style.display='flex';
   document.getElementById('step-phone').style.display='';
   document.getElementById('step-code').style.display='none';
