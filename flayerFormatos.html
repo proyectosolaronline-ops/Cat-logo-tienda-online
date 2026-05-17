@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flyer QR — Visita mi Tienda</title>
+<title>Flyer QR — Directorio Negocios Easylik</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
@@ -257,7 +257,7 @@ body {
   </div>
   <div class="ctrl-field">
     <label>Slogan o descripción corta</label>
-    <textarea id="inp-tag" placeholder="Ej: Carne fresca del día • Servicio a domicilio">Escanea y visita nuestra tienda en línea 🛍️</textarea>
+    <textarea id="inp-tag" placeholder="Ej: Carne fresca del día • Servicio a domicilio">Escanea y visita Directorio Easylink !!! 🛍️</textarea>
   </div>
   <button class="btn-gen" onclick="generarFlyers()">✨ Generar flyers</button>
   <button class="btn-print" onclick="window.print()">🖨️ Imprimir hoja carta</button>
@@ -276,11 +276,11 @@ body {
       <div class="flyer-bg"></div><div class="flyer-orb1"></div><div class="flyer-orb2"></div>
       <div class="f-inner">
         <div class="f-left">
-          <div class="f-badge">🌐 Tienda en línea</div>
+          <div class="f-badge">🌐 Directorio de Tiendas Cerca de ti !!!</div>
           <div class="f-name" id="fn-a"></div>
           <div class="f-tag" id="ft-a"></div>
           <div class="f-url" id="fu-a"></div>
-          <div class="f-foot">Powered by LandingKit</div>
+          <div class="f-foot">Powered by Easylink</div>
         </div>
         <div class="f-right">
           <div class="f-qr"><div id="qr-a"></div></div>
@@ -296,11 +296,11 @@ body {
       <div class="flyer-bg"></div><div class="flyer-orb1"></div><div class="flyer-orb2"></div>
       <div class="f-inner">
         <div class="f-left">
-          <div class="f-badge">🌐 Tienda en línea</div>
+          <div class="f-badge">🌐 Directorio Tiendas Cerca de ti !!!</div>
           <div class="f-name" id="fn-b"></div>
           <div class="f-tag" id="ft-b"></div>
           <div class="f-url" id="fu-b"></div>
-          <div class="f-foot">Powered by LandingKit</div>
+          <div class="f-foot">Powered by Easylink</div>
         </div>
         <div class="f-right">
           <div class="f-qr"><div id="qr-b"></div></div>
@@ -340,9 +340,9 @@ body {
 
 <script>
 function generarFlyers() {
-  var nombre = document.getElementById('inp-nombre').value.trim() || 'Mi Tienda';
+  var nombre = document.getElementById('inp-nombre').value.trim() || 'Directorio tiendas cercas de ti !!!';
   var url    = document.getElementById('inp-url').value.trim()    || window.location.href;
-  var tag    = document.getElementById('inp-tag').value.trim()    || 'Visita nuestra tienda en línea';
+  var tag    = document.getElementById('inp-tag').value.trim()    || 'Visita tiendas cerca y en línea';
   var urlCorta = url.replace('https://','').replace('http://','');
 
   var textos = { a:[nombre,tag,urlCorta], b:[nombre,tag,urlCorta], c1:[nombre,'',urlCorta], c2:[nombre,'',urlCorta] };
