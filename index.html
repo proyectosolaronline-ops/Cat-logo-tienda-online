@@ -232,8 +232,7 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
       <path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3"/>
     </svg>
   </button>
-  <button class="fab fab-qr" onclick="showQRModal()" title="QR del directorio">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <button class="fab fab-qr" onclick="showFlyerQR()" title="Flyer QR">    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
       <rect x="3" y="14" width="7" height="7" rx="1"/>
       <rect x="5" y="5" width="3" height="3" fill="currentColor"/><rect x="16" y="5" width="3" height="3" fill="currentColor"/>
@@ -804,7 +803,14 @@ document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement
 
 /* ══ QR ══ */
 function showQRModal(){const url=window.location.href;document.getElementById('qr-url-text').textContent=url;const canvas=document.getElementById('qr-canvas');canvas.innerHTML='';if(qrInstance){try{qrInstance.clear();}catch(e){}}qrInstance=new QRCode(canvas,{text:url,width:200,height:200,colorDark:'#1a1a1a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});document.getElementById('qr-modal').classList.add('open');}
-function closeQRModal(){document.getElementById('qr-modal').classList.remove('open');}
+
+  function showFlyerQR(){
+  var url=window.location.href;
+  var flyerUrl='flayerFormatos.html?url='+encodeURIComponent(url);
+  window.open(flyerUrl,'_blank');
+}
+  
+  function closeQRModal(){document.getElementById('qr-modal').classList.remove('open');}
 async function shareQR(){const url=window.location.href;if(navigator.share){try{await navigator.share({title:'Directorio Easylink',text:'tiendas cerca de ti',url});return;}catch(e){}}try{await navigator.clipboard.writeText(url);alert('¡Enlace copiado!');}catch(e){alert('Comparte este enlace:\n'+url);}}
 
 /* ══ TRIPLE TAP LOGO ══ */
