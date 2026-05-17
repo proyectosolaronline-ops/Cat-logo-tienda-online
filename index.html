@@ -890,9 +890,57 @@ function stopGPSPolling(){
 }
 
 // Iniciar polling al cargar
+// Iniciar polling al cargar
 window.addEventListener('load',function(){
   setTimeout(startGPSPolling,2000);
+  setTimeout(startDataPolling,3000);
 });
+
+/* ══ POLLING DE DATOS CADA 5 SEGUNDOS ══ */
+let dataPollingInterval=null;
+
+async function refreshData(){
+  try{
+    const [r1,r2]=await Promise.allSettled([
+      fetch(BACKEND+'?action=stores.directory'),
+      fetch(BACKEND_MAESTRO+'?action=stores.directory')
+    ]);
+    var sl=[],se=[];
+    if(r1.status==='fulfilled'){const d=await r1.value.json();sl=(d.stores||[]).filter(s=>!s.isExternal);}
+    if(r2.status==='fulfilled'){const d=await r2.value.json();se=(d.stores||[]).filter(s=>s.isExternal===true);}
+    ALL_STORES=[...sl,...se].map(s=>{s.config=typeof s.config==='string'?JSON.parse(s.config):(s.config||{});return s;});
+    
+    // Refiltrar cercanas
+    if(userLat&&userLng){
+      nearbyStores=ALL_STORES.filter(s=>{
+        var cfg=s.config||{};
+        var lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
+        return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;
+      });
+    }
+    
+    // Cerrar popups abiertos
+    map.closePopup();
+    
+    // Actualizar marcadores
+    map.eachLayer(function(l){
+      if(l instanceof L.Marker&&l.getTooltip){
+        var tt=l.getTooltip();
+        if(tt&&tt.getContent()!=='Tu ubicación')map.removeLayer(l);
+      }
+    });
+    addMarkersToMap(nearbyStores);
+    
+    // Reconstruir promos
+    buildPromosFromCatalogs(nearbyStores);
+    
+  }catch(e){}
+}
+
+function startDataPolling(){
+  if(dataPollingInterval)return;
+  dataPollingInterval=setInterval(refreshData,5000);
+}
 
 // Estilo rotación botón GPS
 var gpsBtnStyle=document.createElement('style');
