@@ -216,6 +216,32 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 </div>
 
 <div id="map"></div>
+
+<!-- LOGIN FLYER QR -->
+<div id="login-flyer-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;padding:28px 22px;max-width:360px;width:90%;text-align:center;font-family:Inter,sans-serif;">
+    <div style="font-size:40px;margin-bottom:8px;">🔐</div>
+    <div style="font-size:18px;font-weight:800;color:#1a1a1a;margin-bottom:4px;">Acceso Flyer QR</div>
+    <div style="font-size:12px;color:#888;margin-bottom:20px;">Ingresa tu número de WhatsApp registrado</div>
+    
+    <!-- Paso 1: Teléfono -->
+    <div id="step-phone">
+      <input id="login-phone" type="tel" placeholder="4421234567" style="width:100%;padding:14px;border:2px solid #ddd;border-radius:12px;font-size:18px;text-align:center;font-family:Inter,sans-serif;margin-bottom:12px;" maxlength="10">
+      <button onclick="enviarCodigoFlyer()" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">💬 Enviar código por WhatsApp</button>
+    </div>
+    
+    <!-- Paso 2: Código -->
+    <div id="step-code" style="display:none;">
+      <div style="font-size:12px;color:#888;margin-bottom:8px;">Código enviado a tu WhatsApp</div>
+      <input id="login-code" type="text" placeholder="000000" style="width:100%;padding:14px;border:2px solid #ddd;border-radius:12px;font-size:24px;text-align:center;letter-spacing:8px;font-family:DM Mono,monospace;margin-bottom:12px;" maxlength="6">
+      <button onclick="verificarCodigoFlyer()" style="width:100%;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">✅ Verificar y abrir Flyer</button>
+    </div>
+    
+    <button onclick="cerrarLoginFlyer()" style="margin-top:16px;background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;">Cancelar</button>
+  </div>
+</div>
+
+  
   <button onclick="refreshGPS()" style="position:absolute;bottom:100px;left:10px;z-index:1000;background:rgba(255,255,255,.85);border:1px solid #ddd;border-radius:20px;width:36px;height:36px;font-size:16px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;" title="Actualizar ubicación">📍</button>
 <button onclick="showStoresModal()" style="position:absolute;top:10px;right:10px;z-index:1000;background:white;border:none;border-radius:50%;width:40px;height:40px;box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:18px;">📋</button>
 <!--  boton tiendas cercas   <button class="btn-mostrar-bottom" id="btnList" onclick="showStoresModal()">
@@ -232,7 +258,8 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
       <path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3"/>
     </svg>
   </button>
-  <button class="fab fab-qr" onclick="showFlyerQR()" title="Flyer QR">    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <button class="fab fab-qr" onclick="abrirLoginFlyer()" title="Flyer QR (dueños)">  
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
       <rect x="3" y="14" width="7" height="7" rx="1"/>
       <rect x="5" y="5" width="3" height="3" fill="currentColor"/><rect x="16" y="5" width="3" height="3" fill="currentColor"/>
@@ -951,6 +978,68 @@ function startDataPolling(){
 var gpsBtnStyle=document.createElement('style');
 gpsBtnStyle.textContent='button[onclick="refreshGPS()"]{transition:transform .6s ease;}';
 document.head.appendChild(gpsBtnStyle);
+
+/* ══ LOGIN FLYER QR ══ */
+let codigoFlyerActual='';
+let tiendaFlyerEncontrada=null;
+
+function abrirLoginFlyer(){
+  document.getElementById('login-flyer-bg').style.display='flex';
+  document.getElementById('step-phone').style.display='';
+  document.getElementById('step-code').style.display='none';
+  document.getElementById('login-phone').value='';
+  document.getElementById('login-code').value='';
+}
+
+function cerrarLoginFlyer(){
+  document.getElementById('login-flyer-bg').style.display='none';
+}
+
+async function enviarCodigoFlyer(){
+  var tel=document.getElementById('login-phone').value.replace(/\D/g,'');
+  if(!tel||tel.length<10){alert('Ingresa un número válido de 10 dígitos');return;}
+  
+  // Buscar en tiendas externas
+  var tienda=ALL_STORES.find(function(s){
+    if(!s.isExternal)return false;
+    var cfg=s.config||{};
+    var t=String(cfg.telefono||'').replace(/\D/g,'');
+    return t===tel;
+  });
+  
+  if(!tienda){alert('Teléfono no registrado en ninguna tienda externa');return;}
+  
+  tiendaFlyerEncontrada=tienda;
+  
+  // Generar código de 6 dígitos
+  codigoFlyerActual=Math.floor(100000+Math.random()*900000).toString();
+  
+  // Enviar por WhatsApp
+  var msg=encodeURIComponent('🔐 *Código de acceso Flyer QR*\n\nTu código es: *'+codigoFlyerActual+'*\n\nVálido por 5 minutos.\n\n_'+tienda.nombre_tienda||tienda.name+'_');
+  window.open('https://wa.me/52'+tel+'?text='+msg,'_blank');
+  
+  // Mostrar paso 2
+  document.getElementById('step-phone').style.display='none';
+  document.getElementById('step-code').style.display='';
+}
+
+function verificarCodigoFlyer(){
+  var code=document.getElementById('login-code').value.trim();
+  if(code!==codigoFlyerActual){alert('Código incorrecto');return;}
+  
+  // Abrir flyer con datos de la tienda
+  var s=tiendaFlyerEncontrada;
+  var cfg=s.config||{};
+  var nombre=s.nombre_tienda||s.name||'Tienda';
+  var urlStore=cfg.linkNegocio||cfg.link||window.location.href;
+  var tag=cfg.tipoNegocio||cfg.description||'Visita nuestra tienda';
+  
+  var flyerUrl='flayerFormatos.html?nombre='+encodeURIComponent(nombre)+'&url='+encodeURIComponent(urlStore)+'&tag='+encodeURIComponent(tag);
+  window.open(flyerUrl,'_blank');
+  
+  cerrarLoginFlyer();
+}
+  
 </script>
 </body>
 </html>
