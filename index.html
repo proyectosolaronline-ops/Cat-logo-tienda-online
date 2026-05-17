@@ -1007,8 +1007,13 @@ async function enviarCodigoFlyer(){
     return t===tel;
   });
   
-  if(!tienda){alert('Teléfono no registrado en ninguna tienda externa');return;}
-  
+  if(!tienda){
+    // Mostrar QR general del directorio
+    var flyerUrl='flayerFormatos.html?nombre=Directorio+Easylink&url='+encodeURIComponent(window.location.href)+'&tag=Escanea+y+visita+tiendas+cerca+de+ti+🛍️';
+    window.open(flyerUrl,'_blank');
+    cerrarLoginFlyer();
+    return;
+  }
   tiendaFlyerEncontrada=tienda;
   
   // Generar código de 6 dígitos
