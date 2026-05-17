@@ -634,17 +634,36 @@ function initMap(){
   map.whenReady(()=>setTimeout(fitToNearestStore,250));
   buildPromosFromCatalogs(nearbyStores);  // ← ESTA LÍNEA DEBE EXISTIR
 }
+
 function addMarkersToMap(stores){
   
   stores.forEach(s=>{
     const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
     if(isNaN(lat)||isNaN(lng))return;
+    
+    // ═══════════════════════════════════════════
+    // NUEVO: FILTRO SERVICIO MÓVIL
+    // ═══════════════════════════════════════════
+    if(cfg.Movil === true || cfg.Movil === 'TRUE'){
+      // Verificar horario
+      if(!estaEnHorario(cfg.horariopromotor || '08:00-18:00')) return;
+      // Verificar candado ubicate
+      if(!cfg.ubicate || cfg.ubicate === 'null' || cfg.ubicate === '') return;
+    }
+    // ═══════════════════════════════════════════
+    
     const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
     const pinColor=s.isExternal?'#f97316':'#fff';
     const bgColor=s.isExternal?'#fff3e0':'#1a73e8';
-    const pinHTML=logoUrl
-      ?`<img src="${logoUrl}" style="width:52px;height:52px;border-radius:50%;border:4px solid ${pinColor};object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,.3);">`
-      :`<div style="width:52px;height:52px;background:${bgColor};color:${s.isExternal?'#e65100':'#fff'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid ${pinColor};box-shadow:0 3px 10px rgba(0,0,0,.3);">🏪</div>`;
+    
+    // NUEVO: Pin especial para móviles verificados
+    const esMovil = cfg.Movil === true || cfg.Movil === 'TRUE';
+    const pinHTML = esMovil
+      ? `<div style="width:52px;height:52px;background:#fbbf24;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;border:4px solid #f59e0b;box-shadow:0 3px 10px rgba(0,0,0,.3);">🛵</div>`
+      : (logoUrl
+          ?`<img src="${logoUrl}" style="width:52px;height:52px;border-radius:50%;border:4px solid ${pinColor};object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,.3);">`
+          :`<div style="width:52px;height:52px;background:${bgColor};color:${s.isExternal?'#e65100':'#fff'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid ${pinColor};box-shadow:0 3px 10px rgba(0,0,0,.3);">🏪</div>`);
+    
     const icon=L.divIcon({html:pinHTML,className:'',iconSize:[56,56],iconAnchor:[28,28]});
 
 L.marker([lat,lng],{icon})
@@ -654,7 +673,7 @@ L.marker([lat,lng],{icon})
 
     const cfg=s.config||{};
     const nombre=s.nombre_tienda||s.name||'Tienda';
-    const tipo=s.isExternal?(cfg.tipoNegocio||cfg.businessType||cfg.tipo_negocio||cfg.tipo||'Tienda externa'):'Tienda Easylink';
+    const tipo=esMovil?'🛵 Servicio Móvil':(s.isExternal?(cfg.tipoNegocio||cfg.businessType||cfg.tipo_negocio||cfg.tipo||'Tienda externa'):'Tienda Easylink');
     return `<div style="text-align:center;font-family:Inter,sans-serif;line-height:1.2;">
       <div style="font-weight:600;font-size:10px;color:#222;">${nombre}</div>
       <div style="font-size:8px;color:#777;">${tipo}</div>
@@ -669,12 +688,13 @@ L.marker([lat,lng],{icon})
       const fotoUrl=s.isExternal?fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||logoUrl||''):logoUrl;
       const nombre=s.nombre_tienda||s.name||'Tienda';
       const desc=cfg.description||[cfg.colonia,cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Sin descripción';
-      const tipo=s.isExternal?(cfg.tipoNegocio||cfg.businessType||cfg.tipo_negocio||cfg.tipo||'Tienda externa'):'Tienda Easylink';
+      const tipo=esMovil?'🛵 Servicio Móvil':(s.isExternal?(cfg.tipoNegocio||cfg.businessType||cfg.tipo_negocio||cfg.tipo||'Tienda externa'):'Tienda Easylink');
       
       let html='<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px;">';
       if(fotoUrl) html+=`<img src="${fotoUrl}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:8px;" onerror="this.style.display='none'">`;
       html+=`<strong style="font-size:15px;color:#111;">${nombre}</strong>`;
-      if(s.isExternal) html+=`<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:6px;">🏪 Externa</span>`;
+      if(esMovil) html+=`<span style="font-size:9px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:6px;">🛵 Móvil</span>`;
+      else if(s.isExternal) html+=`<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:6px;">🏪 Externa</span>`;
       html+=`<p style="font-size:11px;color:#888;margin:4px 0;">${tipo}</p>`;
       html+=`<p style="font-size:12px;color:#444;margin:4px 0;">${desc}</p>`;
       if(dist) html+=`<p style="font-size:13px;color:#16a34a;font-weight:700;margin:4px 0;">📍 ${dist}</p>`;
@@ -685,14 +705,8 @@ L.marker([lat,lng],{icon})
       }
 
       // --- BOTONES PARA TIENDAS EXTERNAS ---
-          if(s.isExternal){
-        // Mostrar teléfono si WhatsApp está activado
+      if(s.isExternal){
         var showW3=String(cfg.whatsapp||'').toUpperCase();
-        console.log('DEBUG ALL KEYS:', Object.keys(cfg));
-        console.log('DEBUG FULL CONFIG:', JSON.stringify(cfg));
-        console.log('DEBUG:', 'whatsapp=', cfg.whatsapp, 'telefono=', cfg.telefono, 'llegar=', cfg.llegar);
-        console.log('DEBUG s.telefono:', s.telefono);
-        console.log('DEBUG s completo:', Object.keys(s));
         var tel3=String(s.telefono||cfg.telefono||'').replace(/\D/g,'');
         if(showW3==='TRUE'&&tel3){
           html+=`<p style="font-size:13px;color:#25D366;font-weight:600;margin:4px 0;">📞 ${tel3}</p>`;
@@ -701,6 +715,12 @@ L.marker([lat,lng],{icon})
         var showLlegar=String(cfg.llegar||'').toUpperCase();
         if(showLlegar==='TRUE'&&!isNaN(lat)&&!isNaN(lng)){
           html+=`<a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#1a73e8;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🗺️ Cómo llegar</a>`;
+        }
+        
+        // NUEVO: Botón Solicitar Ubicación (solo si es móvil SIN ubicate)
+        if(esMovil && (!cfg.ubicate || cfg.ubicate === 'null' || cfg.ubicate === '')){
+          var msgSolicitar=encodeURIComponent('📍 Hola! Soy del Directorio Easylink. Para activar tu ficha de Servicio Móvil, necesito tu ubicación real. Por favor compártela aquí 👇');
+          html+=`<a href="https://wa.me/52${tel3}?text=${msgSolicitar}" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#fbbf24;color:#000;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">📍 Solicitar ubicación</a>`;
         }
         
         // Botón WhatsApp
@@ -725,8 +745,24 @@ L.marker([lat,lng],{icon})
   },{maxWidth:300,className:'custom-popup'});
   });
 }
-  
-function renderTicker(){
+ // ═══ Verificar si hora actual está dentro del horario laboral ═══
+function estaEnHorario(horario) {
+  try {
+    const ahora = new Date();
+    const horaActual = ahora.getHours() * 60 + ahora.getMinutes();
+    const [inicio, fin] = horario.split('-');
+    const [hIni, mIni] = inicio.split(':').map(Number);
+    const [hFin, mFin] = fin.split(':').map(Number);
+    const minInicio = hIni * 60 + mIni;
+    const minFin = hFin * 60 + mFin;
+    return horaActual >= minInicio && horaActual <= minFin;
+  } catch(e) {
+    return true; // Si hay error en el formato, mostrar igual
+  }
+}
+
+ 
+ function renderTicker(){
   const track=document.getElementById('pticker-track'),dotsEl=document.getElementById('pticker-dots');
   if(!track||!dotsEl)return;
   track.innerHTML=PROMOS_LIST.map((p,i)=>{
