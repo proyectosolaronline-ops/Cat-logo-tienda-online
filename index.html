@@ -1,37 +1,496 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta name="google-site-verification" content="googleea029779e98c8167" />
-<!-- SEO básico -->
-<meta name="description" content="Directorio de tiendas y negocios en Querétaro. Encuentra abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios, electrónica, accesorios para celular y más cerca de ti." />
-<meta name="keywords" content="directorio Querétaro, tiendas Querétaro, negocios cerca de mí Querétaro, abarrotes Querétaro, ferretería Querétaro, farmacia Querétaro, boutique Querétaro, restaurantes Querétaro, comida cerca Querétaro, consultorio médico Querétaro, electrónica Querétaro, accesorios celular Querétaro, comunicaciones Querétaro, tiendas cercanas, comercios Querétaro, Easylink Querétaro" />
-
-<!-- Título -->
-<title>Directorio de Tiendas y Negocios en Querétaro — Easylink</title>
-
-<!-- Open Graph -->
-<meta property="og:title" content="Directorio de Tiendas y Negocios en Querétaro — Easylink" />
-<meta property="og:description" content="Encuentra abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios, electrónica y más cerca de ti en Querétaro." />
-<meta property="og:url" content="https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/" />
-<meta property="og:type" content="website" />
-
-<!-- Schema.org -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "LocalBusiness",
+  "@type": "Organization",
+  "@id": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/#organization",
   "name": "Directorio Easylink Querétaro",
-  "description": "Directorio de tiendas y negocios en Querétaro: abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios, electrónica, accesorios para celular y más.",
+  "description": "Directorio multi-negocios de tiendas y servicios en todo el estado de Querétaro. Encuentra abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios médicos, electrónica, accesorios para celular y servicios de comunicaciones.",
   "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/",
+  "logo": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/img/logo-easylink.png",
+  "image": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/img/og-image-easylink.jpg",
   "address": {
     "@type": "PostalAddress",
-    "addressLocality": "Querétaro",
     "addressRegion": "Querétaro",
     "addressCountry": "MX"
   },
-  "areaServed": "Querétaro, México"
+  "areaServed": {
+    "@type": "State",
+    "name": "Querétaro"
+  },
+  "telephone": "+524421234567",
+  "sameAs": [
+    "https://www.facebook.com/tuPaginaDeFacebook",
+    "https://www.instagram.com/tuPerfilDeInstagram"
+  ],
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/?s={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  },
+
+  "makesOffer": [
+    {
+      "@type": "Offer",
+      "category": "Directorio de Abarrotes",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Directorio de Abarrotes en Querétaro",
+        "description": "Listado de abarrotes, tienditas y misceláneas en el estado de Querétaro."
+      },
+      "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+      "eligibleRegion": {
+        "@type": "State",
+        "name": "Querétaro"
+      }
+    },
+    {
+      "@type": "Offer",
+      "category": "Directorio de Ferreterías",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Directorio de Ferreterías y Tlapalerías en Querétaro",
+        "description": "Listado de ferreterías, tlapalerías y venta de materiales de construcción en Querétaro."
+      },
+      "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+      "eligibleRegion": {
+        "@type": "State",
+        "name": "Querétaro"
+      }
+    },
+    {
+      "@type": "Offer",
+      "category": "Directorio de Farmacias",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Directorio de Farmacias en Querétaro",
+        "description": "Listado de farmacias, boticas y droguerías en el estado de Querétaro."
+      },
+      "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+      "eligibleRegion": {
+        "@type": "State",
+        "name": "Querétaro"
+      }
+    },
+    {
+      "@type": "Offer",
+      "category": "Directorio de Boutiques",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Directorio de Boutiques y Tiendas de Ropa en Querétaro",
+        "description": "Listado de boutiques de moda, ropa y accesorios en Querétaro."
+      },
+      "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+      "eligibleRegion": {
+        "@type": "State",
+        "name": "Querétaro"
+      }
+    },
+    {
+      "@type": "Offer",
+      "category": "Directorio de Restaurantes",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Directorio de Restaurantes y Comida en Querétaro",
+        "description": "Listado de restaurantes, fondas, taquerías y servicios de comida en Querétaro."
+      },
+      "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+      "eligibleRegion": {
+        "@type": "State",
+        "name": "Querétaro"
+      }
+    },
+    {
+      "@type": "Offer",
+      "category": "Directorio de Consultorios Médicos",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Directorio de Consultorios Médicos en Querétaro",
+        "description": "Listado de consultorios médicos, clínicas y dentistas en Querétaro."
+      },
+      "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+      "eligibleRegion": {
+        "@type": "State",
+        "name": "Querétaro"
+      }
+    },
+    {
+      "@type": "Offer",
+      "category": "Directorio de Electrónica",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Directorio de Tiendas de Electrónica en Querétaro",
+        "description": "Listado de tiendas de electrónica, cómputo, audio y video en Querétaro."
+      },
+      "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+      "eligibleRegion": {
+        "@type": "State",
+        "name": "Querétaro"
+      }
+    },
+    {
+      "@type": "Offer",
+      "category": "Directorio de Accesorios para Celular",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Directorio de Accesorios para Celular en Querétaro",
+        "description": "Listado de tiendas de accesorios, fundas, micas y reparación de celulares en Querétaro."
+      },
+      "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+      "eligibleRegion": {
+        "@type": "State",
+        "name": "Querétaro"
+      }
+    },
+    {
+      "@type": "Offer",
+      "category": "Directorio de Comunicaciones",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Directorio de Servicios de Comunicaciones en Querétaro",
+        "description": "Listado de empresas de internet, telefonía, fibra óptica y redes en Querétaro."
+      },
+      "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+      "eligibleRegion": {
+        "@type": "State",
+        "name": "Querétaro"
+      }
+    }
+  ],
+
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Categorías del Directorio Easylink Querétaro",
+    "itemListElement": [
+      {
+        "@type": "OfferCatalog",
+        "name": "Abarrotes",
+        "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/abarrotes"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Ferreterías",
+        "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/ferreterias"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Farmacias",
+        "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/farmacias"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Boutiques",
+        "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/boutiques"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Restaurantes",
+        "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/restaurantes"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Consultorios Médicos",
+        "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/consultorios"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Electrónica",
+        "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/electronica"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Accesorios para Celular",
+        "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/accesorios-celular"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Comunicaciones",
+        "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/comunicaciones"
+      }
+    ]
+  }
 }
-</script>  
+</script>
+¿Por qué este cambio?
+Antes	Ahora
+@type: LocalBusiness	@type: Organization (más adecuado para un directorio multi-categoría)
+Sin declaración de tipos de negocio	makesOffer con 9 tipos de servicio, uno por cada categoría
+Sin declaración de productos/servicios	Cada itemOffered detalla exactamente qué tipo de negocio lista el directorio
+Sin catálogo estructurado	hasOfferCatalog enumera todas las categorías con su URL, ayudando a Google a navegar la estructura del sitio
+Beneficios de este Schema
+Google entiende que eres multi-negocio: con makesOffer declaras explícitamente que tu directorio cubre abarrotes, ferreterías, farmacias, etc.
+
+Cada categoría es un "servicio" del directorio: declarado como Service dentro de itemOffered.
+
+Catálogo navegable: hasOfferCatalog le da a Google un mapa jerárquico de todas las secciones del sitio.
+
+Mejor oportunidad de aparecer en búsquedas: al declarar cada tipo de negocio y su cobertura estatal, Google puede mostrar tu sitio para búsquedas como "ferreterías en San Juan del Río" o "farmacias en todo Querétaro".
+
+¿Necesitas que ajuste también los Schema de cada página de categoría (los ItemList que te di antes) para que hereden esta misma lógica de productos/servicios, o prefieres mantenerlos como están?
+
+lo pego debajo head
+Perfecto. Así es como debes colocarlo justo debajo de la etiqueta <head> y antes del cierre </head>.
+
+Ubicación exacta en tu HTML
+html
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Google Search Console -->
+    <meta name="google-site-verification" content="googleea029779e98c8167" />
+
+    <!-- SEO básico -->
+    <meta name="description" content="Directorio de tiendas y negocios en el estado de Querétaro. Encuentra abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios, electrónica, accesorios para celular y más cerca de ti, en todo Querétaro." />
+    <meta name="keywords" content="directorio Querétaro, tiendas Querétaro, negocios cerca de mí Querétaro, abarrotes Querétaro, ferretería Querétaro, farmacia Querétaro, boutique Querétaro, restaurantes Querétaro, comida cerca Querétaro, consultorio médico Querétaro, electrónica Querétaro, accesorios celular Querétaro, comunicaciones Querétaro, tiendas cercanas, comercios Querétaro, Easylink Querétaro" />
+
+    <!-- Título -->
+    <title>Directorio de Tiendas y Negocios en el Estado de Querétaro — Easylink</title>
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Directorio de Tiendas y Negocios en el Estado de Querétaro — Easylink" />
+    <meta property="og:description" content="Encuentra abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios, electrónica y más cerca de ti en todo el estado de Querétaro." />
+    <meta property="og:url" content="https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/img/og-image-easylink.jpg" />
+    <meta property="og:image:alt" content="Mapa del estado de Querétaro con marcadores de negocios del directorio Easylink" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="es_MX" />
+    <meta property="og:site_name" content="Directorio Easylink Querétaro" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Directorio de Tiendas y Negocios en el Estado de Querétaro — Easylink" />
+    <meta name="twitter:description" content="Encuentra abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios, electrónica y más cerca de ti en todo el estado de Querétaro." />
+    <meta name="twitter:image" content="https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/img/og-image-easylink.jpg" />
+    <meta name="twitter:image:alt" content="Mapa del estado de Querétaro con marcadores de negocios del directorio Easylink" />
+
+    <!-- ============================================================ -->
+    <!-- SCHEMA PRINCIPAL: Directorio Multi-Negocio Easylink Querétaro -->
+    <!-- ============================================================ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/#organization",
+      "name": "Directorio Easylink Querétaro",
+      "description": "Directorio multi-negocios de tiendas y servicios en todo el estado de Querétaro. Encuentra abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios médicos, electrónica, accesorios para celular y servicios de comunicaciones.",
+      "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/",
+      "logo": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/img/logo-easylink.png",
+      "image": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/img/og-image-easylink.jpg",
+      "address": {
+        "@type": "PostalAddress",
+        "addressRegion": "Querétaro",
+        "addressCountry": "MX"
+      },
+      "areaServed": {
+        "@type": "State",
+        "name": "Querétaro"
+      },
+      "telephone": "+524421234567",
+      "sameAs": [
+        "https://www.facebook.com/tuPaginaDeFacebook",
+        "https://www.instagram.com/tuPerfilDeInstagram"
+      ],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/?s={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      },
+      "makesOffer": [
+        {
+          "@type": "Offer",
+          "category": "Directorio de Abarrotes",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Directorio de Abarrotes en Querétaro",
+            "description": "Listado de abarrotes, tienditas y misceláneas en el estado de Querétaro."
+          },
+          "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+          "eligibleRegion": {
+            "@type": "State",
+            "name": "Querétaro"
+          }
+        },
+        {
+          "@type": "Offer",
+          "category": "Directorio de Ferreterías",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Directorio de Ferreterías y Tlapalerías en Querétaro",
+            "description": "Listado de ferreterías, tlapalerías y venta de materiales de construcción en Querétaro."
+          },
+          "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+          "eligibleRegion": {
+            "@type": "State",
+            "name": "Querétaro"
+          }
+        },
+        {
+          "@type": "Offer",
+          "category": "Directorio de Farmacias",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Directorio de Farmacias en Querétaro",
+            "description": "Listado de farmacias, boticas y droguerías en el estado de Querétaro."
+          },
+          "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+          "eligibleRegion": {
+            "@type": "State",
+            "name": "Querétaro"
+          }
+        },
+        {
+          "@type": "Offer",
+          "category": "Directorio de Boutiques",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Directorio de Boutiques y Tiendas de Ropa en Querétaro",
+            "description": "Listado de boutiques de moda, ropa y accesorios en Querétaro."
+          },
+          "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+          "eligibleRegion": {
+            "@type": "State",
+            "name": "Querétaro"
+          }
+        },
+        {
+          "@type": "Offer",
+          "category": "Directorio de Restaurantes",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Directorio de Restaurantes y Comida en Querétaro",
+            "description": "Listado de restaurantes, fondas, taquerías y servicios de comida en Querétaro."
+          },
+          "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+          "eligibleRegion": {
+            "@type": "State",
+            "name": "Querétaro"
+          }
+        },
+        {
+          "@type": "Offer",
+          "category": "Directorio de Consultorios Médicos",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Directorio de Consultorios Médicos en Querétaro",
+            "description": "Listado de consultorios médicos, clínicas y dentistas en Querétaro."
+          },
+          "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+          "eligibleRegion": {
+            "@type": "State",
+            "name": "Querétaro"
+          }
+        },
+        {
+          "@type": "Offer",
+          "category": "Directorio de Electrónica",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Directorio de Tiendas de Electrónica en Querétaro",
+            "description": "Listado de tiendas de electrónica, cómputo, audio y video en Querétaro."
+          },
+          "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+          "eligibleRegion": {
+            "@type": "State",
+            "name": "Querétaro"
+          }
+        },
+        {
+          "@type": "Offer",
+          "category": "Directorio de Accesorios para Celular",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Directorio de Accesorios para Celular en Querétaro",
+            "description": "Listado de tiendas de accesorios, fundas, micas y reparación de celulares en Querétaro."
+          },
+          "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+          "eligibleRegion": {
+            "@type": "State",
+            "name": "Querétaro"
+          }
+        },
+        {
+          "@type": "Offer",
+          "category": "Directorio de Comunicaciones",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Directorio de Servicios de Comunicaciones en Querétaro",
+            "description": "Listado de empresas de internet, telefonía, fibra óptica y redes en Querétaro."
+          },
+          "businessFunction": "https://purl.org/goodrelations/v1#ProvideService",
+          "eligibleRegion": {
+            "@type": "State",
+            "name": "Querétaro"
+          }
+        }
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Categorías del Directorio Easylink Querétaro",
+        "itemListElement": [
+          {
+            "@type": "OfferCatalog",
+            "name": "Abarrotes",
+            "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/abarrotes"
+          },
+          {
+            "@type": "OfferCatalog",
+            "name": "Ferreterías",
+            "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/ferreterias"
+          },
+          {
+            "@type": "OfferCatalog",
+            "name": "Farmacias",
+            "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/farmacias"
+          },
+          {
+            "@type": "OfferCatalog",
+            "name": "Boutiques",
+            "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/boutiques"
+          },
+          {
+            "@type": "OfferCatalog",
+            "name": "Restaurantes",
+            "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/restaurantes"
+          },
+          {
+            "@type": "OfferCatalog",
+            "name": "Consultorios Médicos",
+            "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/consultorios"
+          },
+          {
+            "@type": "OfferCatalog",
+            "name": "Electrónica",
+            "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/electronica"
+          },
+          {
+            "@type": "OfferCatalog",
+            "name": "Accesorios para Celular",
+            "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/accesorios-celular"
+          },
+          {
+            "@type": "OfferCatalog",
+            "name": "Comunicaciones",
+            "url": "https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/comunicaciones"
+          }
+        ]
+      }
+    }
+    </script>
+
+  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Directorio Easylink Web</title>
