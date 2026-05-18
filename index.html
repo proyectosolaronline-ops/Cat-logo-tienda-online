@@ -1555,21 +1555,6 @@ setInterval(function(){
     }
 }, 10000);
 
- (function(){
-  var wrap = document.getElementById('ext-foto-wrap');
-  if(!wrap) return;
-  var taps = 0, timer = null;
-  wrap.addEventListener('click', function(e){
-    e.stopPropagation();
-    taps++;
-    clearTimeout(timer);
-    timer = setTimeout(function(){ taps = 0; }, 800);
-    if(taps >= 3){
-      taps = 0;
-      window.open('promotores.html', '_blank');
-    }
-  });
-})();
 </script>
 <!-- FORMULARIO SER PARTE DEL DIRECTORIO -->
 <div id="contacto-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:3000;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarFormularioContacto()">
