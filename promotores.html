@@ -201,6 +201,46 @@ window.sendCode = async function() {
 };
 
 
+async function getStoreByEmail(email) {
+    const result = await callAPI('stores.directory');
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////// DEBUG TOTAL
+    console.log('===== DEBUG COMPLETO =====');
+    console.log('1. result completo:', JSON.stringify(result, null, 2));
+    console.log('2. result.ok:', result.ok);
+    console.log('3. result.stores:', result.stores);
+    console.log('4. Tipo de result.stores:', typeof result.stores);
+    console.log('5. Es array?', Array.isArray(result.stores));
+    console.log('6. Longitud:', result.stores?.length);
+    
+    if (result.stores && result.stores.length > 0) {
+        console.log('7. Primera tienda:', result.stores[0]);
+        console.log('8. Config de primera tienda:', result.stores[0].config);
+        console.log('9. Correo en config:', result.stores[0].config?.correo);
+    } else {
+        console.log('❌ No hay tiendas en result.stores');
+    }
+    
+    // Si no hay tiendas, intentar obtener de otra forma
+    if (!result.stores || result.stores.length === 0) {
+        // Probar llamar directamente sin caché
+        const directResult = await fetch(`${API_URL}?action=stores.directory&nocache=${Date.now()}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        const directData = await directResult.json();
+        console.log('10. Llamada directa sin caché:', directData);
+    }
+    
+    return { ok: false, error: 'Correo no registrado en el directorio' };
+}
+
+
+
+
+
+
+    
    // ========================================
 // DEBUG COMPLETO - Abre F12 para ver
 // ========================================
@@ -232,22 +272,39 @@ async function getStoreByEmail(email) {
     const result = await callAPI('stores.directory');
     
     if (result.ok && result.stores) {
+        console.log('📦 PRIMERA TIENDA COMPLETA:', result.stores[0]);
+        console.log('📦 CONFIG:', result.stores[0].config);
+        console.log('📦 CORREO EN CONFIG:', result.stores[0].config?.correo);
+        console.log('📦 CORREO DIRECTO:', result.stores[0].correo);
+        
         const emailLower = email.toLowerCase().trim();
         
         const store = result.stores.find(s => {
-            const config = s.config || {};
-            const storeEmail = (config.correo || '').toLowerCase().trim();
-            return storeEmail === emailLower;
+            // Probar diferentes formas de obtener el correo
+            const correo1 = s.config?.correo || '';
+            const correo2 = s.correo || '';
+            const correo3 = s.config?.correoElectronico || '';
+            
+            console.log(`🔍 Comparando: "${correo1}" (config.correo) con "${emailLower}"`);
+            console.log(`🔍 Comparando: "${correo2}" (correo directo) con "${emailLower}"`);
+            
+            return correo1.toLowerCase().trim() === emailLower || 
+                   correo2.toLowerCase().trim() === emailLower;
         });
         
         if (store) {
+            console.log('✅ TIENDA ENCONTRADA:', store);
             return { ok: true, store: store };
         }
+        
+        console.log('❌ No se encontró match. Correos disponibles:');
+        result.stores.forEach((s, i) => {
+            console.log(`  ${i + 1}. config.correo: "${s.config?.correo}", correo directo: "${s.correo}"`);
+        });
     }
     
     return { ok: false, error: 'Correo no registrado en el directorio' };
 }
-
 async function requestCode(email) {
     return await callAPI('owner.request.code', { email: email });
 }
