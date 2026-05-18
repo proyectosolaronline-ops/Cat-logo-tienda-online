@@ -1244,20 +1244,29 @@ async function enviarCodigoFlyer(){
 }
 
 function verificarCodigoFlyer(){
-  var code=document.getElementById('login-code').value.trim();
-  if(code!==codigoFlyerActual){alert('Código incorrecto');return;}
+  var code = document.getElementById('login-code').value.trim();
+  if(code !== codigoFlyerActual){ alert('Código incorrecto'); return; }
   
-  // Abrir flyer con datos de la tienda
-  var s=tiendaFlyerEncontrada;
-  var cfg=s.config||{};
-  var nombre=s.nombre_tienda||s.name||'Tienda';
-  var urlStore=cfg.linkNegocio||cfg.link||window.location.href;
-  var tag=cfg.tipoNegocio||cfg.description||'Visita nuestra tienda';
+  var s = tiendaFlyerEncontrada;
+  var cfg = s.config || {};
+  var nombre = s.nombre_tienda || s.name || 'Tienda';
   
-  var flyerUrl='flayerFormatos.html?nombre='+encodeURIComponent(nombre)+'&url='+encodeURIComponent(urlStore)+'&tag='+encodeURIComponent(tag);
-  window.open(flyerUrl,'_blank');
+  // Preguntar qué quiere
+  var opcion = confirm('¿Qué deseas ver?\n\nAceptar = Ver QR de tu tienda\nCancelar = Ir a tu panel de promotor');
+  
+  if(opcion){
+    // Ver QR
+    var urlStore = cfg.linkNegocio || cfg.link || window.location.href;
+    var tag = cfg.tipoNegocio || cfg.description || 'Visita nuestra tienda';
+    var flyerUrl = 'flayerFormatos.html?nombre='+encodeURIComponent(nombre)+'&url='+encodeURIComponent(urlStore)+'&tag='+encodeURIComponent(tag);
+    window.open(flyerUrl, '_blank');
+  } else {
+    // Ir al panel
+    window.open('promotores.html', '_blank');
+  }
   
   cerrarLoginFlyer();
+}
 }
   dataPollingInterval=setInterval(refreshData,10000);
   // Guardar estadísticas cada 30 segundos
