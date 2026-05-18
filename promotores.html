@@ -97,20 +97,26 @@
     }
     
     // Usa stores.directory - el mismo que funciona en tu otro HTML
-    async function getStoreByEmail(email) {
-        const result = await callAPI('stores.directory');
-        if (result.ok && result.stores) {
-            const emailLower = email.toLowerCase().trim();
-            const store = result.stores.find(s => {
-                const cfg = s.config || {};
-                const storeEmail = safeString(cfg.correo).toLowerCase().trim();
-                return storeEmail === emailLower;
-            });
-            if (store) return { ok: true, store: store };
+async function getStoreByEmail(email) {
+    const result = await callAPI('stores.directory');
+    
+    if (result.ok && result.stores) {
+        const emailLower = email.toLowerCase().trim();
+        
+        const store = result.stores.find(s => {
+            // Los datos de tienda externa están en s.config
+            const config = s.config || {};
+            const storeEmail = (config.correo || '').toLowerCase().trim();
+            return storeEmail === emailLower;
+        });
+        
+        if (store) {
+            return { ok: true, store: store };
         }
-        return { ok: false, error: 'Correo no registrado' };
     }
     
+    return { ok: false, error: 'Correo no registrado en el directorio' };
+}
     async function requestCode(email) {
         return await callAPI('owner.request.code', { email: email });
     }
