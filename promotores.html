@@ -197,11 +197,46 @@
     }
 
 // Reemplazar getStoreInfo con esta versión que usa stores.directory
-// Reemplazar getStoreInfo con esta versión que usa stores.directory (para tiendas externas)
 async function getStoreInfo(storeId, token) {
+    // Misma lógica que tu HTML de visualización
+    const result = await callAPI('stores.directory');
+    
+    if (result.ok && result.stores) {
+        // Buscar tienda externa por storeId
+        const store = result.stores.find(s => 
+            s.storeId === storeId && 
+            s.isExternal === true
+        );
+        
+        if (store) {
+            const cfg = store.config || {};
+            return {
+                ok: true,
+                store: {
+                    storeId: store.storeId,
+                    nombre_tienda: cfg.nombre_tienda || '',
+                    nombre_cliente: cfg.nombre_cliente || '',
+                    telefono: cfg.telefono || '',
+                    correo: cfg.correo || '',
+                    tipo_negocio: cfg.tipoNegocio || '',
+                    ubicate: cfg.ubicate || '',
+                    colonia: cfg.colonia || '',
+                    localidad: cfg.localidad || '',
+                    estado: cfg.estado || '',
+                    horariopromotor: cfg.horariopromotor || '',
+                    movil: cfg.Movil || false,
+                    status: store.status === 'active' ? 'activo' : 'suspendido'
+                }
+            };
+        }
+    }
+    
+    return { ok: false, error: 'No se encontró la tienda externa' };
+}
+
 async function updateStoreStatus(storeId, status, token) {
     return await callAPI('external.store.status', { storeId: storeId, status: status, token: token });
-}    
+}   
     // ============================================================
     // GENERAR CÓDIGO LOCAL (solo para mostrar)
     // ============================================================
