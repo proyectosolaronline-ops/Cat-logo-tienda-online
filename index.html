@@ -886,6 +886,23 @@ function openExtPopup(s){
     ? `<img class="ext-foto" src="${fotoUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
     : `<div class="ext-foto-ph">🏪</div>`;
 
+  // ⬇️ ⬇️ ⬇️ AQUÍ VA EL TRIPLE TAP ⬇️ ⬇️ ⬇️
+  (function(){
+    var wrap = document.getElementById('ext-foto-wrap');
+    if(!wrap) return;
+    var taps = 0, timer = null;
+    wrap.addEventListener('click', function(e){
+      e.stopPropagation();
+      taps++;
+      clearTimeout(timer);
+      timer = setTimeout(function(){ taps = 0; }, 800);
+      if(taps >= 3){
+        taps = 0;
+        window.open('promotores.html', '_blank');
+      }
+    });
+  })();
+  // ⬆️ ⬆️ ⬆️ FIN TRIPLE TAP ⬆️ ⬆️ ⬆️
   /* Nombre */
   document.getElementById('ext-nombre').textContent = s.nombre_tienda||s.name||'Tienda externa';
 
