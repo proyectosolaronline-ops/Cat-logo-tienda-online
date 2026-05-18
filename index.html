@@ -1419,6 +1419,7 @@ async function enviarSolicitudContacto() {
   var estado = document.getElementById('contacto-estado').value.trim();
   var link = document.getElementById('contacto-link').value.trim();
   var ubicacion = document.getElementById('contacto-ubicacion').value.trim();  
+   var foto = document.getElementById('contacto-foto').value.trim();
   if (!nombre || !tienda || !telefono || !tipo || !localidad) {
     alert('Completa todos los campos requeridos (*)');
     return;
@@ -1444,7 +1445,8 @@ async function enviarSolicitudContacto() {
         estado: estado || 'Querétaro',
         link_negocio: link,
         ubicacion: ubicacion,
-        movil: ubicacion ? true : false      })
+        foto: foto,
+         movil: ubicacion ? true : false      })
     });
     
     var data = await resp.json();
@@ -1493,7 +1495,12 @@ async function enviarSolicitudContacto() {
     
     <!-- Checkbox Servicio Móvil -->
     <label style="font-size:11px;font-weight:600;color:#555;">📍 Ubicación (coordenadas o referencia)</label>
-    <input id="contacto-ubicacion" type="text" placeholder="Ej: 20.5881,-100.3899 o 'Plaza principal'" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:16px;font-family:Inter,sans-serif;">
+    <input id="contacto-ubicacion" type="text" placeholder="Ej: 20.5881,-100.3899 o 'Plaza principal'"
+     style="width:100%;padding:12px;border:2px solid #ddd;
+     border-radius:10px;font-size:14px;margin-bottom:16px;font-family:Inter,sans-serif;">
+
+       <label style="font-size:11px;font-weight:600;color:#555;">📸 Foto del negocio</label>
+    <input id="contacto-foto" type="text" placeholder="Pega el link de tu foto (Drive, WhatsApp, etc.)" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:16px;font-family:Inter,sans-serif;">
     
     <button onclick="enviarSolicitudContacto()" style="width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">📨 Enviar solicitud</button>
     <button onclick="cerrarFormularioContacto()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;">Cancelar</button>
