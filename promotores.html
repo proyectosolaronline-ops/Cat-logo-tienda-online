@@ -100,13 +100,17 @@
 async function getStoreByEmail(email) {
     const result = await callAPI('stores.directory');
     
+    console.log('RESULTADO COMPLETO:', result);  // ← VER EN CONSOLA F12
+    
     if (result.ok && result.stores) {
+        console.log('TIENDAS:', result.stores);  // ← VER ESTRUCTURA
+        
         const emailLower = email.toLowerCase().trim();
         
         const store = result.stores.find(s => {
-            // Los datos de tienda externa están en s.config
             const config = s.config || {};
             const storeEmail = (config.correo || '').toLowerCase().trim();
+            console.log('Comparando:', storeEmail, '==', emailLower);  // ← VER
             return storeEmail === emailLower;
         });
         
@@ -172,7 +176,7 @@ async function saveStatus() {
     function renderLogin() {
         return `
             <div class="card">
-                <div class="card-header"><h1>🔐 Mi Tienda</h1><p>Ingresa tu correo registrado</p></div>
+                <div class="card-header"><h1>🔐 Mi Tienda</h1><p>copy paste correo registrado</p></div>
                 <div class="card-body">
                     <div id="msg"></div>
                     <div class="form-group"><label>📧 Correo electrónico</label><input type="email" id="emailInput" placeholder="tutienda@ejemplo.com"></div>
