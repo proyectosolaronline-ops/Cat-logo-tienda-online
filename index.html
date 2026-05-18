@@ -882,8 +882,8 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
 
   /* Foto */
   const fotoUrl = fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
-  document.getElementById('ext-foto-wrap').innerHTML = fotoUrl
-    ? `<img class="ext-foto" src="${fotoUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
+  document.getElementById('ext-foto-wrap').innerHTML = fotoExtUrl
+    ? `<img class="ext-foto" src="${fotoExtUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
     : `<div class="ext-foto-ph">🏪</div>`;
 
   // ⬇️ ⬇️ ⬇️ AQUÍ VA EL TRIPLE TAP ⬇️ ⬇️ ⬇️
