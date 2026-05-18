@@ -201,8 +201,13 @@
 async function getStoreInfo(storeId, token) {
     const result = await callAPI('stores.directory');
     
+    console.log('🔍 DEBUG: stores.directory completo', result);
+    
     if (result.ok && result.stores) {
-        const store = result.stores.find(s => s.storeId === storeId && s.isExternal === true);
+        // Eliminar el filtro isExternal para ver todas las tiendas
+        const store = result.stores.find(s => s.storeId === storeId);
+        
+        console.log('🔍 DEBUG: Tienda encontrada', store);
         
         if (store) {
             const cfg = store.config || {};
@@ -210,7 +215,7 @@ async function getStoreInfo(storeId, token) {
                 ok: true,
                 store: {
                     storeId: store.storeId,
-                    nombre_tienda: cfg.nombre_tienda || '',
+                    nombre_tienda: cfg.nombre_tienda || store.name || '',
                     nombre_cliente: cfg.nombre_cliente || '',
                     telefono: cfg.telefono || '',
                     correo: cfg.correo || '',
@@ -224,12 +229,14 @@ async function getStoreInfo(storeId, token) {
                     status: store.status === 'active' ? 'activo' : 'suspendido'
                 }
             };
+        } else {
+            console.log('❌ No se encontró storeId:', storeId);
+            console.log('❌ StoreIds disponibles:', result.stores.map(s => s.storeId));
         }
     }
     
     return { ok: false, error: 'No se encontró la tienda externa' };
 }
-
 async function updateStoreStatus(storeId, status, token) {
     return await callAPI('external.store.status', { storeId: storeId, status: status, token: token });
 }    
@@ -255,13 +262,13 @@ async function updateStoreStatus(storeId, status, token) {
             <div class="card">
                 <div class="card-header">
                     <h1>🔐 Mi Tienda</h1>
-                    <p>Ingresa tu correo y punto .....</p>
+                    <p>Ingresa.....</p>
                 </div>
                 <div class="card-body">
                     <div id="msg"></div>
                     <div class="form-group">
                         <label>📧 Correo electrónico</label>
-                        <input type="email" id="emailInput" placeholder="tutienda@ejemplo.com">
+                        <input type="email" id="emailInput" placeholder="////  linea 271 page">
                     </div>
                     <button class="btn btn-primary" id="sendCodeBtn">📨 Enviar código</button>
                 </div>
