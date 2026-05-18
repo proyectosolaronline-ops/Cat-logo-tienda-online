@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Panel Promotor — Easylink</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:       #0a0c10;
+    --surface:  #111318;
+    --border:   #1e2230;
+    --accent:   #00e5a0;
+    --accent2:  #0077ff;
+    --warn:     #ff4d6d;
+    --text:     #e8eaf0;
+    --muted:    #5a6080;
+    --mono:     'DM Mono', monospace;
+    --sans:     'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 16px 60px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .logo {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  .logo span { color: var(--muted); font-weight: 400; }
+  #btn-logout {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  #btn-logout:hover { border-color: var(--warn); color: var(--warn); }
+
+  /* ── CONTENEDOR CENTRAL ── */
+  .center {
+    width: 100%;
+    max-width: 900px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 40px;
+    margin-bottom: 20px;
+  }
+
+  /* ── LOGIN ── */
+  #screen-login { max-width: 440px; margin: 0 auto; }
+  .login-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .login-title {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .login-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 32px;
+    line-height: 1.5;
+  }
+
+  label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  input[type="email"], input[type="text"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    padding: 13px 16px;
+    outline: none;
+    transition: border-color .2s;
+    margin-bottom: 20px;
+  }
+  input:focus { border-color: var(--accent); }
+
+  .btn {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn:hover { opacity: .88; }
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-danger {
+    background: transparent;
+    border: 1px solid var(--warn);
+    color: var(--warn);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-danger:hover { background: var(--warn); color: #fff; }
+  .btn-sm {
+    width: auto;
+    font-size: 13px;
+    padding: 9px 20px;
+    border-radius: 8px;
+  }
+
+  /* Código OTP */
+  #code-input {
+    font-size: 24px;
+    letter-spacing: 8px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* ── BADGE MÓVIL ── */
+  .badge-movil {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,229,160,.12);
+    border: 1px solid rgba(0,229,160,.3);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+  .badge-movil .dot {
+    width: 7px; height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:.4; transform:scale(.7); }
+  }
+  .badge-fijo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(90,96,128,.15);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  /* ── DETALLE TIENDA ── */
+  #screen-dashboard { display: none; }
+  .dash-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .store-name {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .store-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Grid de detalles */
+  .details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .detail-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .detail-item .di-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .detail-item .di-value {
+    font-size: 14px;
+    font-weight: 600;
+    word-break: break-word;
+  }
+  .detail-item .di-value a {
+    color: var(--accent2);
+    text-decoration: none;
+    font-size: 13px;
+  }
+  .detail-item .di-value a:hover { text-decoration: underline; }
+
+  /* Foto */
+  .store-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 2px solid var(--border);
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .no-photo {
+    width: 80px; height: 80px;
+    border-radius: 12px;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  /* Status */
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 20px 24px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+  .status-label { font-family: var(--mono); font-size: 12px; color: var(--muted); flex: 1; min-width: 120px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .chip-activo   { background: rgba(0,229,160,.15); color: var(--accent); border: 1px solid rgba(0,229,160,.3); }
+  .chip-pendiente { background: rgba(255,170,0,.12); color: #ffaa00; border: 1px solid rgba(255,170,0,.3); }
+  .chip-suspendido { background: rgba(255,77,109,.12); color: var(--warn); border: 1px solid rgba(255,77,109,.3); }
+  .chip-cancelado { background: rgba(90,96,128,.15); color: var(--muted); border: 1px solid var(--border); }
+
+  /* Confirmar suspensión */
+  #confirm-suspend {
+    display: none;
+    background: rgba(255,77,109,.07);
+    border: 1px solid rgba(255,77,109,.25);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-top: 12px;
+  }
+  #confirm-suspend p {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .confirm-btns { display: flex; gap: 12px; }
+
+  /* Servicio móvil info */
+  .movil-section {
+    background: rgba(0,229,160,.05);
+    border: 1px solid rgba(0,229,160,.2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .movil-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .movil-row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--muted);
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0,229,160,.1);
+  }
+  .movil-row:last-child { border-bottom: none; }
+  .movil-row span:last-child { color: var(--text); font-family: var(--mono); font-size: 12px; }
+
+  /* Alerta */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    display: none;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { display: block; animation: fadeUp .3s ease; }
+  .toast.ok  { border-color: var(--accent); color: var(--accent); }
+  .toast.err { border-color: var(--warn);   color: var(--warn); }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateX(-50%) translateY(12px); }
+    to   { opacity:1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* Spinner */
+  .spin {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(0,0,0,.3); border-top-color: #000;
+    border-radius: 50%; animation: spin .7s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Divider */
+  .divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 540px) {
+    .card { padding: 24px 20px; }
+    .details-grid { grid-template-columns: 1fr 1fr; }
+    .dash-header { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">easy<span>link</span> <span style="color:var(--accent);font-weight:700;">promotor</span></div>
+  <button id="btn-logout" onclick="logout()">Cerrar sesión</button>
+</header>
+
+<div class="center">
+
+  <!-- ══ PANTALLA LOGIN ══ -->
+  <div id="screen-login" class="card">
+    <div class="login-eyebrow">Panel de Promotor</div>
+    <div class="login-title">Acceso seguro<br/>con código de correo</div>
+    <div class="login-sub">Ingresa tu correo registrado y te enviaremos un código de verificación de 8 caracteres.</div>
+
+    <!-- Paso 1: correo -->
+    <div id="step-email">
+      <label for="input-email">Correo electrónico</label>
+      <input type="email" id="input-email" placeholder="tucorreo@ejemplo.com" autocomplete="email"/>
+      <button class="btn" id="btn-send" onclick="sendCode()">Enviar código</button>
+    </div>
+
+    <!-- Paso 2: código -->
+    <div id="step-code" style="display:none;">
+      <div style="margin-bottom:20px; padding:14px 16px; background:rgba(0,229,160,.07); border:1px solid rgba(0,229,160,.2); border-radius:10px; font-size:13px; color:var(--muted); line-height:1.5;">
+        Código enviado a <strong id="email-shown" style="color:var(--text);"></strong>. Revisa tu bandeja de entrada.
+      </div>
+      <label for="code-input">Código de 8 caracteres</label>
+      <input type="text" id="code-input" placeholder="XXXXXXXX" maxlength="8" autocomplete="off"/>
+      <button class="btn" id="btn-verify" onclick="verifyCode()">Verificar y entrar</button>
+      <p style="text-align:center; margin-top:16px; font-size:13px; color:var(--muted);">
+        ¿No llegó? <a href="#" onclick="backToEmail()" style="color:var(--accent); text-decoration:none;">Reenviar</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ PANTALLA DASHBOARD ══ -->
+  <div id="screen-dashboard">
+
+    <!-- Header tienda -->
+    <div class="card">
+      <div class="dash-header">
+        <div>
+          <div id="store-name" class="store-name">—</div>
+          <div id="store-id-label" class="store-id"></div>
+          <div style="margin-top:10px;" id="badge-movil-wrap"></div>
+        </div>
+        <div id="store-photo-wrap"></div>
+      </div>
+
+      <!-- Servicio móvil (solo si movil=true) -->
+      <div id="movil-section" class="movil-section" style="display:none;">
+        <h3>🛵 Servicio Móvil activo</h3>
+        <div class="movil-row"><span>Horario promotor</span><span id="movil-horario">—</span></div>
+        <div class="movil-row"><span>Ubicación actual</span><span id="movil-ubicate">—</span></div>
+      </div>
+
+      <!-- Detalles -->
+      <div class="section-title">Información de la tienda</div>
+      <div class="details-grid" id="details-grid"></div>
+
+      <hr class="divider"/>
+
+      <!-- Status -->
+      <div class="section-title">Estado de la cuenta</div>
+      <div class="status-row">
+        <div class="status-label">Estado actual</div>
+        <div id="chip-status"></div>
+        <button class="btn-danger" id="btn-suspender" onclick="mostrarConfirm()" style="display:none;">
+          Suspender tienda
+        </button>
+      </div>
+
+      <!-- Confirmar suspensión -->
+      <div id="confirm-suspend">
+        <p>⚠️ ¿Confirmas que deseas <strong>suspender</strong> esta tienda? Esta acción notificará al cliente.</p>
+        <div class="confirm-btns">
+          <button class="btn-danger" onclick="confirmarSuspension()">Sí, suspender</button>
+          <button class="btn btn-sm" style="background:var(--border); color:var(--text);" onclick="cancelarConfirm()">Cancelar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CONFIG — reemplaza con tu URL del backend
+// ═══════════════════════════════════════════════════
+const API = 'https://script.google.com/macros/s/TU_URL_AQUI/exec';
+
+// ═══════════════════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════════════════
+let SESSION = {
+  token:   localStorage.getItem('promotor_token')   || '',
+  storeId: localStorage.getItem('promotor_storeId') || '',
+  email:   localStorage.getItem('promotor_email')   || '',
+};
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+window.onload = function() {
+  if (SESSION.token && SESSION.storeId) {
+    showDashboard();
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════
+function toast(msg, type='ok', dur=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = 'toast', dur);
+}
+
+function setLoading(btnId, loading, text='') {
+  const b = document.getElementById(btnId);
+  if (!b) return;
+  b.disabled = loading;
+  b.innerHTML = loading ? `<span class="spin"></span>${text}` : text || b.dataset.label || b.textContent;
+  if (!b.dataset.label && !loading) b.dataset.label = b.textContent;
+}
+
+async function api(action, data={}) {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...data })
+  });
+  return res.json();
+}
+
+// ═══════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════
+async function sendCode() {
+  const email = document.getElementById('input-email').value.trim();
+  if (!email || !email.includes('@')) { toast('Ingresa un correo válido', 'err'); return; }
+  setLoading('btn-send', true, 'Enviando...');
+  try {
+    const r = await api('enviarCodigoPromotor', {
+      data: { correo: email, nombre: email.split('@')[0], codigo: generarCodigo() }
+    });
+    // Fallback: si el backend no genera el código, usamos el nuestro
+    // En producción el backend debe generarlo y guardarlo
+    SESSION.email = email;
+    SESSION._pendingCode = r.codigo || null;
+    document.getElementById('email-shown').textContent = email;
+    document.getElementById('step-email').style.display = 'none';
+    document.getElementById('step-code').style.display  = 'block';
+    toast('Código enviado ✓');
+  } catch(e) {
+    toast('Error al enviar código', 'err');
+  }
+  setLoading('btn-send', false, 'Enviar código');
+}
+
+function generarCodigo() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = '';
+  for (let i=0;i<8;i++) c += chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+
+async function verifyCode() {
+  const code = document.getElementById('code-input').value.trim().toUpperCase();
+  if (code.length < 6) { toast('Ingresa el código completo', 'err'); return; }
+  setLoading('btn-verify', true, 'Verificando...');
+  try {
+    // Buscar tienda por correo en external_stores vía admin token temporal
+    // El flujo usa owner.request.code / owner.verify.code del backend
+    const r = await api('owner.verify.code', { email: SESSION.email, code });
+    if (r.ok) {
+      SESSION.token   = r.token;
+      SESSION.storeId = r.storeId;
+      localStorage.setItem('promotor_token',   r.token);
+      localStorage.setItem('promotor_storeId', r.storeId);
+      localStorage.setItem('promotor_email',   SESSION.email);
+      showDashboard();
+    } else {
+      toast(r.error || 'Código incorrecto', 'err');
+    }
+  } catch(e) {
+    toast('Error de conexión', 'err');
+  }
+  setLoading('btn-verify', false, 'Verificar y entrar');
+}
+
+function backToEmail() {
+  document.getElementById('step-code').style.display  = 'none';
+  document.getElementById('step-email').style.display = 'block';
+}
+
+function logout() {
+  localStorage.removeItem('promotor_token');
+  localStorage.removeItem('promotor_storeId');
+  localStorage.removeItem('promotor_email');
+  SESSION = { token:'', storeId:'', email:'' };
+  document.getElementById('screen-dashboard').style.display = 'none';
+  document.getElementById('screen-login').style.display     = 'block';
+  document.getElementById('btn-logout').style.display       = 'none';
+  document.getElementById('step-email').style.display       = 'block';
+  document.getElementById('step-code').style.display        = 'none';
+  document.getElementById('input-email').value = '';
+  document.getElementById('code-input').value  = '';
+}
+
+// ═══════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════
+async function showDashboard() {
+  document.getElementById('screen-login').style.display     = 'none';
+  document.getElementById('screen-dashboard').style.display = 'block';
+  document.getElementById('btn-logout').style.display       = 'block';
+  await loadStoreData();
+}
+
+async function loadStoreData() {
+  try {
+    // Obtener lista de external_stores y filtrar por correo/storeId del promotor
+    const r = await api('external.stores.list', { token: SESSION.token });
+
+    if (!r.ok) {
+      // Si token es de owner normal, intentar store.info
+      const ri = await api('store.info', { storeId: SESSION.storeId, token: SESSION.token });
+      if (ri.ok && ri.store) { renderNormalStore(ri.store); return; }
+      toast(r.error || 'Sin acceso', 'err');
+      return;
+    }
+
+    // Buscar la tienda del promotor por storeId o por correo
+    const stores = r.stores || [];
+    let store = stores.find(s => s.storeId === SESSION.storeId);
+
+    // Si no encontró por storeId, buscar por correo
+    if (!store && SESSION.email) {
+      store = stores.find(s =>
+        (s.correo || '').toLowerCase() === SESSION.email.toLowerCase() ||
+        (s.nombre_cliente || '').toLowerCase().includes(SESSION.email.split('@')[0].toLowerCase())
+      );
+    }
+
+    if (!store) {
+      toast('Tienda no encontrada para este usuario', 'err');
+      return;
+    }
+
+    SESSION.storeId = store.storeId;
+    localStorage.setItem('promotor_storeId', store.storeId);
+    renderExternalStore(store);
+
+  } catch(e) {
+    toast('Error cargando datos', 'err');
+  }
+}
+
+// ── Render tienda externa ──
+function renderExternalStore(s) {
+  document.getElementById('store-name').textContent      = s.nombre_tienda || '—';
+  document.getElementById('store-id-label').textContent  = 'ID: ' + s.storeId;
+
+  // Foto
+  const pw = document.getElementById('store-photo-wrap');
+  if (s.foto) {
+    pw.innerHTML = `<img class="store-photo" src="${s.foto}" alt="foto" onerror="this.style.display='none'"/>`;
+  } else {
+    pw.innerHTML = `<div class="no-photo">🏪</div>`;
+  }
+
+  // Badge móvil
+  const movil = s.Movil === true || s.Movil === 'TRUE' || s.Movil === 'true';
+  const bw = document.getElementById('badge-movil-wrap');
+  bw.innerHTML = movil
+    ? `<div class="badge-movil"><span class="dot"></span>Servicio Móvil</div>`
+    : `<div class="badge-fijo">📍 Tienda Fija</div>`;
+
+  // Sección móvil
+  const ms = document.getElementById('movil-section');
+  if (movil) {
+    ms.style.display = 'block';
+    document.getElementById('movil-horario').textContent = s.horariopromotor || '—';
+    document.getElementById('movil-ubicate').textContent = s.ubicate && s.ubicate !== 'null' ? s.ubicate : 'Sin ubicación activa';
+  } else {
+    ms.style.display = 'none';
+  }
+
+  // Detalles grid
+  const grid = document.getElementById('details-grid');
+  const items = [
+    { label: 'Cliente',     value: s.nombre_cliente || '—' },
+    { label: 'Teléfono',    value: s.telefono || '—' },
+    { label: 'Correo',      value: s.correo || '—' },
+    { label: 'Tipo negocio',value: s.tipo_negocio || '—' },
+    { label: 'Localidad',   value: s.localidad || '—' },
+    { label: 'Colonia',     value: s.colonia || '—' },
+    { label: 'Estado',      value: s.estado || '—' },
+    { label: 'Link negocio',value: s.link_negocio
+        ? `<a href="${s.link_negocio}" target="_blank">${acortarUrl(s.link_negocio)}</a>`
+        : '—' },
+    { label: 'WhatsApp',    value: s.whatsapp === true || s.whatsapp === 'TRUE' ? '✅ Sí' : '—' },
+    { label: 'Llegar',      value: s.llegar   === true || s.llegar   === 'TRUE' ? '✅ Sí' : '—' },
+    { label: 'Registro',    value: formatDate(s.createdAt) },
+  ];
+  if (s.locationLat && s.locationLng) {
+    items.push({ label: 'Ubicación', value: `<a href="https://maps.google.com/?q=${s.locationLat},${s.locationLng}" target="_blank">Ver en mapa 📍</a>` });
+  }
+  grid.innerHTML = items.map(it => `
+    <div class="detail-item">
+      <div class="di-label">${it.label}</div>
+      <div class="di-value">${it.value}</div>
+    </div>`).join('');
+
+  // Status
+  renderStatus(s.status || 'pendiente');
+
+  // Solo mostrar botón suspender si NO está ya suspendido/cancelado
+  const status = (s.status || '').toLowerCase();
+  const btnS = document.getElementById('btn-suspender');
+  btnS.style.display = (status === 'activo' || status === 'pendiente') ? 'inline-flex' : 'none';
+}
+
+// ── Render tienda normal (owner) ──
+function renderNormalStore(s) {
+  document.getElementById('store-name').textContent     = s.name || '—';
+  document.getElementById('store-id-label').textContent = 'ID: ' + s.storeId;
+  document.getElementById('badge-movil-wrap').innerHTML = `<div class="badge-fijo">📍 Tienda EasyLink</div>`;
+  document.getElementById('movil-section').style.display = 'none';
+
+  const cfg = s.config || {};
+  const grid = document.getElementById('details-grid');
+  grid.innerHTML = [
+    { label: 'Plan',      value: s.plan || '—' },
+    { label: 'Correo',    value: s.ownerEmail || '—' },
+    { label: 'Licencia',  value: formatDate(s.licenseExpiry) },
+    { label: 'WhatsApp',  value: cfg.whatsapp || '—' },
+    { label: 'Ubicación', value: cfg.storeLocation || '—' },
+  ].map(it => `
+    <div class="detail-item">
+      <div class="di-label">${it.label}</div>
+      <div class="di-value">${it.value}</div>
+    </div>`).join('');
+
+  renderStatus(s.status || 'active');
+  document.getElementById('btn-suspender').style.display = 'none';
+}
+
+function renderStatus(status) {
+  const map = {
+    activo:      { cls: 'chip-activo',    txt: 'Activo' },
+    active:      { cls: 'chip-activo',    txt: 'Activo' },
+    pendiente:   { cls: 'chip-pendiente', txt: 'Pendiente' },
+    suspendido:  { cls: 'chip-suspendido',txt: 'Suspendido' },
+    suspended:   { cls: 'chip-suspendido',txt: 'Suspendido' },
+    cancelado:   { cls: 'chip-cancelado', txt: 'Cancelado' },
+  };
+  const st = (status || '').toLowerCase();
+  const info = map[st] || { cls: 'chip-pendiente', txt: status };
+  document.getElementById('chip-status').innerHTML =
+    `<span class="chip ${info.cls}">${info.txt}</span>`;
+}
+
+// ═══════════════════════════════════════════════════
+//  SUSPENSIÓN
+// ═══════════════════════════════════════════════════
+function mostrarConfirm() {
+  document.getElementById('confirm-suspend').style.display = 'block';
+}
+function cancelarConfirm() {
+  document.getElementById('confirm-suspend').style.display = 'none';
+}
+
+async function confirmarSuspension() {
+  try {
+    const r = await api('external.store.status', {
+      token:   SESSION.token,
+      storeId: SESSION.storeId,
+      status:  'suspendido'
+    });
+    if (r.ok) {
+      toast('Tienda suspendida correctamente ✓');
+      renderStatus('suspendido');
+      document.getElementById('btn-suspender').style.display = 'none';
+      cancelarConfirm();
+    } else {
+      toast(r.error || 'Error al suspender', 'err');
+    }
+  } catch(e) {
+    toast('Error de conexión', 'err');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════
+function formatDate(str) {
+  if (!str) return '—';
+  try {
+    return new Date(str).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+  } catch(e) { return str; }
+}
+
+function acortarUrl(url) {
+  try { return new URL(url).hostname; } catch(e) { return url.slice(0,30); }
+}
+</script>
+</body>
+</html>
