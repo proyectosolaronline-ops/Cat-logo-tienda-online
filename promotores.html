@@ -83,34 +83,27 @@
     
     function safeString(v) { return (v === null || v === undefined) ? '' : String(v); }
     function escapeHtml(str) { return safeString(str).replace(/[&<>]/g, function(m) { return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'; }); }
-    
     async function callAPI(action, data = {}) {
-        try {
-            const response = await fetch(`${API_URL}?action=${action}&${new URLSearchParams(data).toString()}`, {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
-            });
-            return await response.json();
-        } catch (error) {
-            return { ok: false, error: error.message };
-        }
+    try {
+        const response = await fetch(`${API_URL}?action=${action}&${new URLSearchParams(data).toString()}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        return await response.json();
+    } catch (error) {
+        return { ok: false, error: error.message };
     }
-    
-    // Usa stores.directory - el mismo que funciona en tu otro HTML
+}
+
 async function getStoreByEmail(email) {
     const result = await callAPI('stores.directory');
     
-    console.log('RESULTADO COMPLETO:', result);  // ← VER EN CONSOLA F12
-    
     if (result.ok && result.stores) {
-        console.log('TIENDAS:', result.stores);  // ← VER ESTRUCTURA
-        
         const emailLower = email.toLowerCase().trim();
         
         const store = result.stores.find(s => {
             const config = s.config || {};
             const storeEmail = (config.correo || '').toLowerCase().trim();
-            console.log('Comparando:', storeEmail, '==', emailLower);  // ← VER
             return storeEmail === emailLower;
         });
         
@@ -121,28 +114,16 @@ async function getStoreByEmail(email) {
     
     return { ok: false, error: 'Correo no registrado en el directorio' };
 }
-    async function requestCode(email) {
-        return await callAPI('owner.request.code', { email: email });
-    }
-    
-    async function verifyCode(email, code) {
-        return await callAPI('owner.verify.code', { email: email, code: code });
-    }
-    async function getStoreByEmail(email) {
-    const result = await callAPI('stores.directory');
-    if (result.ok && result.stores) {
-        const emailLower = email.toLowerCase().trim();
-        const store = result.stores.find(s => {
-            const cfg = s.config || {};
-            const storeEmail = (cfg.correo || '').toLowerCase().trim();
-            return storeEmail === emailLower;
-        });
-        if (store) return { ok: true, store: store };
-    }
-    return { ok: false, error: 'Correo no registrado' };
+
+async function requestCode(email) {
+    return await callAPI('owner.request.code', { email: email });
 }
+
+async function verifyCode(email, code) {
+    return await callAPI('owner.verify.code', { email: email, code: code });
+}
+
 async function updateStatus(storeId, status, token) {
-    // status viene como 'active' o 'suspendido' del select
     let statusSpanish = (status === 'active') ? 'activo' : 'suspendido';
     return await callAPI('external.store.status', { storeId: storeId, status: statusSpanish, token: token });
 }
@@ -161,17 +142,18 @@ async function saveStatus() {
         
         document.getElementById('app').innerHTML = renderDashboard(currentStore, currentAccessCode);
         attachDashboardEvents();
-        showMessage('msg', `✅ Estado actualizado correctamente`, 'success');
+        showMessage('msg', '✅ Estado actualizado correctamente', 'success');
     } else {
         showMessage('msg', result?.error || 'Error al guardar', 'error');
     }
 }
-    function generarCodigo() {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let code = '';
-        for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
-        return code;
-    }
+
+function generarCodigo() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+}
     
     function renderLogin() {
         return `
