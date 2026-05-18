@@ -396,8 +396,8 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 
 
 <div class="fab-group">
-  <button class="fab fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;color:#fff;">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<button class="fab fab-contacto" id="fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;color:#fff;display:none;">   
+ <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
       <polyline points="22,6 12,13 2,6"/>
     </svg>
@@ -856,6 +856,8 @@ function closeCatalogSheet(){document.getElementById('catalog-sheet-bg').classLi
 
 /* ══ POPUP — despacha Easylink o Externo ══ */
 function openPopup(id){
+   window._clickTienda = true;  // ← AGREGAR ESTA LÍNEA
+
   const s=ALL_STORES.find(x=>x.storeId===id);if(!s)return;
   if(s.isExternal){openExtPopup(s);return;}
   const cfg=s.config||{};
@@ -874,7 +876,9 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
    POPUP TIENDA EXTERNA — botones dinámicos según datos
    ══════════════════════════════════════════════════════ */
 function openExtPopup(s){
-  const cfg=s.config||{};
+  window._clickTienda = true;  // ← AGREGAR ESTA LÍNEA
+
+ const cfg=s.config||{};
 
   /* Foto */
   const fotoUrl=fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
@@ -1491,6 +1495,20 @@ async function enviarSolicitudContacto() {
     alert('❌ Error de conexión. Intenta de nuevo.');
   }
 }  
+
+// Mostrar botón de contacto solo si: clic en tienda + 10 min navegando
+window._clickTienda = false;
+setInterval(function(){
+    if(window._clickTienda && !document.getElementById('fab-contacto').style.display || document.getElementById('fab-contacto').style.display === 'none'){
+        var mins = (Date.now() - (window._timeStart || Date.now())) / 60000;
+        if(mins >= 10){
+            var btn = document.getElementById('fab-contacto');
+            if(btn) btn.style.display = 'flex';
+        }
+    }
+}, 10000); // revisa cada 10 segundos
+window._timeStart = Date.now();
+ 
 </script>
 <!-- FORMULARIO SER PARTE DEL DIRECTORIO -->
 <div id="contacto-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:3000;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarFormularioContacto()">
