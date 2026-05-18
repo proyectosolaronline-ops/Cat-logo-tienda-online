@@ -56,11 +56,9 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #128C7E, #075E54);
-            color: white;
-        }
+        .btn-primary { background: linear-gradient(135deg, #128C7E, #075E54); color: white; }
         .btn-primary:hover { transform: translateY(-2px); }
+        .btn-secondary { background: #6c757d; color: white; }
         .btn-danger { background: #dc2626; color: white; }
         .btn-success { background: #10b981; color: white; }
         .error-message {
@@ -80,6 +78,14 @@
             margin-bottom: 20px;
             text-align: center;
         }
+        .info-message {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
         .info-box {
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
@@ -92,42 +98,15 @@
             padding: 10px 0;
             border-bottom: 1px solid #e5e7eb;
             gap: 12px;
+            flex-wrap: wrap;
         }
         .info-label {
-            width: 120px;
+            width: 130px;
             font-weight: 700;
             color: #374151;
             flex-shrink: 0;
         }
         .info-value { flex: 1; color: #1f2937; word-break: break-word; }
-        .access-code-box {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            margin: 20px 0;
-        }
-        .access-code {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: 8px;
-            color: #92400e;
-            font-family: monospace;
-            background: white;
-            display: inline-block;
-            padding: 12px 24px;
-            border-radius: 50px;
-            margin-top: 10px;
-        }
-        .copy-btn {
-            background: #92400e;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            margin-top: 12px;
-            cursor: pointer;
-        }
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -137,7 +116,7 @@
         }
         .status-active { background: #d1fae5; color: #065f46; }
         .status-suspended { background: #fee2e2; color: #dc2626; }
-        .button-group { display: flex; gap: 12px; margin-top: 20px; }
+        .button-group { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
         .button-group .btn { flex: 1; }
         .logout-btn {
             background: none;
@@ -161,6 +140,21 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         hr { margin: 20px 0; border: none; border-top: 1px solid #e5e7eb; }
+        .code-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .code-input-group input {
+            flex: 2;
+            text-align: center;
+            font-size: 1.3rem;
+            letter-spacing: 4px;
+        }
+        .code-input-group button {
+            flex: 1;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -170,13 +164,18 @@
 
 <script>
     // ============================================================
-    // TU API - USANDO ENDPOINTS PÚBLICOS QUE DEBES AGREGAR
+    // CONFIGURACIÓN - TU API
     // ============================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
     
-    let currentStore = null;
-    let currentAccessCode = null;
+    // Estado de la sesión
+    let ownerToken = null;
+    let storeId = null;
+    let storeData = null;
     
+    // ============================================================
+    // UTILIDADES
+    // ============================================================
     function safeString(v) {
         if (v === null || v === undefined) return '';
         return String(v);
@@ -197,20 +196,51 @@
         return safeString(v).toLowerCase() === 'true' || safeString(v) === '1';
     }
     
-    function generateAccessCode() {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let code = '';
-        for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
-        return code;
+    // ============================================================
+    // LLAMADAS A LA API (usando las acciones existentes)
+    // ============================================================
+    
+    // Paso 1: Solicitar código al correo
+    async function requestCode(email) {
+        try {
+            const response = await fetch(`${API_URL}?action=owner.request.code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'owner.request.code',
+                    email: email
+                })
+            });
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            return { ok: false, error: error.message };
+        }
     }
     
-    // ============================================================
-    // LLAMADAS A LOS NUEVOS ENDPOINTS PÚBLICOS
-    // ============================================================
-    
-    async function getStoreByEmail(email) {
+    // Paso 2: Verificar código y obtener token de owner
+    async function verifyCode(email, code) {
         try {
-            const response = await fetch(`${API_URL}?action=owner.getStoreByEmail&email=${encodeURIComponent(email)}`, {
+            const response = await fetch(`${API_URL}?action=owner.verify.code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'owner.verify.code',
+                    email: email,
+                    code: code
+                })
+            });
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            return { ok: false, error: error.message };
+        }
+    }
+    
+    // Obtener información de la tienda (requiere token)
+    async function getStoreInfo(storeId, token) {
+        try {
+            const response = await fetch(`${API_URL}?action=store.info&storeId=${storeId}&token=${token}`, {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
             });
@@ -221,15 +251,18 @@
         }
     }
     
-    async function updateStoreStatus(email, status) {
+    // Actualizar status de la tienda usando external.store.update (requiere token admin)
+    // NOTA: Para dueño, necesitas un endpoint específico o usar el token de owner
+    async function updateStoreStatus(storeId, status, token) {
         try {
-            const response = await fetch(`${API_URL}?action=owner.updateStoreStatus`, {
+            const response = await fetch(`${API_URL}?action=external.store.update`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'owner.updateStoreStatus',
-                    email: email,
-                    status: status
+                    action: 'external.store.update',
+                    storeId: storeId,
+                    status: status,
+                    token: token
                 })
             });
             const data = await response.json();
@@ -240,79 +273,68 @@
     }
     
     // ============================================================
-    // LOGIN REAL
-    // ============================================================
-    async function loginWithEmail(email) {
-        if (!email || !email.includes('@')) {
-            return { success: false, error: 'Ingresa un correo electrónico válido' };
-        }
-        
-        const result = await getStoreByEmail(email);
-        
-        if (!result.ok) {
-            return { success: false, error: result.error || 'No se encontró la tienda' };
-        }
-        
-        const store = result.store;
-        
-        if (store.status === 'suspendido') {
-            return { success: false, error: '❌ Tu tienda está suspendida. Contacta al administrador.' };
-        }
-        
-        const accessCode = generateAccessCode();
-        
-        return {
-            success: true,
-            store: store,
-            accessCode: accessCode
-        };
-    }
-    
-    // ============================================================
-    // RENDERIZADO
+    // RENDERIZADO DE VISTAS
     // ============================================================
     
-    function renderLogin() {
+    // Pantalla 1: Ingresar correo
+    function renderEmailStep() {
         return `
             <div class="login-card">
                 <div class="card-header">
-                    <h1>🔐 Mi Tienda</h1>
-                    <p>Accede con el correo registrado en el directorio</p>
+                    <h1>🔐 Panel del Dueño</h1>
+                    <p>Ingresa tu correo para recibir un código de acceso</p>
                 </div>
                 <div class="card-body">
-                    <div id="loginMessage"></div>
+                    <div id="emailMessage"></div>
                     <div class="form-group">
                         <label>📧 Correo electrónico registrado</label>
-                        <input type="email" id="loginEmail" placeholder="tutienda@ejemplo.com" autocomplete="email">
+                        <input type="email" id="ownerEmail" placeholder="tutienda@ejemplo.com" autocomplete="email">
                     </div>
-                    <button class="btn btn-primary" id="loginBtn">🔍 Ingresar →</button>
+                    <button class="btn btn-primary" id="requestCodeBtn">📨 Enviar código de acceso</button>
                     <p style="text-align: center; margin-top: 20px; font-size: 0.7rem; color: #888;">
-                        El sistema verificará tu correo en el directorio de tiendas
+                        Recibirás un código de 8 caracteres en tu correo
                     </p>
                 </div>
             </div>
         `;
     }
     
-    function renderDashboard(store, accessCode) {
+    // Pantalla 2: Ingresar código recibido
+    function renderCodeStep(email) {
+        return `
+            <div class="login-card">
+                <div class="card-header">
+                    <h1>🔐 Verificar código</h1>
+                    <p>Se envió un código a <strong>${escapeHtml(email)}</strong></p>
+                </div>
+                <div class="card-body">
+                    <div id="codeMessage"></div>
+                    <div class="form-group">
+                        <label>🔑 Código de 8 caracteres</label>
+                        <div class="code-input-group">
+                            <input type="text" id="accessCode" maxlength="8" placeholder="Ej: 3K7B9X2M" autocomplete="off" style="text-transform:uppercase">
+                            <button class="btn btn-primary" id="verifyCodeBtn">✅ Validar</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" id="backToEmailBtn">← Volver a ingresar correo</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Pantalla 3: Dashboard con datos de la tienda
+    function renderDashboard(store) {
         const isActive = store.status === 'activo';
         const ubicacionCompleta = [store.ubicate, store.colonia, store.localidad, store.estado].filter(s => s && s !== '').join(', ');
         
         return `
             <div class="dashboard-card">
                 <div class="card-header">
-                    <h1>📋 Panel de Control</h1>
+                    <h1>📋 Mi Tienda</h1>
                     <p>Bienvenido, <strong>${escapeHtml(store.nombre_cliente || store.nombre_tienda)}</strong></p>
                 </div>
                 <div class="card-body">
                     <div id="dashboardMessage"></div>
-                    
-                    <div class="access-code-box">
-                        <div style="font-size: 0.85rem;">🔑 Tu Código de Acceso</div>
-                        <div class="access-code" id="accessCodeDisplay">${escapeHtml(accessCode)}</div>
-                        <button class="copy-btn" onclick="copyAccessCode()">📋 Copiar código</button>
-                        <p style="font-size: 0.7rem; margin-top: 10px;">Guarda este código para futuras referencias</p>
-                    </div>
                     
                     <div class="info-box">
                         <div class="info-row">
@@ -324,21 +346,26 @@
                             </div>
                         </div>
                         <div class="info-row">
-                            <div class="info-label">📅 Registro:</div>
+                            <div class="info-label">📅 Fecha registro:</div>
                             <div class="info-value">${escapeHtml((store.createdAt || '').split('T')[0] || 'No disponible')}</div>
                         </div>
                     </div>
                     
-                    <h3 style="margin: 20px 0 15px 0;">🏪 Mis datos</h3>
+                    <h3 style="margin: 20px 0 15px 0;">🏪 Datos generales</h3>
                     
                     <div class="info-row">
-                        <div class="info-label">🏷️ Tienda:</div>
+                        <div class="info-label">🆔 ID Tienda:</div>
+                        <div class="info-value">${escapeHtml(store.storeId)}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">🏷️ Nombre tienda:</div>
                         <div class="info-value"><strong>${escapeHtml(store.nombre_tienda)}</strong></div>
                     </div>
                     
                     ${store.nombre_cliente ? `
                     <div class="info-row">
-                        <div class="info-label">👤 Cliente:</div>
+                        <div class="info-label">👤 Cliente/Negocio:</div>
                         <div class="info-value">${escapeHtml(store.nombre_cliente)}</div>
                     </div>
                     ` : ''}
@@ -354,8 +381,8 @@
                     </div>
                     
                     <div class="info-row">
-                        <div class="info-label">📂 Giro:</div>
-                        <div class="info-value">${escapeHtml(store.tipo_negocio)}</div>
+                        <div class="info-label">📂 Giro/Tipo:</div>
+                        <div class="info-value">${escapeHtml(store.tipo_negocio || 'General')}</div>
                     </div>
                     
                     ${ubicacionCompleta ? `
@@ -375,11 +402,35 @@
                         <div class="info-value">${isTrue(store.movil) ? '✅ Activado' : '❌ Desactivado'}</div>
                     </div>
                     
+                    <div class="info-row">
+                        <div class="info-label">📱 WhatsApp:</div>
+                        <div class="info-value">${isTrue(store.whatsapp) ? '✅ Habilitado' : '❌ No habilitado'}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">📍 Indicaciones llegar:</div>
+                        <div class="info-value">${isTrue(store.llegar) ? '✅ Incluye cómo llegar' : '❌ No incluye'}</div>
+                    </div>
+                    
+                    ${store.link_negocio ? `
+                    <div class="info-row">
+                        <div class="info-label">🔗 Link negocio:</div>
+                        <div class="info-value"><a href="${escapeHtml(store.link_negocio)}" target="_blank">${escapeHtml(store.link_negocio)}</a></div>
+                    </div>
+                    ` : ''}
+                    
+                    ${store.foto ? `
+                    <div class="info-row">
+                        <div class="info-label">🖼️ Foto:</div>
+                        <div class="info-value"><a href="${escapeHtml(store.foto)}" target="_blank">Ver imagen</a></div>
+                    </div>
+                    ` : ''}
+                    
                     <hr>
                     
                     <div class="button-group">
                         <button class="btn ${isActive ? 'btn-danger' : 'btn-success'}" id="toggleStatusBtn">
-                            ${isActive ? '⛔ Suspender mi tienda' : '✅ Activar mi tienda'}
+                            ${isActive ? '⛔ Suspender tienda' : '✅ Activar tienda'}
                         </button>
                     </div>
                     
@@ -389,77 +440,146 @@
         `;
     }
     
-    function showMessage(containerId, message, isError = true) {
+    // Mostrar mensajes
+    function showMessage(containerId, message, type = 'error') {
         const container = document.getElementById(containerId);
         if (container) {
-            container.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
+            const className = type === 'error' ? 'error-message' : (type === 'success' ? 'success-message' : 'info-message');
+            container.innerHTML = `<div class="${className}">${message}</div>`;
             setTimeout(() => {
-                if (document.getElementById(containerId)) document.getElementById(containerId).innerHTML = '';
-            }, 4000);
+                if (document.getElementById(containerId)) container.innerHTML = '';
+            }, 5000);
         }
     }
     
-    window.copyAccessCode = function() {
-        const codeEl = document.getElementById('accessCodeDisplay');
-        if (codeEl) {
-            navigator.clipboard.writeText(codeEl.innerText);
-            showMessage('dashboardMessage', '✅ Código copiado', false);
-        }
-    };
+    // ============================================================
+    // FLUJO COMPLETO
+    // ============================================================
     
-    async function toggleStatus() {
-        const newStatus = currentStore.status === 'activo' ? 'suspendido' : 'activo';
-        const result = await updateStoreStatus(currentStore.correo, newStatus);
+    let currentEmail = '';
+    
+    async function requestCodeFlow() {
+        const email = document.getElementById('ownerEmail').value.trim();
+        if (!email || !email.includes('@')) {
+            showMessage('emailMessage', 'Ingresa un correo electrónico válido', 'error');
+            return;
+        }
+        
+        showMessage('emailMessage', 'Enviando código...', 'info');
+        
+        const result = await requestCode(email);
         
         if (result.ok) {
-            currentStore.status = newStatus;
+            currentEmail = email;
             const app = document.getElementById('app');
-            app.innerHTML = renderDashboard(currentStore, currentAccessCode);
-            attachDashboardEvents();
-            showMessage('dashboardMessage', `✅ Estado actualizado a: ${newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, false);
+            app.innerHTML = renderCodeStep(currentEmail);
+            attachCodeEvents();
+            showMessage('codeMessage', `✅ Código enviado a ${email}. Revisa tu bandeja (y spam).`, 'success');
         } else {
-            showMessage('dashboardMessage', result.error || 'Error al actualizar', true);
+            showMessage('emailMessage', result.error || 'Error al enviar el código', 'error');
         }
+    }
+    
+    async function verifyCodeFlow() {
+        const code = document.getElementById('accessCode').value.trim().toUpperCase();
+        if (!code || code.length !== 8) {
+            showMessage('codeMessage', 'Ingresa el código de 8 caracteres que recibiste', 'error');
+            return;
+        }
+        
+        showMessage('codeMessage', 'Verificando código...', 'info');
+        
+        const result = await verifyCode(currentEmail, code);
+        
+        if (result.ok && result.token) {
+            ownerToken = result.token;
+            storeId = result.storeId;
+            
+            // Obtener datos completos de la tienda
+            const storeResult = await getStoreInfo(storeId, ownerToken);
+            
+            if (storeResult.ok && storeResult.store) {
+                storeData = storeResult.store;
+                const app = document.getElementById('app');
+                app.innerHTML = renderDashboard(storeData);
+                attachDashboardEvents();
+                showMessage('dashboardMessage', `✅ Bienvenido ${storeData.nombre_tienda}`, 'success');
+            } else {
+                showMessage('codeMessage', 'Error al cargar los datos de la tienda', 'error');
+            }
+        } else {
+            showMessage('codeMessage', result.error || 'Código incorrecto o expirado', 'error');
+        }
+    }
+    
+    async function toggleStoreStatus() {
+        if (!storeData || !ownerToken) return;
+        
+        const newStatus = storeData.status === 'activo' ? 'suspendido' : 'activo';
+        
+        // Usar external.store.update con token de owner (requiere que el backend acepte token de owner)
+        const result = await updateStoreStatus(storeData.storeId, newStatus, ownerToken);
+        
+        if (result.ok) {
+            storeData.status = newStatus;
+            const app = document.getElementById('app');
+            app.innerHTML = renderDashboard(storeData);
+            attachDashboardEvents();
+            showMessage('dashboardMessage', `✅ Estado actualizado a: ${newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, 'success');
+        } else {
+            showMessage('dashboardMessage', result.error || 'Error al cambiar el estado. Contacta al administrador.', 'error');
+        }
+    }
+    
+    function logout() {
+        ownerToken = null;
+        storeId = null;
+        storeData = null;
+        currentEmail = '';
+        const app = document.getElementById('app');
+        app.innerHTML = renderEmailStep();
+        attachEmailEvents();
+    }
+    
+    function attachEmailEvents() {
+        const requestBtn = document.getElementById('requestCodeBtn');
+        const emailInput = document.getElementById('ownerEmail');
+        
+        if (requestBtn) requestBtn.addEventListener('click', requestCodeFlow);
+        if (emailInput) emailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') requestCodeFlow();
+        });
+    }
+    
+    function attachCodeEvents() {
+        const verifyBtn = document.getElementById('verifyCodeBtn');
+        const backBtn = document.getElementById('backToEmailBtn');
+        const codeInput = document.getElementById('accessCode');
+        
+        if (verifyBtn) verifyBtn.addEventListener('click', verifyCodeFlow);
+        if (backBtn) backBtn.addEventListener('click', () => {
+            const app = document.getElementById('app');
+            app.innerHTML = renderEmailStep();
+            attachEmailEvents();
+        });
+        if (codeInput) codeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verifyCodeFlow();
+        });
     }
     
     function attachDashboardEvents() {
         const toggleBtn = document.getElementById('toggleStatusBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         
-        if (toggleBtn) toggleBtn.addEventListener('click', toggleStatus);
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                currentStore = null;
-                document.getElementById('app').innerHTML = renderLogin();
-                attachLoginEvents();
-            });
-        }
+        if (toggleBtn) toggleBtn.addEventListener('click', toggleStoreStatus);
+        if (logoutBtn) logoutBtn.addEventListener('click', logout);
     }
     
-    function attachLoginEvents() {
-        const loginBtn = document.getElementById('loginBtn');
-        const loginEmail = document.getElementById('loginEmail');
-        
-        loginBtn.addEventListener('click', async () => {
-            const result = await loginWithEmail(loginEmail.value);
-            if (result.success) {
-                currentStore = result.store;
-                currentAccessCode = result.accessCode;
-                document.getElementById('app').innerHTML = renderDashboard(currentStore, currentAccessCode);
-                attachDashboardEvents();
-            } else {
-                showMessage('loginMessage', result.error, true);
-            }
-        });
-        
-        loginEmail.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') loginBtn.click();
-        });
-    }
-    
+    // Inicializar
     function init() {
-        document.getElementById('app').innerHTML = renderLogin();
-        attachLoginEvents();
+        const app = document.getElementById('app');
+        app.innerHTML = renderEmailStep();
+        attachEmailEvents();
     }
     
     init();
