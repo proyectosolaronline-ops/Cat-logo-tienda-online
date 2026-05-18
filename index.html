@@ -660,7 +660,20 @@ var capasBase = {
   "🛰️ Satélite": satelite
 };
 
-L.control.layers(capasBase, null, {position: 'topright'}).addTo(map);  L.control.zoom({position:'bottomright'}).addTo(map);
+L.control.layers(capasBase, null, {position: 'topright'}).addTo(map); 
+ // Botón promotor en el mapa
+var promotorControl = L.control({position: 'topright'});
+promotorControl.onAdd = function(){
+  var btn = L.DomUtil.create('button', '');
+  btn.style.cssText = 'background:#fbbf24;color:#000;border:none;border-radius:8px;padding:8px 12px;font-size:20px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);';
+  btn.innerHTML = '🛵';
+  btn.title = 'Panel Promotor';
+  btn.onclick = function(){ window.open('promotores.html','_blank'); };
+  L.DomEvent.disableClickPropagation(btn);
+  return btn;
+};
+promotorControl.addTo(map);
+ L.control.zoom({position:'bottomright'}).addTo(map);
   L.circleMarker([userLat,userLng],{radius:9,color:'#16a34a',fillColor:'#fff',weight:3,fillOpacity:1,zIndexOffset:1000}).addTo(map).bindTooltip('Tu ubicación',{permanent:false,direction:'top'});
   nearbyStores=ALL_STORES.filter(s=>{const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;});
   addMarkersToMap(nearbyStores);
