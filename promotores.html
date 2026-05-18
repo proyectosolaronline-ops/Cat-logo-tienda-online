@@ -98,12 +98,12 @@ async function enviarCodigo() {
         var stores = (data.stores || []).filter(function(s) {
             return s.isExternal === true;
         });
-        
         var promotor = stores.find(function(s) {
-            var cfg = s.config || {};
-            var t = String(cfg.telefono || '').replace(/\D/g, '');
-            return t === tel;
-        });
+    var cfg = s.config || {};
+    var t = String(cfg.telefono || '').replace(/\D/g, '');
+    var correo = cfg.correo || '';
+    return t === tel && correo !== '';
+});
         
         if (!promotor) {
             msg('login-msg', '❌ WhatsApp no registrado', 'err');
