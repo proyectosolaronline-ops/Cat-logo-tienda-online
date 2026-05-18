@@ -1255,14 +1255,7 @@ async function enviarCodigoFlyer(){
   // Generar código de 6 dígitos
   codigoFlyerActual=Math.floor(100000+Math.random()*900000).toString();
   
-  // Enviar por WhatsApp
-  var msg=encodeURIComponent('🔐 *Código de acceso Flyer QR*\n\nTu código es: *'+codigoFlyerActual+'*\n\nVálido por 5 minutos.\n\n_'+tienda.nombre_tienda||tienda.name+'_');
-  window.open('https://wa.me/52'+tel+'?text='+msg,'_blank');
   
-  // Mostrar paso 2
-  document.getElementById('step-phone').style.display='none';
-  document.getElementById('step-code').style.display='';
-}
 
   dataPollingInterval=setInterval(refreshData,10000);
   // Guardar estadísticas cada 30 segundos
