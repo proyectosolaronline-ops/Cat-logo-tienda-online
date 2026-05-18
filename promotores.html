@@ -195,48 +195,15 @@
     async function verifyCode(email, code) {
         return await callAPI('owner.verify.code', { email: email, code: code });
     }
-
-// Reemplazar getStoreInfo con esta versión que usa stores.directory
-async function getStoreInfo(storeId, token) {
-    // Misma lógica que tu HTML de visualización
-    const result = await callAPI('stores.directory');
     
-    if (result.ok && result.stores) {
-        // Buscar tienda externa por storeId
-        const store = result.stores.find(s => 
-            s.storeId === storeId && 
-            s.isExternal === true
-        );
-        
-        if (store) {
-            const cfg = store.config || {};
-            return {
-                ok: true,
-                store: {
-                    storeId: store.storeId,
-                    nombre_tienda: cfg.nombre_tienda || '',
-                    nombre_cliente: cfg.nombre_cliente || '',
-                    telefono: cfg.telefono || '',
-                    correo: cfg.correo || '',
-                    tipo_negocio: cfg.tipoNegocio || '',
-                    ubicate: cfg.ubicate || '',
-                    colonia: cfg.colonia || '',
-                    localidad: cfg.localidad || '',
-                    estado: cfg.estado || '',
-                    horariopromotor: cfg.horariopromotor || '',
-                    movil: cfg.Movil || false,
-                    status: store.status === 'active' ? 'activo' : 'suspendido'
-                }
-            };
-        }
+    async function getStoreInfo(storeId, token) {
+        return await callAPI('store.info', { storeId: storeId, token: token });
     }
     
-    return { ok: false, error: 'No se encontró la tienda externa' };
-}
-
-async function updateStoreStatus(storeId, status, token) {
-    return await callAPI('external.store.status', { storeId: storeId, status: status, token: token });
-}   
+    async function updateStoreStatus(storeId, status, token) {
+        return await callAPI('external.store.status', { storeId: storeId, status: status, token: token });
+    }
+    
     // ============================================================
     // GENERAR CÓDIGO LOCAL (solo para mostrar)
     // ============================================================
@@ -259,13 +226,13 @@ async function updateStoreStatus(storeId, status, token) {
             <div class="card">
                 <div class="card-header">
                     <h1>🔐 Mi Tienda</h1>
-                    <p>Ingresa.....</p>
+                    <p>Ingresa tu correo y punto .....</p>
                 </div>
                 <div class="card-body">
                     <div id="msg"></div>
                     <div class="form-group">
                         <label>📧 Correo electrónico</label>
-                        <input type="email" id="emailInput" placeholder="////  linea 271 page">
+                        <input type="email" id="emailInput" placeholder="tutienda@ejemplo.com">
                     </div>
                     <button class="btn btn-primary" id="sendCodeBtn">📨 Enviar código</button>
                 </div>
@@ -482,3 +449,4 @@ async function updateStoreStatus(storeId, status, token) {
 </script>
 </body>
 </html>
+
