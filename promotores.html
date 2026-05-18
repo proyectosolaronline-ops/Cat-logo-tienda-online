@@ -195,14 +195,50 @@
     async function verifyCode(email, code) {
         return await callAPI('owner.verify.code', { email: email, code: code });
     }
+
+// Reemplazar getStoreInfo con esta versión que usa stores.directory
+async function getStoreInfo(storeId, token) {
+    // Usar stores.directory para obtener datos reales
+    const result = await callAPI('stores.directory');
     
-    async function getStoreInfo(storeId, token) {
-        return await callAPI('store.info', { storeId: storeId, token: token });
+    if (result.ok && result.stores) {
+        // Buscar la tienda por storeId
+        const store = result.stores.find(s => s.storeId === storeId);
+        
+        if (store) {
+            // Convertir al formato que espera renderDashboard
+            const cfg = store.config || {};
+            return {
+                ok: true,
+                store: {
+                    storeId: store.storeId,
+                    nombre_tienda: cfg.nombre_tienda || store.name,
+                    nombre_cliente: cfg.nombre_cliente || '',
+                    telefono: cfg.telefono || '',
+                    correo: cfg.correo || '',
+                    tipo_negocio: cfg.tipoNegocio || '',
+                    ubicate: cfg.ubicate || '',
+                    colonia: cfg.colonia || '',
+                    localidad: cfg.localidad || '',
+                    estado: cfg.estado || '',
+                    horariopromotor: cfg.horariopromotor || '',
+                    movil: cfg.Movil || false,
+                    status: store.status === 'active' ? 'activo' : 'suspendido'
+                }
+            };
+        }
     }
     
-    async function updateStoreStatus(storeId, status, token) {
-        return await callAPI('external.store.status', { storeId: storeId, status: status, token: token });
-    }
+    return { ok: false, error: 'No se encontró la tienda' };
+}
+
+// Reemplazar updateStoreStatus para usar el formato correcto
+async function updateStoreStatus(storeId, status, token) {
+    // status ya viene como 'activo' o 'suspendido'
+    return await callAPI('external.store.status', { storeId: storeId, status: status, token: token });
+}
+
+    
     
     // ============================================================
     // GENERAR CÓDIGO LOCAL (solo para mostrar)
