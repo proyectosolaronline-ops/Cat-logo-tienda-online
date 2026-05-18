@@ -1158,25 +1158,46 @@ function cerrarLoginFlyer(){
 }
 
 async function enviarCodigoFlyer(){
-  var tel=document.getElementById('login-phone').value.replace(/\D/g,'');
-  if(!tel||tel.length<10){alert('Ingresa un número válido de 10 dígitos');return;}
+  var tel = document.getElementById('login-phone').value.replace(/\D/g,'');
+  if(!tel || tel.length < 10){ alert('Ingresa un número válido de 10 dígitos'); return; }
   
-  // Buscar en tiendas externas
-  var tienda=ALL_STORES.find(function(s){
-    if(!s.isExternal)return false;
-    var cfg=s.config||{};
-    var t=String(cfg.telefono||'').replace(/\D/g,'');
-    return t===tel;
+  var tienda = ALL_STORES.find(function(s){
+    if(!s.isExternal) return false;
+    var cfg = s.config || {};
+    var t = String(cfg.telefono || '').replace(/\D/g,'');
+    return t === tel;
   });
   
   if(!tienda){
-    // Mostrar QR general del directorio
-    var flyerUrl='flayerFormatos.html?nombre=Directorio+Easylink&url='+encodeURIComponent(window.location.href)+'&tag=Escanea+y+visita+tiendas+cerca+de+ti+🛍️';
-    window.open(flyerUrl,'_blank');
+    var flyerUrl = 'flayerFormatos.html?nombre=Directorio+Easylink&url='+encodeURIComponent(window.location.href)+'&tag=Escanea+y+visita+tiendas+cerca+de+ti';
+    window.open(flyerUrl, '_blank');
     cerrarLoginFlyer();
     return;
   }
-  tiendaFlyerEncontrada=tienda;
+  
+  var cfg = tienda.config || {};
+  var nombre = tienda.nombre_tienda || tienda.name || 'Tienda';
+  var esMovil = (cfg.Movil === true || cfg.Movil === 'TRUE');
+  
+  if(esMovil){
+    var opcion = confirm('Hola ' + nombre + '\n\n¿Qué deseas hacer?\n\nAceptar = Ver QR de tu tienda\nCancelar = Ir a tu panel de promotor');
+    if(opcion){
+      var urlStore = cfg.linkNegocio || cfg.link || window.location.href;
+      var tag = cfg.tipoNegocio || 'Visita mi tienda';
+      var flyerUrl = 'flayerFormatos.html?nombre='+encodeURIComponent(nombre)+'&url='+encodeURIComponent(urlStore)+'&tag='+encodeURIComponent(tag);
+      window.open(flyerUrl, '_blank');
+    } else {
+      window.open('promotores.html', '_blank');
+    }
+  } else {
+    var flyerUrl = 'flayerFormatos.html?nombre='+encodeURIComponent(nombre)+'&url='+encodeURIComponent(window.location.href)+'&tag=Visita+mi+tienda';
+    window.open(flyerUrl, '_blank');
+  }
+  
+  cerrarLoginFlyer();
+} 
+ 
+ tiendaFlyerEncontrada=tienda;
   
   // Generar código de 6 dígitos
   codigoFlyerActual=Math.floor(100000+Math.random()*900000).toString();
