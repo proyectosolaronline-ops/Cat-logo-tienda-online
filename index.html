@@ -877,20 +877,54 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
    POPUP TIENDA EXTERNA — botones dinámicos según datos
    ══════════════════════════════════════════════════════ */
 function openExtPopup(s){
- window._clicksTienda = (window._clicksTienda || 0) + 1;
-  // Triple tap en foto → panel promotor
-  (function(){
-      var fotoEl = document.getElementById('ext-foto-wrap');
-      if(!fotoEl) return;
-      var taps = 0, timer = null;
-      fotoEl.onclick = function(e){
-          e.stopPropagation();
-          taps++; clearTimeout(timer);
-          timer = setTimeout(function(){ taps = 0; }, 800);
-          if(taps >= 3){ taps = 0; window.open('promotores.html', '_blank'); }
-      };
-  })();
- const cfg=s.config||{};
+  window._clicksTienda = (window._clicksTienda || 0) + 1;
+  const cfg = s.config || {};
+
+  /* Foto */
+  const fotoUrl = fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
+  document.getElementById('ext-foto-wrap').innerHTML = fotoUrl
+    ? `<img class="ext-foto" src="${fotoUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
+    : `<div class="ext-foto-ph">🏪</div>`;
+
+  /* Nombre */
+  document.getElementById('ext-nombre').textContent = s.nombre_tienda||s.name||'Tienda externa';
+
+  const tipo = cfg.tipoNegocio||cfg.businessType||cfg.tipo_negocio||cfg.tipo||'';
+  document.getElementById('ext-tipo').textContent = tipo;
+
+  /* Ubicación */
+  const partes = [cfg.colonia, cfg.localidad||cfg.city, cfg.estado||cfg.state].filter(Boolean);
+  const lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+  const dist = (userLat&&!isNaN(lat)) ? haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km' : '';
+  document.getElementById('ext-ubicacion').innerHTML =
+    `<span>📍</span>${partes.join(', ')||'Ver en mapa'}${dist?' · <strong>'+dist+'</strong>':''}`;
+
+  /* Datos */
+  const mapsUrl = (!isNaN(lat)&&!isNaN(lng)) ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}` : '';
+  const tel = (cfg.whatsapp||cfg.telefono||s.telefono||'').replace(/\D/g,'');
+  const link = cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+  const nomNeg = s.nombre_tienda||s.name||'su tienda';
+  const msgWpp = encodeURIComponent(`¡Hola! Voy en camino a ${nomNeg}. Por favor estén listos 🚗`);
+  const wppUrl = tel ? `https://wa.me/52${tel}?text=${msgWpp}` : '';
+
+  const btnLlegar = mapsUrl
+    ? `<a class="ext-btn ext-btn-llegar" href="${mapsUrl}" target="_blank"><span class="ext-btn-icon">🗺️</span>Cómo llegar</a>`
+    : `<button class="ext-btn ext-btn-llegar" style="opacity:.4;cursor:default;"><span class="ext-btn-icon">🗺️</span>Cómo llegar</button>`;
+
+  let html = '';
+  if(tel && link){
+    html=`<div class="ext-actions">${btnLlegar}<button class="ext-btn ext-btn-wpp" onclick="window.open('${wppUrl}','_blank')"><span class="ext-btn-icon">💬</span>Voy en camino</button></div><a class="ext-btn-link" href="${link}" target="_blank">🔗 Ver tienda en línea</a>`;
+  } else if(tel && !link){
+    html=`<div class="ext-actions">${btnLlegar}<button class="ext-btn ext-btn-wpp" onclick="window.open('${wppUrl}','_blank')"><span class="ext-btn-icon">💬</span>Voy en camino</button></div>`;
+  } else if(!tel && link){
+    html=`<div class="ext-actions">${btnLlegar}<a class="ext-btn ext-btn-link-grid" href="${link}" target="_blank"><span class="ext-btn-icon">🔗</span>Ver tienda</a></div>`;
+  } else {
+    html=`<div class="ext-actions" style="grid-template-columns:1fr;">${btnLlegar}</div>`;
+  }
+
+  document.getElementById('ext-actions-wrap').innerHTML = html;
+  document.getElementById('ext-popup-bg').classList.add('open');
+} const cfg=s.config||{};
 
   /* Foto */
   const fotoUrl=fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
@@ -1520,6 +1554,22 @@ setInterval(function(){
         btn.style.display = 'flex';
     }
 }, 10000);
+
+ (function(){
+  var wrap = document.getElementById('ext-foto-wrap');
+  if(!wrap) return;
+  var taps = 0, timer = null;
+  wrap.addEventListener('click', function(e){
+    e.stopPropagation();
+    taps++;
+    clearTimeout(timer);
+    timer = setTimeout(function(){ taps = 0; }, 800);
+    if(taps >= 3){
+      taps = 0;
+      window.open('promotores.html', '_blank');
+    }
+  });
+})();
 </script>
 <!-- FORMULARIO SER PARTE DEL DIRECTORIO -->
 <div id="contacto-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:3000;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarFormularioContacto()">
