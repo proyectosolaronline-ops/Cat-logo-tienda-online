@@ -34,14 +34,15 @@
 <body>
 <div class="panel">
 
-    <!-- STEP 1: LOGIN POR CORREO -->
-    <div id="step-login">
-        <h2>🛵 Panel Promotor</h2>
-        <div class="sub">Ingresa tu correo registrado</div>
-        <input class="inp" type="email" id="login-email" placeholder="correo@ejemplo.com">
-        <button class="btn btn-primary" onclick="enviarCodigo()">📧 Solicitar código de acceso</button>
-        <div id="login-msg"></div>
-    </div>
+ <!-- STEP 1: LOGIN POR CORREO -->
+<div id="step-login">
+    <h2>🛵 Panel Promotor</h2>
+    <div class="sub">Ingresa tu correo registrado</div>
+    <input class="inp" type="email" id="login-email" placeholder="correo@ejemplo.com">
+    <div id="login-ok-check" style="display:none;text-align:center;font-size:2rem;margin-bottom:8px;">✅</div>
+    <button class="btn btn-primary" id="btn-enviar" onclick="enviarCodigo()">📧 Solicitar código de acceso</button>
+    <div id="login-msg"></div>
+</div>
 
     <!-- STEP 2: VERIFICAR CÓDIGO -->
     <div id="step-code" class="hidden">
@@ -88,9 +89,13 @@ function msg(id, texto, tipo) {
 
 async function enviarCodigo() {
     var email = document.getElementById('login-email').value.trim();
-    if (!email || email.indexOf('@') < 0) { msg('login-msg', 'Ingresa un correo valido', 'err'); return; }
+    if (!email || email.indexOf('@') < 0) { msg('login-msg', 'Ingresa un correo válido', 'err'); return; }
     
     msg('login-msg', 'Buscando...', 'ok');
+    document.getElementById('login-ok-check').style.display = 'none';
+    var btn = document.getElementById('btn-enviar');
+    btn.disabled = true;
+    btn.textContent = 'Buscando...';
     
     try {
         var resp = await fetch(BACKEND_MAESTRO + '?action=stores.directory');
@@ -107,8 +112,14 @@ async function enviarCodigo() {
         
         if (!promotor) {
             msg('login-msg', 'Correo no registrado como promotor', 'err');
+            btn.disabled = false;
+            btn.textContent = '📧 Solicitar código de acceso';
             return;
         }
+        
+        // ✅ Encontrado
+        document.getElementById('login-ok-check').style.display = 'block';
+        btn.textContent = '✅ Encontrado — Enviando código...';
         
         promotorEncontrado = promotor;
         codigoActual = Math.floor(100000 + Math.random() * 900000).toString();
@@ -131,7 +142,9 @@ async function enviarCodigo() {
         var data2 = await resp2.json();
         
         if (!data2.ok) {
-            msg('login-msg', 'Error al enviar: ' + (data2.error || 'intenta de nuevo'), 'err');
+            msg('login-msg', 'Error al enviar código', 'err');
+            btn.disabled = false;
+            btn.textContent = '📧 Solicitar código de acceso';
             return;
         }
         
@@ -141,11 +154,15 @@ async function enviarCodigo() {
         document.getElementById('code-msg-sub').textContent = 'Revisa tu correo: ' + correo;
         
     } catch(e) {
-        msg('login-msg', 'Error de conexion', 'err');
+        msg('login-msg', 'Error de conexión', 'err');
+        btn.disabled = false;
+        btn.textContent = '📧 Solicitar código de acceso';
     }
 }
 
-function verificarCodigo() {
+
+    
+    function verificarCodigo() {
     var code = document.getElementById('code-input').value.trim();
     if (code !== codigoActual) {
         msg('code-msg', 'Codigo incorrecto', 'err');
