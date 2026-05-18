@@ -626,8 +626,22 @@ function fitToNearestStore(){
 
 function initMap(){
   map=L.map('map',{zoomControl:false}).setView([userLat,userLng],13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
-  L.control.zoom({position:'bottomright'}).addTo(map);
+// Capa base: Calle
+var calle = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
+
+// Capa base: Satélite
+var satelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
+
+// Capa por defecto
+calle.addTo(map);
+
+// Control de capas
+var capasBase = {
+  "🗺️ Calle": calle,
+  "🛰️ Satélite": satelite
+};
+
+L.control.layers(capasBase, null, {position: 'topright'}).addTo(map);  L.control.zoom({position:'bottomright'}).addTo(map);
   L.circleMarker([userLat,userLng],{radius:9,color:'#16a34a',fillColor:'#fff',weight:3,fillOpacity:1,zIndexOffset:1000}).addTo(map).bindTooltip('Tu ubicación',{permanent:false,direction:'top'});
   nearbyStores=ALL_STORES.filter(s=>{const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;});
   addMarkersToMap(nearbyStores);
