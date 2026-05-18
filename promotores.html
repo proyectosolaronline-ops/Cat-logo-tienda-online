@@ -116,9 +116,7 @@ async function enviarCodigo() {
         
         promotorEncontrado = promotor;
         codigoActual = Math.floor(100000 + Math.random() * 900000).toString();
-        
-      / Enviar código por correo
-var correo = (promotor.config && promotor.config.correo) ? promotor.config.correo : '';
+             // Enviar código por correo   
 if (correo) {
     fetch(BACKEND_MAESTRO, {
         method: 'POST',
