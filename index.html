@@ -876,59 +876,6 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
 /* ══════════════════════════════════════════════════════
    POPUP TIENDA EXTERNA — botones dinámicos según datos
    ══════════════════════════════════════════════════════ */
-function openExtPopup(s){
-  window._clicksTienda = (window._clicksTienda || 0) + 1;
-  var cfg = s.config || {};
-
-  /* Foto */
-  var fotoExtUrl = fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
-  document.getElementById('ext-foto-wrap').innerHTML = fotoExtUrl
-    ? `<img class="ext-foto" src="${fotoExtUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
-    : `<div class="ext-foto-ph">🏪</div>`;
-
-  /* Nombre */
-  document.getElementById('ext-nombre').textContent = s.nombre_tienda||s.name||'Tienda externa';
-
-  /* Tipo */
-  var tipo = cfg.tipoNegocio||cfg.businessType||cfg.tipo_negocio||cfg.tipo||'';
-  document.getElementById('ext-tipo').textContent = tipo;
-
-  /* Ubicación */
-  var partes = [cfg.colonia, cfg.localidad||cfg.city, cfg.estado||cfg.state].filter(Boolean);
-  var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
-  var dist = (userLat&&!isNaN(lat)) ? haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km' : '';
-  document.getElementById('ext-ubicacion').innerHTML =
-    `<span>📍</span>${partes.join(', ')||'Ver en mapa'}${dist?' · <strong>'+dist+'</strong>':''}`;
-
-  /* Datos */
-  var mapsUrl = (!isNaN(lat)&&!isNaN(lng)) ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}` : '';
-  var tel = (cfg.whatsapp||cfg.telefono||s.telefono||'').replace(/\D/g,'');
-  var link = cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
-  var nomNeg = s.nombre_tienda||s.name||'su tienda';
-  var msgWpp = encodeURIComponent(`¡Hola! Voy en camino a ${nomNeg}. Por favor estén listos 🚗`);
-  var wppUrl = tel ? `https://wa.me/52${tel}?text=${msgWpp}` : '';
-
-  var btnLlegar = mapsUrl
-    ? `<a class="ext-btn ext-btn-llegar" href="${mapsUrl}" target="_blank"><span class="ext-btn-icon">🗺️</span>Cómo llegar</a>`
-    : `<button class="ext-btn ext-btn-llegar" style="opacity:.4;cursor:default;"><span class="ext-btn-icon">🗺️</span>Cómo llegar</button>`;
-
-  var html = '';
-  if(tel && link){
-    html=`<div class="ext-actions">${btnLlegar}<button class="ext-btn ext-btn-wpp" onclick="window.open('${wppUrl}','_blank')"><span class="ext-btn-icon">💬</span>Voy en camino</button></div><a class="ext-btn-link" href="${link}" target="_blank">🔗 Ver tienda en línea</a>`;
-  } else if(tel && !link){
-    html=`<div class="ext-actions">${btnLlegar}<button class="ext-btn ext-btn-wpp" onclick="window.open('${wppUrl}','_blank')"><span class="ext-btn-icon">💬</span>Voy en camino</button></div>`;
-  } else if(!tel && link){
-    html=`<div class="ext-actions">${btnLlegar}<a class="ext-btn ext-btn-link-grid" href="${link}" target="_blank"><span class="ext-btn-icon">🔗</span>Ver tienda</a></div>`;
-  } else {
-    html=`<div class="ext-actions" style="grid-template-columns:1fr;">${btnLlegar}</div>`;
-  }
-
-  document.getElementById('ext-actions-wrap').innerHTML = html;
-  document.getElementById('ext-popup-bg').classList.add('open');
-}
-
-
- 
 function closeExtPopup(){  document.getElementById('ext-popup-bg').classList.remove('open');
 }
 
@@ -1211,46 +1158,54 @@ function cerrarLoginFlyer(){
 }
 
 async function enviarCodigoFlyer(){
-  var tel = document.getElementById('login-phone').value.replace(/\D/g,'');
-  if(!tel || tel.length < 10){ alert('Ingresa un número válido de 10 dígitos'); return; }
+  var tel=document.getElementById('login-phone').value.replace(/\D/g,'');
+  if(!tel||tel.length<10){alert('Ingresa un número válido de 10 dígitos');return;}
   
-  var tienda = ALL_STORES.find(function(s){
-    if(!s.isExternal) return false;
-    var cfg = s.config || {};
-    var t = String(cfg.telefono || '').replace(/\D/g,'');
-    return t === tel;
+  // Buscar en tiendas externas
+  var tienda=ALL_STORES.find(function(s){
+    if(!s.isExternal)return false;
+    var cfg=s.config||{};
+    var t=String(cfg.telefono||'').replace(/\D/g,'');
+    return t===tel;
   });
   
   if(!tienda){
-    var flyerUrl = 'flayerFormatos.html?nombre=Directorio+Easylink&url='+encodeURIComponent(window.location.href)+'&tag=Escanea+y+visita+tiendas+cerca+de+ti';
-    window.open(flyerUrl, '_blank');
+    // Mostrar QR general del directorio
+    var flyerUrl='flayerFormatos.html?nombre=Directorio+Easylink&url='+encodeURIComponent(window.location.href)+'&tag=Escanea+y+visita+tiendas+cerca+de+ti+🛍️';
+    window.open(flyerUrl,'_blank');
     cerrarLoginFlyer();
     return;
   }
+  tiendaFlyerEncontrada=tienda;
   
-  var cfg = tienda.config || {};
-  var nombre = tienda.nombre_tienda || tienda.name || 'Tienda';
-  var esMovil = (cfg.Movil === true || cfg.Movil === 'TRUE');
+  // Generar código de 6 dígitos
+  codigoFlyerActual=Math.floor(100000+Math.random()*900000).toString();
   
-  if(esMovil){
-    var opcion = confirm('Hola ' + nombre + ' \n\n¿Qué deseas hacer?\n\nAceptar = Ver QR de tu tienda\nCancelar = Ir a tu panel de promotor');
-    if(opcion){
-      var urlStore = cfg.linkNegocio || cfg.link || window.location.href;
-      var tag = cfg.tipoNegocio || 'Visita mi tienda';
-      var flyerUrl = 'flayerFormatos.html?nombre='+encodeURIComponent(nombre)+'&url='+encodeURIComponent(urlStore)+'&tag='+encodeURIComponent(tag);
-      window.open(flyerUrl, '_blank');
-    } else {
-      window.open('promotores.html', '_blank');
-    }
-  } else {
-    var flyerUrl = 'flayerFormatos.html?nombre='+encodeURIComponent(nombre)+'&url='+encodeURIComponent(window.location.href)+'&tag=Visita+mi+tienda';
-    window.open(flyerUrl, '_blank');
-  }
+  // Enviar por WhatsApp
+  var msg=encodeURIComponent('🔐 *Código de acceso Flyer QR*\n\nTu código es: *'+codigoFlyerActual+'*\n\nVálido por 5 minutos.\n\n_'+tienda.nombre_tienda||tienda.name+'_');
+  window.open('https://wa.me/52'+tel+'?text='+msg,'_blank');
+  
+  // Mostrar paso 2
+  document.getElementById('step-phone').style.display='none';
+  document.getElementById('step-code').style.display='';
+}
+
+function verificarCodigoFlyer(){
+  var code=document.getElementById('login-code').value.trim();
+  if(code!==codigoFlyerActual){alert('Código incorrecto');return;}
+  
+  // Abrir flyer con datos de la tienda
+  var s=tiendaFlyerEncontrada;
+  var cfg=s.config||{};
+  var nombre=s.nombre_tienda||s.name||'Tienda';
+  var urlStore=cfg.linkNegocio||cfg.link||window.location.href;
+  var tag=cfg.tipoNegocio||cfg.description||'Visita nuestra tienda';
+  
+  var flyerUrl='flayerFormatos.html?nombre='+encodeURIComponent(nombre)+'&url='+encodeURIComponent(urlStore)+'&tag='+encodeURIComponent(tag);
+  window.open(flyerUrl,'_blank');
   
   cerrarLoginFlyer();
-  
-  
-
+}
   dataPollingInterval=setInterval(refreshData,10000);
   // Guardar estadísticas cada 30 segundos
 setInterval(function(){
@@ -1533,3 +1488,5 @@ function contarTapExt(e){e.stopPropagation();_tapExtCount++;clearTimeout(_tapExt
  
 </body>
 </html>
+
+
