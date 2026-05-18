@@ -647,12 +647,11 @@ function addMarkersToMap(stores){
     // ═══════════════════════════════════════════
     // NUEVO: FILTRO SERVICIO MÓVIL
     // ═══════════════════════════════════════════
-    if(cfg.Movil === true || cfg.Movil === 'TRUE'){
-      // Verificar horario
-      if(!estaEnHorario(cfg.horariopromotor || '08:00-18:00')) return;
-      // Verificar candado ubicate
-      if(!cfg.ubicate || cfg.ubicate === 'null' || cfg.ubicate === '') return;
-    }
+ if(cfg.Movil === true || cfg.Movil === 'TRUE'){
+  if(s.status === 'cancelado' || s.status === 'suspendido') return;
+  if(!estaEnHorario(cfg.horariopromotor || '08:00-18:00')) return;
+  if(!cfg.ubicate || cfg.ubicate === 'null' || cfg.ubicate === '') return;
+}
     // ═══════════════════════════════════════════
     // ═══════════════════════════════════════════
     
