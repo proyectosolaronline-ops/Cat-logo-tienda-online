@@ -80,6 +80,139 @@
     let currentStore = null;
     let currentEmail = '';
     let ownerToken = null;
+    // ========================================
+// DEBUG COMPLETO - Abre F12 para ver
+// ========================================
+const DEBUG = true;
+
+function logDebug(msg, data) {
+    if (DEBUG) {
+        if (data) {
+            console.log(`🔍 [DEBUG] ${msg}`, data);
+        } else {
+            console.log(`🔍 [DEBUG] ${msg}`);
+        }
+    }
+}
+
+// Modifica tu función callAPI original para que loguee
+const originalCallAPI = callAPI;
+window.callAPI = async function(action, data = {}) {
+    logDebug(`Llamando API: ${action}`, data);
+    try {
+        const url = `${API_URL}?action=${action}&${new URLSearchParams(data).toString()}`;
+        logDebug(`URL: ${url}`);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        
+        const result = await response.json();
+        logDebug(`Respuesta de ${action}:`, result);
+        
+        return result;
+    } catch (error) {
+        logDebug(`Error en ${action}:`, error.message);
+        return { ok: false, error: error.message };
+    }
+};
+
+// Modifica getStoreByEmail con más logs
+async function getStoreByEmail(email) {
+    logDebug(`Buscando tienda por email: ${email}`);
+    
+    const result = await callAPI('stores.directory');
+    logDebug('Resultado stores.directory:', result);
+    
+    if (result.ok && result.stores) {
+        logDebug(`Total de tiendas encontradas: ${result.stores.length}`);
+        
+        const emailLower = email.toLowerCase().trim();
+        logDebug(`Email a buscar (lowercase): ${emailLower}`);
+        
+        // Mostrar todos los correos disponibles
+        const allEmails = result.stores.map(s => {
+            const config = s.config || {};
+            return config.correo || 'SIN CORREO';
+        });
+        logDebug('Correos disponibles en el directorio:', allEmails);
+        
+        const store = result.stores.find(s => {
+            const config = s.config || {};
+            const storeEmail = (config.correo || '').toLowerCase().trim();
+            const matches = storeEmail === emailLower;
+            if (matches) logDebug(`✅ MATCH encontrado: ${storeEmail}`);
+            return matches;
+        });
+        
+        if (store) {
+            logDebug('Tienda encontrada:', store);
+            return { ok: true, store: store };
+        } else {
+            logDebug('❌ No se encontró match con ningún correo');
+        }
+    } else {
+        logDebug('❌ stores.directory no respondió correctamente:', result);
+    }
+    
+    return { ok: false, error: 'Correo no registrado en el directorio' };
+}
+
+// Modifica sendCode para loguear
+const originalSendCode = sendCode;
+window.sendCode = async function() {
+    logDebug('=== INICIO PROCESO DE LOGIN ===');
+    const email = document.getElementById('emailInput').value.trim();
+    logDebug(`Email ingresado: ${email}`);
+    
+    if (!email || !email.includes('@')) {
+        logDebug('❌ Email inválido');
+        showMessage('msg', 'Correo inválido', 'error');
+        return;
+    }
+    
+    logDebug('📧 Verificando email en el directorio...');
+    const storeResult = await getStoreByEmail(email);
+    
+    if (storeResult.ok) {
+        logDebug('✅ Email VERIFICADO correctamente');
+        currentStore = storeResult.store;
+        currentEmail = email;
+        
+        logDebug('📨 Solicitando código de acceso...');
+        const codeResult = await requestCode(email);
+        
+        if (codeResult.ok) {
+            logDebug('✅ Código enviado exitosamente');
+            currentAccessCode = generarCodigo();
+            document.getElementById('app').innerHTML = renderCodeStep(currentEmail);
+            attachCodeEvents();
+            showMessage('msg', `✅ Código enviado a ${email}`, 'success');
+        } else {
+            logDebug('❌ Error al enviar código:', codeResult.error);
+            showMessage('msg', codeResult.error || 'Error al enviar código', 'error');
+        }
+    } else {
+        logDebug('❌ Email NO registrado:', storeResult.error);
+        showMessage('msg', storeResult.error, 'error');
+    }
+    logDebug('=== FIN PROCESO DE LOGIN ===');
+};
+
+
+   // ========================================
+// DEBUG COMPLETO - Abre F12 para ver
+// ========================================
+
+
+
+
+
+
+
+
+
     
     function safeString(v) { return (v === null || v === undefined) ? '' : String(v); }
     function escapeHtml(str) { return safeString(str).replace(/[&<>]/g, function(m) { return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'; }); }
