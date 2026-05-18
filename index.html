@@ -858,7 +858,6 @@ function closeCatalogSheet(){document.getElementById('catalog-sheet-bg').classLi
 function openPopup(id){
  window._clicksTienda = (window._clicksTienda || 0) + 1;
 
- window._clickTienda = true;  // ← AGREGAR ESTA LÍNEA
 
   const s=ALL_STORES.find(x=>x.storeId===id);if(!s)return;
   if(s.isExternal){openExtPopup(s);return;}
@@ -879,7 +878,6 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
    ══════════════════════════════════════════════════════ */
 function openExtPopup(s){
  window._clicksTienda = (window._clicksTienda || 0) + 1;
-  window._clickTienda = true;  // ← AGREGAR ESTA LÍNEA
 
  const cfg=s.config||{};
 
@@ -1500,16 +1498,6 @@ async function enviarSolicitudContacto() {
 }  
 
 // Mostrar botón de contacto solo si: clic en tienda + 10 min navegando
-window._clickTienda = false;
-setInterval(function(){
-    if(window._clickTienda && !document.getElementById('fab-contacto').style.display || document.getElementById('fab-contacto').style.display === 'none'){
-        var mins = (Date.now() - (window._timeStart || Date.now())) / 60000;
-        if(mins >= 10){
-            var btn = document.getElementById('fab-contacto');
-            if(btn) btn.style.display = 'flex';
-        }
-    }
-}, 10000); // revisa cada 10 segundos
 window._timeStart = Date.now();
  window._clicksTienda = 0;
 window._timeStart = Date.now();
