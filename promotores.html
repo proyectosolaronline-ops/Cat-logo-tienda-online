@@ -2,250 +2,777 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Promotor — Easylink</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>📋 Panel del Dueño - Mi Tienda</title>
     <style>
-        :root{--primary:#1a73e8;--danger:#ef4444;--ok:#16a34a;}
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:'Inter',sans-serif;background:#f5f6fa;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;}
-        .panel{background:#fff;border-radius:20px;padding:28px 24px;max-width:420px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.1);}
-        .panel h2{font-family:'Outfit',sans-serif;font-size:1.3rem;color:#111;text-align:center;margin-bottom:4px;}
-        .panel .sub{font-size:.8rem;color:#888;text-align:center;margin-bottom:20px;}
-        .inp{width:100%;padding:13px;border:2px solid #ddd;border-radius:12px;font-size:15px;font-family:'Inter',sans-serif;margin-bottom:10px;text-align:center;}
-        .inp:focus{outline:none;border-color:var(--primary);}
-        .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px;}
-        .btn-primary{background:var(--primary);color:#fff;}
-        .btn-danger{background:var(--danger);color:#fff;}
-        .btn-ok{background:var(--ok);color:#fff;}
-        .btn-outline{background:#fff;color:#888;border:1.5px solid #ddd;}
-        .info-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f0f0f0;font-size:.9rem;}
-        .info-row span:first-child{color:#888;}
-        .info-row span:last-child{font-weight:600;color:#111;}
-        .badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;}
-        .badge-ok{background:#e8f5e9;color:#16a34a;}
-        .badge-danger{background:#fee2e2;color:#ef4444;}
-        .hidden{display:none;}
-        .msg{font-size:.78rem;padding:8px 12px;border-radius:8px;margin-bottom:12px;text-align:center;}
-        .msg-ok{background:#e8f5e9;color:#16a34a;}
-        .msg-err{background:#fee2e2;color:#ef4444;}
-        .spinner{display:inline-block;width:16px;height:16px;border:2px solid #ddd;border-top-color:#1a73e8;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
-        @keyframes spin{to{transform:rotate(360deg)}}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Login Card */
+        .login-card, .dashboard-card {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #075E54 0%, #128C7E 100%);
+            color: white;
+            padding: 28px 24px;
+            text-align: center;
+        }
+
+        .card-header h1 {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+        }
+
+        .card-header p {
+            opacity: 0.9;
+            font-size: 0.85rem;
+        }
+
+        .card-body {
+            padding: 28px 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #128C7E;
+            box-shadow: 0 0 0 3px rgba(18,140,126,0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #128C7E, #075E54);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(18,140,126,0.3);
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid #128C7E;
+            color: #128C7E;
+        }
+
+        .btn-outline:hover {
+            background: #128C7E;
+            color: white;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .info-box {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+            gap: 12px;
+        }
+
+        .info-label {
+            width: 120px;
+            font-weight: 700;
+            color: #374151;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #1f2937;
+            word-break: break-word;
+        }
+
+        .access-code-box {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .access-code {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: 8px;
+            color: #92400e;
+            font-family: monospace;
+            background: white;
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 50px;
+            margin-top: 10px;
+        }
+
+        .copy-btn {
+            background: #92400e;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            margin-top: 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-suspended {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .button-group .btn {
+            flex: 1;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 16px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .logout-btn:hover {
+            color: #dc2626;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e0e0e0;
+            border-top: 3px solid #128C7E;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #e5e7eb;
+        }
     </style>
 </head>
 <body>
-<div class="panel">
-
-    <!-- STEP 1: LOGIN POR CORREO -->
-    <div id="step-login">
-        <h2>🛵 Panel Promotor</h2>
-        <div class="sub">Ingresa tu correo registrado</div>
-        <input class="inp" type="email" id="login-email" placeholder="correo@ejemplo.com">
-        <div id="login-ok-check" style="display:none;text-align:center;font-size:2rem;margin-bottom:8px;">✅</div>
-        <button class="btn btn-primary" id="btn-enviar" onclick="enviarCodigo()">📧 Solicitar código de acceso</button>
-        <div id="login-msg"></div>
-    </div>
-
-    <!-- STEP 2: VERIFICAR CÓDIGO -->
-    <div id="step-code" class="hidden">
-        <h2>🔐 Verificar código</h2>
-        <div class="sub">Código enviado a tu correo</div>
-        <input class="inp" type="text" id="code-input" placeholder="000000" maxlength="6" style="letter-spacing:6px;font-size:22px;">
-        <div class="sub" id="code-msg-sub" style="margin-top:6px;"></div>
-        <button class="btn btn-primary" onclick="verificarCodigo()">✅ Ingresar</button>
-        <button class="btn btn-outline" onclick="volverLogin()">← Volver</button>
-        <div id="code-msg"></div>
-    </div>
-
-    <!-- STEP 3: PANEL PRINCIPAL -->
-    <div id="step-panel" class="hidden">
-        <h2>🛵 Mi Panel</h2>
-        <div class="sub" id="panel-nombre"></div>
-        <div class="info-row"><span>📱 WhatsApp</span><span id="info-tel"></span></div>
-        <div class="info-row"><span>📧 Correo</span><span id="info-correo"></span></div>
-        <div class="info-row"><span>🏷️ Tipo</span><span id="info-tipo"></span></div>
-        <div class="info-row"><span>📍 Ubicación</span><span id="info-ubi"></span></div>
-        <div class="info-row"><span>📌 Estado actual</span><span id="info-status"></span></div>
-        <div style="margin-top:20px;display:flex;gap:10px;">
-            <button class="btn btn-ok" id="btn-activar" onclick="cambiarStatus('activo')">✅ Activar</button>
-            <button class="btn btn-danger" id="btn-suspender" onclick="cambiarStatus('suspendido')">⏸️ Suspender</button>
-        </div>
-        <div id="panel-msg" style="margin-top:12px;"></div>
-        <button class="btn btn-outline" style="margin-top:16px;" onclick="cerrarSesion()">🚪 Salir</button>
-    </div>
-
+<div class="container" id="app">
+    <!-- El contenido se renderiza dinámicamente con JavaScript -->
 </div>
 
 <script>
-var BACKEND_MAESTRO = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
-var codigoActual = '';
-var promotorEncontrado = null;
-
-function msg(id, texto, tipo) {
-    var el = document.getElementById(id);
-    if(!el) return;
-    el.textContent = texto;
-    el.className = 'msg msg-' + (tipo || 'ok');
-    el.style.display = texto ? 'block' : 'none';
-}
-
-async function enviarCodigo() {
-    var email = document.getElementById('login-email').value.trim();
-    if (!email || email.indexOf('@') < 0) { msg('login-msg', 'Ingresa un correo valido', 'err'); return; }
+    // ============================================================
+    // CONFIGURACIÓN
+    // ============================================================
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
     
-    msg('login-msg', '<span class="spinner"></span> Buscando...', 'ok');
-    document.getElementById('login-ok-check').style.display = 'none';
-    var btn = document.getElementById('btn-enviar');
-    btn.disabled = true;
+    // Estado de la aplicación
+    let currentUser = null;      // { email, storeData, accessCode }
+    let isLoggedIn = false;
     
-    try {
-        var resp = await fetch(BACKEND_MAESTRO + '?action=stores.directory');
-        var data = await resp.json();
-        var stores = (data.stores || []).filter(function(s) {
-            return s.isExternal === true;
+    // ============================================================
+    // UTILIDADES
+    // ============================================================
+    function safeString(value) {
+        if (value === null || value === undefined) return '';
+        if (typeof value === 'string') return value;
+        if (typeof value === 'number') return value.toString();
+        if (typeof value === 'boolean') return value ? 'true' : 'false';
+        return '';
+    }
+    
+    function escapeHtml(str) {
+        const s = safeString(str);
+        return s.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
         });
-        
-        var promotor = stores.find(function(s) {
-            var cfg = s.config || {};
-            var c = (cfg.correo || '').trim().toLowerCase();
-            return c === email.toLowerCase();
-        });
-        
-        if (!promotor) {
-            msg('login-msg', 'Correo no registrado como promotor', 'err');
-            btn.disabled = false;
-            btn.textContent = '📧 Solicitar código de acceso';
-            return;
+    }
+    
+    function isTrue(value) {
+        if (value === true || value === false) return value;
+        const str = safeString(value).toLowerCase();
+        return str === 'true' || str === '1' || str === 'si' || str === 'sí';
+    }
+    
+    // Generar código de acceso de 8 caracteres
+    function generateAccessCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = '';
+        for (let i = 0; i < 8; i++) {
+            code += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return code;
+    }
+    
+    // Guardar código en localStorage (simulación)
+    function saveAccessCode(email, code) {
+        const codes = JSON.parse(localStorage.getItem('owner_access_codes') || '{}');
+        codes[email] = { code, expiresAt: Date.now() + 24 * 60 * 60 * 1000 };
+        localStorage.setItem('owner_access_codes', JSON.stringify(codes));
+    }
+    
+    function getAccessCode(email) {
+        const codes = JSON.parse(localStorage.getItem('owner_access_codes') || '{}');
+        const record = codes[email];
+        if (record && record.expiresAt > Date.now()) {
+            return record.code;
+        }
+        return null;
+    }
+    
+    // ============================================================
+    // LLAMADAS A LA API
+    // ============================================================
+    
+    // Obtener todas las tiendas externas (solo para admin/dueño)
+    async function fetchAllExternalStores() {
+        try {
+            const response = await fetch(`${API_URL}?action=external.stores.list`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            return data.stores || [];
+        } catch (error) {
+            console.error('Error fetching stores:', error);
+            return [];
+        }
+    }
+    
+    // Actualizar una tienda externa
+    async function updateExternalStore(storeId, updates) {
+        try {
+            const response = await fetch(`${API_URL}?action=external.store.update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'external.store.update',
+                    storeId: storeId,
+                    ...updates
+                })
+            });
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error updating store:', error);
+            return { ok: false, error: error.message };
+        }
+    }
+    
+    // ============================================================
+    // LÓGICA DE LOGIN
+    // ============================================================
+    async function loginWithEmail(email) {
+        if (!email || !email.includes('@')) {
+            return { success: false, error: 'Ingresa un correo electrónico válido' };
         }
         
-        document.getElementById('login-ok-check').style.display = 'block';
-        btn.textContent = 'Encontrado — Enviando código...';
+        const emailLower = email.toLowerCase().trim();
         
-        promotorEncontrado = promotor;
-        codigoActual = Math.floor(100000 + Math.random() * 900000).toString();
+        // Buscar tienda por correo
+        const allStores = await fetchAllExternalStores();
         
-        var cfg = promotor.config || {};
-        var correo = cfg.correo || email;
-        
-        var resp2 = await fetch(BACKEND_MAESTRO, {
-            method: 'POST',
-            headers: {'Content-Type': 'text/plain;charset=utf-8'},
-            body: JSON.stringify({
-                action: 'enviarCodigoPromotor',
-                data: {
-                    correo: correo,
-                    codigo: codigoActual,
-                    nombre: promotor.nombre_tienda || promotor.name || 'Promotor'
-                }
-            })
+        // Buscar en external_stores donde correo coincida
+        const store = allStores.find(s => {
+            const storeEmail = safeString(s.correo).toLowerCase().trim();
+            return storeEmail === emailLower;
         });
-        var data2 = await resp2.json();
         
-        if (!data2.ok) {
-            msg('login-msg', 'Error al enviar: ' + (data2.error || 'intenta de nuevo'), 'err');
-            btn.disabled = false;
-            btn.textContent = '📧 Solicitar código de acceso';
-            return;
+        if (!store) {
+            return { success: false, error: 'No se encontró ninguna tienda registrada con este correo' };
         }
         
-        document.getElementById('step-login').classList.add('hidden');
-        document.getElementById('step-code').classList.remove('hidden');
-        document.getElementById('code-input').value = '';
-        document.getElementById('code-msg-sub').textContent = 'Revisa tu correo: ' + correo;
+        // Verificar si la tienda NO está suspendida permanentemente
+        if (store.status === 'suspendido') {
+            return { success: false, error: '❌ Tu tienda ha sido suspendida. Contacta al administrador.' };
+        }
         
-    } catch(e) {
-        msg('login-msg', 'Error de conexion', 'err');
-        btn.disabled = false;
-        btn.textContent = '📧 Solicitar código de acceso';
-    }
-}
-
-function verificarCodigo() {
-    var code = document.getElementById('code-input').value.trim();
-    if (code !== codigoActual) {
-        msg('code-msg', 'Codigo incorrecto', 'err');
-        return;
-    }
-    
-    var p = promotorEncontrado;
-    var cfg = p.config || {};
-    
-    document.getElementById('panel-nombre').textContent = p.nombre_tienda || p.name || 'Promotor';
-    document.getElementById('info-tel').textContent = cfg.telefono || '';
-    document.getElementById('info-correo').textContent = cfg.correo || '';
-    document.getElementById('info-tipo').textContent = cfg.tipoNegocio || cfg.tipo || '';
-    document.getElementById('info-ubi').textContent = cfg.ubicate || cfg.colonia || 'No definida';
-    
-    actualizarStatusUI(p.status || 'activo');
-    
-    document.getElementById('step-code').classList.add('hidden');
-    document.getElementById('step-panel').classList.remove('hidden');
-}
-
-function actualizarStatusUI(status) {
-    var el = document.getElementById('info-status');
-    var btnA = document.getElementById('btn-activar');
-    var btnS = document.getElementById('btn-suspender');
-    
-    if (status === 'suspendido') {
-        el.innerHTML = '<span class="badge badge-danger">Suspendido</span>';
-        btnA.style.opacity = '1';
-        btnS.style.opacity = '.4';
-    } else {
-        el.innerHTML = '<span class="badge badge-ok">Activo</span>';
-        btnA.style.opacity = '.4';
-        btnS.style.opacity = '1';
-    }
-}
-
-async function cambiarStatus(nuevoStatus) {
-    var storeId = promotorEncontrado.storeId;
-    if (!storeId) {
-        msg('panel-msg', 'Error: ID no encontrado', 'err');
-        return;
-    }
-    
-    msg('panel-msg', 'Actualizando...', 'ok');
-    
-    try {
-        var resp = await fetch(BACKEND_MAESTRO, {
-            method: 'POST',
-            headers: {'Content-Type': 'text/plain;charset=utf-8'},
-            body: JSON.stringify({
-                action: 'external.store.status',
-                storeId: storeId,
-                status: nuevoStatus
-            })
-        });
+        // Generar o recuperar código de acceso
+        let accessCode = getAccessCode(emailLower);
+        if (!accessCode) {
+            accessCode = generateAccessCode();
+            saveAccessCode(emailLower, accessCode);
+        }
         
-        var data = await resp.json();
+        return {
+            success: true,
+            store: store,
+            accessCode: accessCode
+        };
+    }
+    
+    // ============================================================
+    // CAMBIAR STATUS (activo ↔ suspendido)
+    // ============================================================
+    async function toggleStoreStatus(storeId, currentStatus) {
+        const newStatus = currentStatus === 'activo' ? 'suspendido' : 'activo';
         
-        if (data.ok) {
-            promotorEncontrado.status = nuevoStatus;
-            actualizarStatusUI(nuevoStatus);
-            msg('panel-msg', nuevoStatus === 'activo' ? 'Visible en el mapa' : 'Oculto del mapa', 'ok');
+        const result = await updateExternalStore(storeId, { status: newStatus });
+        
+        if (result.ok) {
+            return { success: true, newStatus: newStatus };
         } else {
-            msg('panel-msg', 'Error al actualizar', 'err');
+            return { success: false, error: result.error || 'Error al actualizar el estado' };
         }
-    } catch(e) {
-        msg('panel-msg', 'Error de conexion', 'err');
     }
-}
-
-function volverLogin() {
-    document.getElementById('step-code').classList.add('hidden');
-    document.getElementById('step-login').classList.remove('hidden');
-    codigoActual = '';
-    promotorEncontrado = null;
-}
-
-function cerrarSesion() {
-    promotorEncontrado = null;
-    codigoActual = '';
-    document.getElementById('step-panel').classList.add('hidden');
-    document.getElementById('step-login').classList.remove('hidden');
-    document.getElementById('login-email').value = '';
-}
+    
+    // ============================================================
+    // RENDERIZADO DE VISTAS
+    // ============================================================
+    
+    // Pantalla de Login
+    function renderLogin() {
+        return `
+            <div class="login-card">
+                <div class="card-header">
+                    <h1>🔐 Mi Tienda</h1>
+                    <p>Accede con tu correo registrado</p>
+                </div>
+                <div class="card-body">
+                    <div id="loginMessage"></div>
+                    <div class="form-group">
+                        <label>📧 Correo electrónico</label>
+                        <input type="email" id="loginEmail" placeholder="tu@email.com" autocomplete="email">
+                    </div>
+                    <button class="btn btn-primary" id="loginBtn">Ingresar →</button>
+                    <p style="text-align: center; margin-top: 20px; font-size: 0.75rem; color: #888;">
+                        Solo correos registrados en el directorio
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Dashboard del Dueño
+    function renderDashboard(store, accessCode) {
+        const cfg = store.config || {};
+        
+        // Extraer todos los datos de la tienda
+        const storeId = safeString(store.storeId);
+        const nombreTienda = safeString(cfg.nombre_tienda || store.nombre_tienda || 'Sin nombre');
+        const nombreCliente = safeString(cfg.nombreCliente || store.nombre_cliente || '');
+        const telefono = safeString(cfg.telefono || store.telefono || '');
+        const correo = safeString(cfg.correo || store.correo || '');
+        const tipoNegocio = safeString(cfg.tipoNegocio || store.tipo_negocio || 'General');
+        const ubicacion = safeString(cfg.ubicate || store.ubicate || '');
+        const colonia = safeString(cfg.colonia || store.colonia || '');
+        const localidad = safeString(cfg.localidad || store.localidad || '');
+        const estado = safeString(cfg.estado || store.estado || '');
+        const horario = safeString(cfg.horariopromotor || store.horariopromotor || '08:00-18:00');
+        const foto = safeString(cfg.logoUrl || cfg.logo || store.foto || '');
+        const linkNegocio = safeString(cfg.linkNegocio || store.link_negocio || '');
+        const locationLat = safeString(cfg.locationLat || store.locationLat || '');
+        const locationLng = safeString(cfg.locationLng || store.locationLng || '');
+        const esMovil = isTrue(cfg.Movil || store.movil);
+        const tieneWhatsapp = isTrue(cfg.whatsapp || store.whatsapp);
+        const tieneLlegar = isTrue(cfg.llegar || store.llegar);
+        const status = safeString(store.status || 'activo');
+        const inDirectory = isTrue(store.inDirectory);
+        const createdAt = safeString(store.createdAt || '');
+        
+        const isActive = status === 'activo';
+        const ubicacionCompleta = [ubicacion, colonia, localidad, estado].filter(s => s && s !== '').join(', ');
+        
+        return `
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h1>📋 Panel de Control</h1>
+                    <p>Bienvenido, <strong>${escapeHtml(nombreCliente || nombreTienda)}</strong></p>
+                </div>
+                <div class="card-body">
+                    <div id="dashboardMessage"></div>
+                    
+                    <!-- CÓDIGO DE ACCESO -->
+                    <div class="access-code-box">
+                        <div style="font-size: 0.85rem;">🔑 Tu Código de Acceso</div>
+                        <div class="access-code" id="accessCodeDisplay">${escapeHtml(accessCode)}</div>
+                        <button class="copy-btn" onclick="copyAccessCode()">📋 Copiar código</button>
+                        <p style="font-size: 0.7rem; margin-top: 10px;">Usa este código para acceder a tu panel en el futuro</p>
+                    </div>
+                    
+                    <!-- ESTADO ACTUAL -->
+                    <div class="info-box">
+                        <div class="info-row">
+                            <div class="info-label">📌 Estado:</div>
+                            <div class="info-value">
+                                <span class="status-badge ${isActive ? 'status-active' : 'status-suspended'}">
+                                    ${isActive ? '✅ ACTIVO' : '⛔ SUSPENDIDO'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">📅 Registro:</div>
+                            <div class="info-value">${escapeHtml(createdAt.split('T')[0] || 'No disponible')}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- DATOS GENERALES DE LA TIENDA -->
+                    <h3 style="margin: 20px 0 15px 0; color: #1f2937;">🏪 Datos de mi tienda</h3>
+                    
+                    <div class="info-row">
+                        <div class="info-label">🆔 ID Tienda:</div>
+                        <div class="info-value">${escapeHtml(storeId)}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">🏷️ Nombre tienda:</div>
+                        <div class="info-value"><strong>${escapeHtml(nombreTienda)}</strong></div>
+                    </div>
+                    
+                    ${nombreCliente ? `
+                    <div class="info-row">
+                        <div class="info-label">👤 Cliente/Negocio:</div>
+                        <div class="info-value">${escapeHtml(nombreCliente)}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="info-row">
+                        <div class="info-label">📞 Teléfono:</div>
+                        <div class="info-value">${escapeHtml(telefono)}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">📧 Correo:</div>
+                        <div class="info-value">${escapeHtml(correo)}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">📂 Giro/Tipo:</div>
+                        <div class="info-value">${escapeHtml(tipoNegocio)}</div>
+                    </div>
+                    
+                    ${ubicacionCompleta ? `
+                    <div class="info-row">
+                        <div class="info-label">📍 Ubicación:</div>
+                        <div class="info-value">${escapeHtml(ubicacionCompleta)}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="info-row">
+                        <div class="info-label">🕐 Horario:</div>
+                        <div class="info-value">${escapeHtml(horario)}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">🛵 Servicio Móvil:</div>
+                        <div class="info-value">${esMovil ? '✅ Activado' : '❌ Desactivado'}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">📱 WhatsApp:</div>
+                        <div class="info-value">${tieneWhatsapp ? '✅ Habilitado' : '❌ No habilitado'}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">📍 Indicaciones:</div>
+                        <div class="info-value">${tieneLlegar ? '✅ Incluye cómo llegar' : '❌ No incluye'}</div>
+                    </div>
+                    
+                    ${linkNegocio ? `
+                    <div class="info-row">
+                        <div class="info-label">🔗 Link negocio:</div>
+                        <div class="info-value"><a href="${escapeHtml(linkNegocio)}" target="_blank">${escapeHtml(linkNegocio)}</a></div>
+                    </div>
+                    ` : ''}
+                    
+                    ${foto ? `
+                    <div class="info-row">
+                        <div class="info-label">🖼️ Foto:</div>
+                        <div class="info-value"><a href="${escapeHtml(foto)}" target="_blank">Ver imagen</a></div>
+                    </div>
+                    ` : ''}
+                    
+                    <hr>
+                    
+                    <!-- ACCIONES -->
+                    <div class="button-group">
+                        <button class="btn ${isActive ? 'btn-danger' : 'btn-success'}" id="toggleStatusBtn">
+                            ${isActive ? '⛔ Suspender tienda' : '✅ Activar tienda'}
+                        </button>
+                    </div>
+                    
+                    <button class="logout-btn" id="logoutBtn">🚪 Cerrar sesión</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Mensajes flotantes
+    function showMessage(containerId, message, isError = true) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
+            setTimeout(() => {
+                if (document.getElementById(containerId)) {
+                    document.getElementById(containerId).innerHTML = '';
+                }
+            }, 4000);
+        }
+    }
+    
+    // Copiar código al portapapeles
+    window.copyAccessCode = function() {
+        const codeElement = document.getElementById('accessCodeDisplay');
+        if (codeElement) {
+            const code = codeElement.innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                showMessage('dashboardMessage', '✅ Código copiado al portapapeles', false);
+            }).catch(() => {
+                showMessage('dashboardMessage', '❌ No se pudo copiar', true);
+            });
+        }
+    };
+    
+    // ============================================================
+    // INICIALIZACIÓN Y EVENTOS
+    // ============================================================
+    async function init() {
+        const app = document.getElementById('app');
+        
+        // Verificar si hay sesión guardada
+        const savedSession = localStorage.getItem('owner_session');
+        if (savedSession) {
+            try {
+                const session = JSON.parse(savedSession);
+                if (session.expiresAt > Date.now()) {
+                    currentUser = session.user;
+                    isLoggedIn = true;
+                    app.innerHTML = renderDashboard(currentUser.storeData, currentUser.accessCode);
+                    attachDashboardEvents(currentUser.storeData);
+                    return;
+                } else {
+                    localStorage.removeItem('owner_session');
+                }
+            } catch(e) {}
+        }
+        
+        // Mostrar login
+        app.innerHTML = renderLogin();
+        attachLoginEvents();
+    }
+    
+    function attachLoginEvents() {
+        const loginBtn = document.getElementById('loginBtn');
+        const loginEmail = document.getElementById('loginEmail');
+        
+        if (loginBtn) {
+            loginBtn.addEventListener('click', async () => {
+                const email = loginEmail.value;
+                const result = await loginWithEmail(email);
+                
+                if (result.success) {
+                    currentUser = {
+                        email: email.toLowerCase().trim(),
+                        storeData: result.store,
+                        accessCode: result.accessCode
+                    };
+                    
+                    // Guardar sesión por 24 horas
+                    localStorage.setItem('owner_session', JSON.stringify({
+                        user: currentUser,
+                        expiresAt: Date.now() + 24 * 60 * 60 * 1000
+                    }));
+                    
+                    isLoggedIn = true;
+                    const app = document.getElementById('app');
+                    app.innerHTML = renderDashboard(result.store, result.accessCode);
+                    attachDashboardEvents(result.store);
+                } else {
+                    showMessage('loginMessage', result.error, true);
+                }
+            });
+        }
+        
+        if (loginEmail) {
+            loginEmail.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('loginBtn').click();
+                }
+            });
+        }
+    }
+    
+    function attachDashboardEvents(store) {
+        const toggleBtn = document.getElementById('toggleStatusBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', async () => {
+                const currentStatus = store.status || 'activo';
+                const result = await toggleStoreStatus(store.storeId, currentStatus);
+                
+                if (result.success) {
+                    // Actualizar store local
+                    store.status = result.newStatus;
+                    currentUser.storeData = store;
+                    
+                    // Actualizar sesión guardada
+                    const savedSession = localStorage.getItem('owner_session');
+                    if (savedSession) {
+                        const session = JSON.parse(savedSession);
+                        session.user.storeData = store;
+                        localStorage.setItem('owner_session', JSON.stringify(session));
+                    }
+                    
+                    // Re-renderizar dashboard
+                    const app = document.getElementById('app');
+                    app.innerHTML = renderDashboard(store, currentUser.accessCode);
+                    attachDashboardEvents(store);
+                    showMessage('dashboardMessage', `✅ Estado actualizado a: ${result.newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, false);
+                } else {
+                    showMessage('dashboardMessage', result.error || 'Error al cambiar el estado', true);
+                }
+            });
+        }
+        
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('owner_session');
+                isLoggedIn = false;
+                currentUser = null;
+                const app = document.getElementById('app');
+                app.innerHTML = renderLogin();
+                attachLoginEvents();
+            });
+        }
+    }
+    
+    // Iniciar la aplicación
+    init();
 </script>
 </body>
 </html>
