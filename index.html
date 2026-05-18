@@ -886,23 +886,6 @@ function openExtPopup(s){
     ? `<img class="ext-foto" src="${fotoUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
     : `<div class="ext-foto-ph">🏪</div>`;
 
-  // ⬇️ ⬇️ ⬇️ AQUÍ VA EL TRIPLE TAP ⬇️ ⬇️ ⬇️
-  (function(){
-    var wrap = document.getElementById('ext-foto-wrap');
-    if(!wrap) return;
-    var taps = 0, timer = null;
-    wrap.addEventListener('click', function(e){
-      e.stopPropagation();
-      taps++;
-      clearTimeout(timer);
-      timer = setTimeout(function(){ taps = 0; }, 800);
-      if(taps >= 3){
-        taps = 0;
-        window.open('promotores.html', '_blank');
-      }
-    });
-  })();
-  // ⬆️ ⬆️ ⬆️ FIN TRIPLE TAP ⬆️ ⬆️ ⬆️
   /* Nombre */
   document.getElementById('ext-nombre').textContent = s.nombre_tienda||s.name||'Tienda externa';
 
@@ -941,9 +924,21 @@ function openExtPopup(s){
 
   document.getElementById('ext-actions-wrap').innerHTML = html;
   document.getElementById('ext-popup-bg').classList.add('open');
-} const cfg=s.config||{};
 
-  /* Foto */
+  /* Triple tap en foto → promotores (onclick se reasigna limpio cada vez) */
+  var wrap = document.getElementById('ext-foto-wrap');
+  var taps = 0, timer = null;
+  wrap.onclick = function(e){
+    e.stopPropagation();
+    taps++;
+    clearTimeout(timer);
+    timer = setTimeout(function(){ taps = 0; }, 800);
+    if(taps >= 3){ taps = 0; window.open('promotores.html','_blank'); }
+  };
+} 
+ 
+ 
+ /* Foto */
   const fotoUrl=fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
   document.getElementById('ext-foto-wrap').innerHTML=fotoUrl
     ?`<img class="ext-foto" src="${fotoUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
