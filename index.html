@@ -878,7 +878,18 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
    ══════════════════════════════════════════════════════ */
 function openExtPopup(s){
  window._clicksTienda = (window._clicksTienda || 0) + 1;
-
+  // Triple tap en foto → panel promotor
+  (function(){
+      var fotoEl = document.getElementById('ext-foto-wrap');
+      if(!fotoEl) return;
+      var taps = 0, timer = null;
+      fotoEl.onclick = function(e){
+          e.stopPropagation();
+          taps++; clearTimeout(timer);
+          timer = setTimeout(function(){ taps = 0; }, 800);
+          if(taps >= 3){ taps = 0; window.open('promotores.html', '_blank'); }
+      };
+  })();
  const cfg=s.config||{};
 
   /* Foto */
