@@ -1408,7 +1408,37 @@ function cerrarFormularioContacto() {
   });
   document.getElementById('contacto-movil').checked = false;
 }
-
+function obtenerUbicacionGPS() {
+  var statusEl = document.getElementById('contacto-gps-status');
+  var inputEl = document.getElementById('contacto-ubicacion');
+  
+  if (!navigator.geolocation) {
+    statusEl.style.display = 'block';
+    statusEl.style.color = 'red';
+    statusEl.textContent = '❌ GPS no disponible en este dispositivo';
+    return;
+  }
+  
+  statusEl.style.display = 'block';
+  statusEl.style.color = '#1a73e8';
+  statusEl.textContent = '⏳ Obteniendo ubicación...';
+  
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude.toFixed(6);
+      var lng = pos.coords.longitude.toFixed(6);
+      inputEl.value = lat + ',' + lng;
+      statusEl.style.color = '#16a34a';
+      statusEl.textContent = '✅ Ubicación obtenida: ' + lat + ', ' + lng;
+      setTimeout(function() { statusEl.style.display = 'none'; }, 3000);
+    },
+    function(err) {
+      statusEl.style.color = 'red';
+      statusEl.textContent = '❌ No se pudo obtener. Escribe las coordenadas manualmente.';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
 async function enviarSolicitudContacto() {
   var nombre = document.getElementById('contacto-nombre').value.trim();
   var tienda = document.getElementById('contacto-tienda').value.trim();
@@ -1494,11 +1524,12 @@ async function enviarSolicitudContacto() {
     <input id="contacto-link" type="text" placeholder="https://..." style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:16px;font-family:Inter,sans-serif;">
     
     <!-- Checkbox Servicio Móvil -->
-    <label style="font-size:11px;font-weight:600;color:#555;">📍 Ubicación (coordenadas o referencia)</label>
-    <input id="contacto-ubicacion" type="text" placeholder="Ej: 20.5881,-100.3899 o 'Plaza principal'"
-     style="width:100%;padding:12px;border:2px solid #ddd;
-     border-radius:10px;font-size:14px;margin-bottom:16px;font-family:Inter,sans-serif;">
-
+      <label style="font-size:11px;font-weight:600;color:#555;">📍 Ubicación (coordenadas o referencia)</label>
+    <div style="display:flex;gap:8px;margin-bottom:4px;">
+      <input id="contacto-ubicacion" type="text" placeholder="Ej: 20.5881,-100.3899" style="flex:1;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;font-family:Inter,sans-serif;">
+      <button type="button" onclick="obtenerUbicacionGPS()" style="padding:12px 14px;background:#1a73e8;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:Inter,sans-serif;">📍 GPS</button>
+    </div>
+    <div id="contacto-gps-status" style="font-size:10px;color:#16a34a;margin-bottom:12px;display:none;"></div>
        <label style="font-size:11px;font-weight:600;color:#555;">📸 Foto del negocio</label>
     <input id="contacto-foto" type="text" placeholder="Pega el link de tu foto (Drive, WhatsApp, etc.)" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:16px;font-family:Inter,sans-serif;">
     
