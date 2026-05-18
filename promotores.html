@@ -5,86 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>📋 Panel del Dueño - Mi Tienda</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        /* Login Card */
+        .container { max-width: 800px; margin: 0 auto; }
         .login-card, .dashboard-card {
             background: white;
             border-radius: 32px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             overflow: hidden;
-            animation: fadeIn 0.4s ease;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .card-header {
             background: linear-gradient(135deg, #075E54 0%, #128C7E 100%);
             color: white;
             padding: 28px 24px;
             text-align: center;
         }
-
-        .card-header h1 {
-            font-size: 1.6rem;
-            margin-bottom: 6px;
-        }
-
-        .card-header p {
-            opacity: 0.9;
-            font-size: 0.85rem;
-        }
-
-        .card-body {
-            padding: 28px 24px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
+        .card-header h1 { font-size: 1.6rem; margin-bottom: 6px; }
+        .card-body { padding: 28px 24px; }
+        .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
             font-weight: 600;
             color: #2d3748;
             margin-bottom: 8px;
-            font-size: 0.85rem;
         }
-
-        .form-group input, .form-group select {
+        .form-group input {
             width: 100%;
             padding: 14px 16px;
             border: 1px solid #e2e8f0;
             border-radius: 16px;
             font-size: 1rem;
-            transition: all 0.2s;
             outline: none;
         }
-
         .form-group input:focus {
             border-color: #128C7E;
             box-shadow: 0 0 0 3px rgba(18,140,126,0.1);
         }
-
         .btn {
             width: 100%;
             padding: 14px;
@@ -95,46 +56,13 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
         .btn-primary {
             background: linear-gradient(135deg, #128C7E, #075E54);
             color: white;
         }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(18,140,126,0.3);
-        }
-
-        .btn-danger {
-            background: #dc2626;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #b91c1c;
-        }
-
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #059669;
-        }
-
-        .btn-outline {
-            background: white;
-            border: 2px solid #128C7E;
-            color: #128C7E;
-        }
-
-        .btn-outline:hover {
-            background: #128C7E;
-            color: white;
-        }
-
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-success { background: #10b981; color: white; }
         .error-message {
             background: #fee2e2;
             color: #dc2626;
@@ -144,17 +72,14 @@
             font-size: 0.85rem;
             text-align: center;
         }
-
         .success-message {
             background: #d1fae5;
             color: #065f46;
             padding: 12px;
             border-radius: 16px;
             margin-bottom: 20px;
-            font-size: 0.85rem;
             text-align: center;
         }
-
         .info-box {
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
@@ -162,27 +87,19 @@
             padding: 20px;
             margin-bottom: 24px;
         }
-
         .info-row {
             display: flex;
             padding: 10px 0;
             border-bottom: 1px solid #e5e7eb;
             gap: 12px;
         }
-
         .info-label {
             width: 120px;
             font-weight: 700;
             color: #374151;
             flex-shrink: 0;
         }
-
-        .info-value {
-            flex: 1;
-            color: #1f2937;
-            word-break: break-word;
-        }
-
+        .info-value { flex: 1; color: #1f2937; word-break: break-word; }
         .access-code-box {
             background: linear-gradient(135deg, #fef3c7, #fde68a);
             border-radius: 20px;
@@ -190,7 +107,6 @@
             text-align: center;
             margin: 20px 0;
         }
-
         .access-code {
             font-size: 2rem;
             font-weight: 800;
@@ -203,7 +119,6 @@
             border-radius: 50px;
             margin-top: 10px;
         }
-
         .copy-btn {
             background: #92400e;
             color: white;
@@ -212,9 +127,7 @@
             border-radius: 30px;
             margin-top: 12px;
             cursor: pointer;
-            font-size: 0.8rem;
         }
-
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -222,28 +135,10 @@
             font-size: 0.75rem;
             font-weight: 600;
         }
-
-        .status-active {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .status-suspended {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .button-group .btn {
-            flex: 1;
-        }
-
+        .status-active { background: #d1fae5; color: #065f46; }
+        .status-suspended { background: #fee2e2; color: #dc2626; }
+        .button-group { display: flex; gap: 12px; margin-top: 20px; }
+        .button-group .btn { flex: 1; }
         .logout-btn {
             background: none;
             border: none;
@@ -251,19 +146,10 @@
             cursor: pointer;
             font-size: 0.8rem;
             margin-top: 16px;
-            text-align: center;
             width: 100%;
         }
-
-        .logout-btn:hover {
-            color: #dc2626;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-        }
-
+        .logout-btn:hover { color: #dc2626; }
+        .loading { text-align: center; padding: 40px; }
         .spinner {
             width: 40px;
             height: 40px;
@@ -273,42 +159,27 @@
             animation: spin 0.8s linear infinite;
             margin: 0 auto 15px;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        hr {
-            margin: 20px 0;
-            border: none;
-            border-top: 1px solid #e5e7eb;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        hr { margin: 20px 0; border: none; border-top: 1px solid #e5e7eb; }
     </style>
 </head>
 <body>
 <div class="container" id="app">
-    <!-- El contenido se renderiza dinámicamente con JavaScript -->
+    <div class="loading"><div class="spinner"></div>Cargando...</div>
 </div>
 
 <script>
     // ============================================================
-    // CONFIGURACIÓN
+    // TU API - USANDO ENDPOINTS PÚBLICOS QUE DEBES AGREGAR
     // ============================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
     
-    // Estado de la aplicación
-    let currentUser = null;      // { email, storeData, accessCode }
-    let isLoggedIn = false;
+    let currentStore = null;
+    let currentAccessCode = null;
     
-    // ============================================================
-    // UTILIDADES
-    // ============================================================
-    function safeString(value) {
-        if (value === null || value === undefined) return '';
-        if (typeof value === 'string') return value;
-        if (typeof value === 'number') return value.toString();
-        if (typeof value === 'boolean') return value ? 'true' : 'false';
-        return '';
+    function safeString(v) {
+        if (v === null || v === undefined) return '';
+        return String(v);
     }
     
     function escapeHtml(str) {
@@ -321,112 +192,74 @@
         });
     }
     
-    function isTrue(value) {
-        if (value === true || value === false) return value;
-        const str = safeString(value).toLowerCase();
-        return str === 'true' || str === '1' || str === 'si' || str === 'sí';
+    function isTrue(v) {
+        if (v === true || v === false) return v;
+        return safeString(v).toLowerCase() === 'true' || safeString(v) === '1';
     }
     
-    // Generar código de acceso de 8 caracteres
     function generateAccessCode() {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let code = '';
-        for (let i = 0; i < 8; i++) {
-            code += chars[Math.floor(Math.random() * chars.length)];
-        }
+        for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
         return code;
     }
     
-    // Guardar código en localStorage (simulación)
-    function saveAccessCode(email, code) {
-        const codes = JSON.parse(localStorage.getItem('owner_access_codes') || '{}');
-        codes[email] = { code, expiresAt: Date.now() + 24 * 60 * 60 * 1000 };
-        localStorage.setItem('owner_access_codes', JSON.stringify(codes));
-    }
-    
-    function getAccessCode(email) {
-        const codes = JSON.parse(localStorage.getItem('owner_access_codes') || '{}');
-        const record = codes[email];
-        if (record && record.expiresAt > Date.now()) {
-            return record.code;
-        }
-        return null;
-    }
-    
     // ============================================================
-    // LLAMADAS A LA API
+    // LLAMADAS A LOS NUEVOS ENDPOINTS PÚBLICOS
     // ============================================================
     
-    // Obtener todas las tiendas externas (solo para admin/dueño)
-    async function fetchAllExternalStores() {
+    async function getStoreByEmail(email) {
         try {
-            const response = await fetch(`${API_URL}?action=external.stores.list`, {
+            const response = await fetch(`${API_URL}?action=owner.getStoreByEmail&email=${encodeURIComponent(email)}`, {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
             });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
-            return data.stores || [];
+            return data;
         } catch (error) {
-            console.error('Error fetching stores:', error);
-            return [];
+            return { ok: false, error: error.message };
         }
     }
     
-    // Actualizar una tienda externa
-    async function updateExternalStore(storeId, updates) {
+    async function updateStoreStatus(email, status) {
         try {
-            const response = await fetch(`${API_URL}?action=external.store.update`, {
+            const response = await fetch(`${API_URL}?action=owner.updateStoreStatus`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'external.store.update',
-                    storeId: storeId,
-                    ...updates
+                    action: 'owner.updateStoreStatus',
+                    email: email,
+                    status: status
                 })
             });
             const data = await response.json();
             return data;
         } catch (error) {
-            console.error('Error updating store:', error);
             return { ok: false, error: error.message };
         }
     }
     
     // ============================================================
-    // LÓGICA DE LOGIN
+    // LOGIN REAL
     // ============================================================
     async function loginWithEmail(email) {
         if (!email || !email.includes('@')) {
             return { success: false, error: 'Ingresa un correo electrónico válido' };
         }
         
-        const emailLower = email.toLowerCase().trim();
+        const result = await getStoreByEmail(email);
         
-        // Buscar tienda por correo
-        const allStores = await fetchAllExternalStores();
-        
-        // Buscar en external_stores donde correo coincida
-        const store = allStores.find(s => {
-            const storeEmail = safeString(s.correo).toLowerCase().trim();
-            return storeEmail === emailLower;
-        });
-        
-        if (!store) {
-            return { success: false, error: 'No se encontró ninguna tienda registrada con este correo' };
+        if (!result.ok) {
+            return { success: false, error: result.error || 'No se encontró la tienda' };
         }
         
-        // Verificar si la tienda NO está suspendida permanentemente
+        const store = result.store;
+        
         if (store.status === 'suspendido') {
-            return { success: false, error: '❌ Tu tienda ha sido suspendida. Contacta al administrador.' };
+            return { success: false, error: '❌ Tu tienda está suspendida. Contacta al administrador.' };
         }
         
-        // Generar o recuperar código de acceso
-        let accessCode = getAccessCode(emailLower);
-        if (!accessCode) {
-            accessCode = generateAccessCode();
-            saveAccessCode(emailLower, accessCode);
-        }
+        const accessCode = generateAccessCode();
         
         return {
             success: true,
@@ -436,95 +269,51 @@
     }
     
     // ============================================================
-    // CAMBIAR STATUS (activo ↔ suspendido)
-    // ============================================================
-    async function toggleStoreStatus(storeId, currentStatus) {
-        const newStatus = currentStatus === 'activo' ? 'suspendido' : 'activo';
-        
-        const result = await updateExternalStore(storeId, { status: newStatus });
-        
-        if (result.ok) {
-            return { success: true, newStatus: newStatus };
-        } else {
-            return { success: false, error: result.error || 'Error al actualizar el estado' };
-        }
-    }
-    
-    // ============================================================
-    // RENDERIZADO DE VISTAS
+    // RENDERIZADO
     // ============================================================
     
-    // Pantalla de Login
     function renderLogin() {
         return `
             <div class="login-card">
                 <div class="card-header">
                     <h1>🔐 Mi Tienda</h1>
-                    <p>Accede con tu correo registrado</p>
+                    <p>Accede con el correo registrado en el directorio</p>
                 </div>
                 <div class="card-body">
                     <div id="loginMessage"></div>
                     <div class="form-group">
-                        <label>📧 Correo electrónico</label>
-                        <input type="email" id="loginEmail" placeholder="tu@email.com" autocomplete="email">
+                        <label>📧 Correo electrónico registrado</label>
+                        <input type="email" id="loginEmail" placeholder="tutienda@ejemplo.com" autocomplete="email">
                     </div>
-                    <button class="btn btn-primary" id="loginBtn">Ingresar →</button>
-                    <p style="text-align: center; margin-top: 20px; font-size: 0.75rem; color: #888;">
-                        Solo correos registrados en el directorio
+                    <button class="btn btn-primary" id="loginBtn">🔍 Ingresar →</button>
+                    <p style="text-align: center; margin-top: 20px; font-size: 0.7rem; color: #888;">
+                        El sistema verificará tu correo en el directorio de tiendas
                     </p>
                 </div>
             </div>
         `;
     }
     
-    // Dashboard del Dueño
     function renderDashboard(store, accessCode) {
-        const cfg = store.config || {};
-        
-        // Extraer todos los datos de la tienda
-        const storeId = safeString(store.storeId);
-        const nombreTienda = safeString(cfg.nombre_tienda || store.nombre_tienda || 'Sin nombre');
-        const nombreCliente = safeString(cfg.nombreCliente || store.nombre_cliente || '');
-        const telefono = safeString(cfg.telefono || store.telefono || '');
-        const correo = safeString(cfg.correo || store.correo || '');
-        const tipoNegocio = safeString(cfg.tipoNegocio || store.tipo_negocio || 'General');
-        const ubicacion = safeString(cfg.ubicate || store.ubicate || '');
-        const colonia = safeString(cfg.colonia || store.colonia || '');
-        const localidad = safeString(cfg.localidad || store.localidad || '');
-        const estado = safeString(cfg.estado || store.estado || '');
-        const horario = safeString(cfg.horariopromotor || store.horariopromotor || '08:00-18:00');
-        const foto = safeString(cfg.logoUrl || cfg.logo || store.foto || '');
-        const linkNegocio = safeString(cfg.linkNegocio || store.link_negocio || '');
-        const locationLat = safeString(cfg.locationLat || store.locationLat || '');
-        const locationLng = safeString(cfg.locationLng || store.locationLng || '');
-        const esMovil = isTrue(cfg.Movil || store.movil);
-        const tieneWhatsapp = isTrue(cfg.whatsapp || store.whatsapp);
-        const tieneLlegar = isTrue(cfg.llegar || store.llegar);
-        const status = safeString(store.status || 'activo');
-        const inDirectory = isTrue(store.inDirectory);
-        const createdAt = safeString(store.createdAt || '');
-        
-        const isActive = status === 'activo';
-        const ubicacionCompleta = [ubicacion, colonia, localidad, estado].filter(s => s && s !== '').join(', ');
+        const isActive = store.status === 'activo';
+        const ubicacionCompleta = [store.ubicate, store.colonia, store.localidad, store.estado].filter(s => s && s !== '').join(', ');
         
         return `
             <div class="dashboard-card">
                 <div class="card-header">
                     <h1>📋 Panel de Control</h1>
-                    <p>Bienvenido, <strong>${escapeHtml(nombreCliente || nombreTienda)}</strong></p>
+                    <p>Bienvenido, <strong>${escapeHtml(store.nombre_cliente || store.nombre_tienda)}</strong></p>
                 </div>
                 <div class="card-body">
                     <div id="dashboardMessage"></div>
                     
-                    <!-- CÓDIGO DE ACCESO -->
                     <div class="access-code-box">
                         <div style="font-size: 0.85rem;">🔑 Tu Código de Acceso</div>
                         <div class="access-code" id="accessCodeDisplay">${escapeHtml(accessCode)}</div>
                         <button class="copy-btn" onclick="copyAccessCode()">📋 Copiar código</button>
-                        <p style="font-size: 0.7rem; margin-top: 10px;">Usa este código para acceder a tu panel en el futuro</p>
+                        <p style="font-size: 0.7rem; margin-top: 10px;">Guarda este código para futuras referencias</p>
                     </div>
                     
-                    <!-- ESTADO ACTUAL -->
                     <div class="info-box">
                         <div class="info-row">
                             <div class="info-label">📌 Estado:</div>
@@ -536,43 +325,37 @@
                         </div>
                         <div class="info-row">
                             <div class="info-label">📅 Registro:</div>
-                            <div class="info-value">${escapeHtml(createdAt.split('T')[0] || 'No disponible')}</div>
+                            <div class="info-value">${escapeHtml((store.createdAt || '').split('T')[0] || 'No disponible')}</div>
                         </div>
                     </div>
                     
-                    <!-- DATOS GENERALES DE LA TIENDA -->
-                    <h3 style="margin: 20px 0 15px 0; color: #1f2937;">🏪 Datos de mi tienda</h3>
+                    <h3 style="margin: 20px 0 15px 0;">🏪 Mis datos</h3>
                     
                     <div class="info-row">
-                        <div class="info-label">🆔 ID Tienda:</div>
-                        <div class="info-value">${escapeHtml(storeId)}</div>
+                        <div class="info-label">🏷️ Tienda:</div>
+                        <div class="info-value"><strong>${escapeHtml(store.nombre_tienda)}</strong></div>
                     </div>
                     
+                    ${store.nombre_cliente ? `
                     <div class="info-row">
-                        <div class="info-label">🏷️ Nombre tienda:</div>
-                        <div class="info-value"><strong>${escapeHtml(nombreTienda)}</strong></div>
-                    </div>
-                    
-                    ${nombreCliente ? `
-                    <div class="info-row">
-                        <div class="info-label">👤 Cliente/Negocio:</div>
-                        <div class="info-value">${escapeHtml(nombreCliente)}</div>
+                        <div class="info-label">👤 Cliente:</div>
+                        <div class="info-value">${escapeHtml(store.nombre_cliente)}</div>
                     </div>
                     ` : ''}
                     
                     <div class="info-row">
                         <div class="info-label">📞 Teléfono:</div>
-                        <div class="info-value">${escapeHtml(telefono)}</div>
+                        <div class="info-value">${escapeHtml(store.telefono)}</div>
                     </div>
                     
                     <div class="info-row">
                         <div class="info-label">📧 Correo:</div>
-                        <div class="info-value">${escapeHtml(correo)}</div>
+                        <div class="info-value"><strong style="background:#fef3c7; padding:2px 8px; border-radius:12px;">${escapeHtml(store.correo)}</strong></div>
                     </div>
                     
                     <div class="info-row">
-                        <div class="info-label">📂 Giro/Tipo:</div>
-                        <div class="info-value">${escapeHtml(tipoNegocio)}</div>
+                        <div class="info-label">📂 Giro:</div>
+                        <div class="info-value">${escapeHtml(store.tipo_negocio)}</div>
                     </div>
                     
                     ${ubicacionCompleta ? `
@@ -584,44 +367,19 @@
                     
                     <div class="info-row">
                         <div class="info-label">🕐 Horario:</div>
-                        <div class="info-value">${escapeHtml(horario)}</div>
+                        <div class="info-value">${escapeHtml(store.horariopromotor || '08:00-18:00')}</div>
                     </div>
                     
                     <div class="info-row">
                         <div class="info-label">🛵 Servicio Móvil:</div>
-                        <div class="info-value">${esMovil ? '✅ Activado' : '❌ Desactivado'}</div>
+                        <div class="info-value">${isTrue(store.movil) ? '✅ Activado' : '❌ Desactivado'}</div>
                     </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">📱 WhatsApp:</div>
-                        <div class="info-value">${tieneWhatsapp ? '✅ Habilitado' : '❌ No habilitado'}</div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">📍 Indicaciones:</div>
-                        <div class="info-value">${tieneLlegar ? '✅ Incluye cómo llegar' : '❌ No incluye'}</div>
-                    </div>
-                    
-                    ${linkNegocio ? `
-                    <div class="info-row">
-                        <div class="info-label">🔗 Link negocio:</div>
-                        <div class="info-value"><a href="${escapeHtml(linkNegocio)}" target="_blank">${escapeHtml(linkNegocio)}</a></div>
-                    </div>
-                    ` : ''}
-                    
-                    ${foto ? `
-                    <div class="info-row">
-                        <div class="info-label">🖼️ Foto:</div>
-                        <div class="info-value"><a href="${escapeHtml(foto)}" target="_blank">Ver imagen</a></div>
-                    </div>
-                    ` : ''}
                     
                     <hr>
                     
-                    <!-- ACCIONES -->
                     <div class="button-group">
                         <button class="btn ${isActive ? 'btn-danger' : 'btn-success'}" id="toggleStatusBtn">
-                            ${isActive ? '⛔ Suspender tienda' : '✅ Activar tienda'}
+                            ${isActive ? '⛔ Suspender mi tienda' : '✅ Activar mi tienda'}
                         </button>
                     </div>
                     
@@ -631,147 +389,79 @@
         `;
     }
     
-    // Mensajes flotantes
     function showMessage(containerId, message, isError = true) {
         const container = document.getElementById(containerId);
         if (container) {
             container.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
             setTimeout(() => {
-                if (document.getElementById(containerId)) {
-                    document.getElementById(containerId).innerHTML = '';
-                }
+                if (document.getElementById(containerId)) document.getElementById(containerId).innerHTML = '';
             }, 4000);
         }
     }
     
-    // Copiar código al portapapeles
     window.copyAccessCode = function() {
-        const codeElement = document.getElementById('accessCodeDisplay');
-        if (codeElement) {
-            const code = codeElement.innerText;
-            navigator.clipboard.writeText(code).then(() => {
-                showMessage('dashboardMessage', '✅ Código copiado al portapapeles', false);
-            }).catch(() => {
-                showMessage('dashboardMessage', '❌ No se pudo copiar', true);
-            });
+        const codeEl = document.getElementById('accessCodeDisplay');
+        if (codeEl) {
+            navigator.clipboard.writeText(codeEl.innerText);
+            showMessage('dashboardMessage', '✅ Código copiado', false);
         }
     };
     
-    // ============================================================
-    // INICIALIZACIÓN Y EVENTOS
-    // ============================================================
-    async function init() {
-        const app = document.getElementById('app');
+    async function toggleStatus() {
+        const newStatus = currentStore.status === 'activo' ? 'suspendido' : 'activo';
+        const result = await updateStoreStatus(currentStore.correo, newStatus);
         
-        // Verificar si hay sesión guardada
-        const savedSession = localStorage.getItem('owner_session');
-        if (savedSession) {
-            try {
-                const session = JSON.parse(savedSession);
-                if (session.expiresAt > Date.now()) {
-                    currentUser = session.user;
-                    isLoggedIn = true;
-                    app.innerHTML = renderDashboard(currentUser.storeData, currentUser.accessCode);
-                    attachDashboardEvents(currentUser.storeData);
-                    return;
-                } else {
-                    localStorage.removeItem('owner_session');
-                }
-            } catch(e) {}
+        if (result.ok) {
+            currentStore.status = newStatus;
+            const app = document.getElementById('app');
+            app.innerHTML = renderDashboard(currentStore, currentAccessCode);
+            attachDashboardEvents();
+            showMessage('dashboardMessage', `✅ Estado actualizado a: ${newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, false);
+        } else {
+            showMessage('dashboardMessage', result.error || 'Error al actualizar', true);
         }
+    }
+    
+    function attachDashboardEvents() {
+        const toggleBtn = document.getElementById('toggleStatusBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
         
-        // Mostrar login
-        app.innerHTML = renderLogin();
-        attachLoginEvents();
+        if (toggleBtn) toggleBtn.addEventListener('click', toggleStatus);
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                currentStore = null;
+                document.getElementById('app').innerHTML = renderLogin();
+                attachLoginEvents();
+            });
+        }
     }
     
     function attachLoginEvents() {
         const loginBtn = document.getElementById('loginBtn');
         const loginEmail = document.getElementById('loginEmail');
         
-        if (loginBtn) {
-            loginBtn.addEventListener('click', async () => {
-                const email = loginEmail.value;
-                const result = await loginWithEmail(email);
-                
-                if (result.success) {
-                    currentUser = {
-                        email: email.toLowerCase().trim(),
-                        storeData: result.store,
-                        accessCode: result.accessCode
-                    };
-                    
-                    // Guardar sesión por 24 horas
-                    localStorage.setItem('owner_session', JSON.stringify({
-                        user: currentUser,
-                        expiresAt: Date.now() + 24 * 60 * 60 * 1000
-                    }));
-                    
-                    isLoggedIn = true;
-                    const app = document.getElementById('app');
-                    app.innerHTML = renderDashboard(result.store, result.accessCode);
-                    attachDashboardEvents(result.store);
-                } else {
-                    showMessage('loginMessage', result.error, true);
-                }
-            });
-        }
+        loginBtn.addEventListener('click', async () => {
+            const result = await loginWithEmail(loginEmail.value);
+            if (result.success) {
+                currentStore = result.store;
+                currentAccessCode = result.accessCode;
+                document.getElementById('app').innerHTML = renderDashboard(currentStore, currentAccessCode);
+                attachDashboardEvents();
+            } else {
+                showMessage('loginMessage', result.error, true);
+            }
+        });
         
-        if (loginEmail) {
-            loginEmail.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    document.getElementById('loginBtn').click();
-                }
-            });
-        }
+        loginEmail.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginBtn.click();
+        });
     }
     
-    function attachDashboardEvents(store) {
-        const toggleBtn = document.getElementById('toggleStatusBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', async () => {
-                const currentStatus = store.status || 'activo';
-                const result = await toggleStoreStatus(store.storeId, currentStatus);
-                
-                if (result.success) {
-                    // Actualizar store local
-                    store.status = result.newStatus;
-                    currentUser.storeData = store;
-                    
-                    // Actualizar sesión guardada
-                    const savedSession = localStorage.getItem('owner_session');
-                    if (savedSession) {
-                        const session = JSON.parse(savedSession);
-                        session.user.storeData = store;
-                        localStorage.setItem('owner_session', JSON.stringify(session));
-                    }
-                    
-                    // Re-renderizar dashboard
-                    const app = document.getElementById('app');
-                    app.innerHTML = renderDashboard(store, currentUser.accessCode);
-                    attachDashboardEvents(store);
-                    showMessage('dashboardMessage', `✅ Estado actualizado a: ${result.newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, false);
-                } else {
-                    showMessage('dashboardMessage', result.error || 'Error al cambiar el estado', true);
-                }
-            });
-        }
-        
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                localStorage.removeItem('owner_session');
-                isLoggedIn = false;
-                currentUser = null;
-                const app = document.getElementById('app');
-                app.innerHTML = renderLogin();
-                attachLoginEvents();
-            });
-        }
+    function init() {
+        document.getElementById('app').innerHTML = renderLogin();
+        attachLoginEvents();
     }
     
-    // Iniciar la aplicación
     init();
 </script>
 </body>
