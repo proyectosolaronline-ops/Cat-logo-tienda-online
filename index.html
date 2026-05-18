@@ -1377,7 +1377,113 @@ window.addEventListener('load', () => {
   }, 3000);
 });
 
+// ═══ FORMULARIO CONTACTO ═══
+function abrirFormularioContacto() {
+  document.getElementById('contacto-bg').style.display = 'flex';
+}
+
+function cerrarFormularioContacto() {
+  document.getElementById('contacto-bg').style.display = 'none';
+  ['contacto-nombre','contacto-tienda','contacto-telefono','contacto-tipo','contacto-colonia','contacto-localidad','contacto-estado','contacto-link'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('contacto-movil').checked = false;
+}
+
+async function enviarSolicitudContacto() {
+  var nombre = document.getElementById('contacto-nombre').value.trim();
+  var tienda = document.getElementById('contacto-tienda').value.trim();
+  var telefono = document.getElementById('contacto-telefono').value.trim().replace(/\D/g,'');
+  var tipo = document.getElementById('contacto-tipo').value.trim();
+  var colonia = document.getElementById('contacto-colonia').value.trim();
+  var localidad = document.getElementById('contacto-localidad').value.trim();
+  var estado = document.getElementById('contacto-estado').value.trim();
+  var link = document.getElementById('contacto-link').value.trim();
+  var movil = document.getElementById('contacto-movil').checked;
   
+  if (!nombre || !tienda || !telefono || !tipo || !localidad) {
+    alert('Completa todos los campos requeridos (*)');
+    return;
+  }
+  
+  if (telefono.length < 10) {
+    alert('Ingresa un WhatsApp válido de 10 dígitos');
+    return;
+  }
+  
+  try {
+    var resp = await fetch(BACKEND_MAESTRO, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        action: 'solicitud.contacto',
+        nombre_cliente: nombre,
+        nombre_tienda: tienda,
+        telefono: telefono,
+        tipo_negocio: tipo,
+        colonia: colonia,
+        localidad: localidad,
+        estado: estado || 'Querétaro',
+        link_negocio: link,
+        movil: movil
+      })
+    });
+    
+    var data = await resp.json();
+    
+    if (data.ok) {
+      alert('✅ Solicitud enviada correctamente. Te contactaremos pronto.');
+      cerrarFormularioContacto();
+    } else {
+      alert('❌ Error: ' + (data.error || 'Intenta de nuevo'));
+    }
+  } catch(e) {
+    alert('❌ Error de conexión. Intenta de nuevo.');
+  }
+}  
 </script>
+<!-- FORMULARIO SER PARTE DEL DIRECTORIO -->
+<div id="contacto-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:3000;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarFormularioContacto()">
+  <div style="background:#fff;border-radius:20px;padding:24px;max-width:420px;width:100%;max-height:90dvh;overflow-y:auto;font-family:Inter,sans-serif;">
+    <div style="text-align:center;margin-bottom:4px;">📩</div>
+    <div style="font-size:18px;font-weight:800;color:#111;text-align:center;">Ser parte del directorio</div>
+    <div style="font-size:12px;color:#888;text-align:center;margin-bottom:20px;">Completa tus datos y te contactamos</div>
+    
+    <label style="font-size:11px;font-weight:600;color:#555;">Nombre del cliente *</label>
+    <input id="contacto-nombre" type="text" placeholder="Tu nombre completo" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    
+    <label style="font-size:11px;font-weight:600;color:#555;">Nombre de la tienda *</label>
+    <input id="contacto-tienda" type="text" placeholder="Nombre de tu negocio" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    
+    <label style="font-size:11px;font-weight:600;color:#555;">WhatsApp *</label>
+    <input id="contacto-telefono" type="tel" placeholder="4421234567" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    
+    <label style="font-size:11px;font-weight:600;color:#555;">Giro del negocio *</label>
+    <input id="contacto-tipo" type="text" placeholder="Ej: Abarrotes, Farmacia, Ropa..." style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    
+    <label style="font-size:11px;font-weight:600;color:#555;">Colonia</label>
+    <input id="contacto-colonia" type="text" placeholder="Colonia donde estás" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    
+    <label style="font-size:11px;font-weight:600;color:#555;">Localidad / Ciudad *</label>
+    <input id="contacto-localidad" type="text" placeholder="Ej: Querétaro, San Juan del Río..." style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    
+    <label style="font-size:11px;font-weight:600;color:#555;">Estado</label>
+    <input id="contacto-estado" type="text" placeholder="Querétaro" value="Querétaro" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    
+    <label style="font-size:11px;font-weight:600;color:#555;">Link de tu negocio (opcional)</label>
+    <input id="contacto-link" type="text" placeholder="https://..." style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:16px;font-family:Inter,sans-serif;">
+    
+    <!-- Checkbox Servicio Móvil -->
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;">
+      <input id="contacto-movil" type="checkbox" style="width:18px;height:18px;">
+      <span style="font-size:13px;color:#555;">🛵 Soy Servicio Móvil (reparto a domicilio)</span>
+    </label>
+    
+    <button onclick="enviarSolicitudContacto()" style="width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">📨 Enviar solicitud</button>
+    <button onclick="cerrarFormularioContacto()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;">Cancelar</button>
+  </div>
+</div>
+
+ 
 </body>
 </html>
