@@ -16,7 +16,6 @@
         .inp:focus{outline:none;border-color:var(--primary);}
         .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px;}
         .btn-primary{background:var(--primary);color:#fff;}
-        .btn-wpp{background:var(--wpp);color:#fff;}
         .btn-danger{background:var(--danger);color:#fff;}
         .btn-ok{background:var(--ok);color:#fff;}
         .btn-outline{background:#fff;color:#888;border:1.5px solid #ddd;}
@@ -27,20 +26,19 @@
         .badge-ok{background:#e8f5e9;color:#16a34a;}
         .badge-danger{background:#fee2e2;color:#ef4444;}
         .hidden{display:none;}
-        .centered{text-align:center;}
         .msg{font-size:.78rem;padding:8px 12px;border-radius:8px;margin-bottom:12px;text-align:center;}
         .msg-ok{background:#e8f5e9;color:#16a34a;}
         .msg-err{background:#fee2e2;color:#ef4444;}
     </style>
 </head>
 <body>
-<div class="panel" id="panel">
+<div class="panel">
 
-    <!-- STEP 1: LOGIN -->
+    <!-- STEP 1: LOGIN POR CORREO -->
     <div id="step-login">
         <h2>🛵 Panel Promotor</h2>
-        <div class="sub">Ingresa tu WhatsApp registrado</div>
-        <input class="inp" type="tel" id="login-tel" placeholder="4421234567" maxlength="10">
+        <div class="sub">Ingresa tu correo registrado</div>
+        <input class="inp" type="email" id="login-email" placeholder="correo@ejemplo.com">
         <button class="btn btn-primary" onclick="enviarCodigo()">📧 Solicitar código de acceso</button>
         <div id="login-msg"></div>
     </div>
@@ -61,6 +59,7 @@
         <h2>🛵 Mi Panel</h2>
         <div class="sub" id="panel-nombre"></div>
         <div class="info-row"><span>📱 WhatsApp</span><span id="info-tel"></span></div>
+        <div class="info-row"><span>📧 Correo</span><span id="info-correo"></span></div>
         <div class="info-row"><span>🏷️ Tipo</span><span id="info-tipo"></span></div>
         <div class="info-row"><span>📍 Ubicación</span><span id="info-ubi"></span></div>
         <div class="info-row"><span>📌 Estado actual</span><span id="info-status"></span></div>
@@ -81,16 +80,17 @@ var promotorEncontrado = null;
 
 function msg(id, texto, tipo) {
     var el = document.getElementById(id);
+    if(!el) return;
     el.textContent = texto;
-    el.className = 'msg msg-' + tipo;
+    el.className = 'msg msg-' + (tipo || 'ok');
     el.style.display = texto ? 'block' : 'none';
 }
 
 async function enviarCodigo() {
-    var tel = document.getElementById('login-tel').value.replace(/\D/g, '');
-    if (tel.length < 10) { msg('login-msg', 'Ingresa 10 dígitos', 'err'); return; }
+    var email = document.getElementById('login-email').value.trim();
+    if (!email || email.indexOf('@') < 0) { msg('login-msg', 'Ingresa un correo valido', 'err'); return; }
     
-    msg('login-msg', '⏳ Buscando...', 'ok');
+    msg('login-msg', 'Buscando...', 'ok');
     
     try {
         var resp = await fetch(BACKEND_MAESTRO + '?action=stores.directory');
@@ -98,15 +98,15 @@ async function enviarCodigo() {
         var stores = (data.stores || []).filter(function(s) {
             return s.isExternal === true;
         });
+        
         var promotor = stores.find(function(s) {
-    var cfg = s.config || {};
-    var t = String(cfg.telefono || '').replace(/\D/g, '');
-    var correo = cfg.correo || '';
-    return t === tel && correo !== '';
-});
+            var cfg = s.config || {};
+            var c = (cfg.correo || '').trim().toLowerCase();
+            return c === email.toLowerCase();
+        });
         
         if (!promotor) {
-            msg('login-msg', '❌ WhatsApp no registrado', 'err');
+            msg('login-msg', 'Correo no registrado como promotor', 'err');
             return;
         }
         
@@ -114,14 +114,9 @@ async function enviarCodigo() {
         codigoActual = Math.floor(100000 + Math.random() * 900000).toString();
         
         var cfg = promotor.config || {};
-        var correo = cfg.correo || '';
+        var correo = cfg.correo || email;
         
-        if (!correo) {
-            msg('login-msg', '❌ No hay correo registrado', 'err');
-            return;
-        }
-        
-        await fetch(BACKEND_MAESTRO, {
+        var resp2 = await fetch(BACKEND_MAESTRO, {
             method: 'POST',
             headers: {'Content-Type': 'text/plain;charset=utf-8'},
             body: JSON.stringify({
@@ -133,22 +128,27 @@ async function enviarCodigo() {
                 }
             })
         });
+        var data2 = await resp2.json();
         
-        msg('login-msg', '', 'ok');
+        if (!data2.ok) {
+            msg('login-msg', 'Error al enviar: ' + (data2.error || 'intenta de nuevo'), 'err');
+            return;
+        }
+        
         document.getElementById('step-login').classList.add('hidden');
         document.getElementById('step-code').classList.remove('hidden');
         document.getElementById('code-input').value = '';
         document.getElementById('code-msg-sub').textContent = 'Revisa tu correo: ' + correo;
         
     } catch(e) {
-        msg('login-msg', '❌ Error de conexión', 'err');
+        msg('login-msg', 'Error de conexion', 'err');
     }
 }
 
 function verificarCodigo() {
     var code = document.getElementById('code-input').value.trim();
     if (code !== codigoActual) {
-        msg('code-msg', '❌ Código incorrecto', 'err');
+        msg('code-msg', 'Codigo incorrecto', 'err');
         return;
     }
     
@@ -157,6 +157,7 @@ function verificarCodigo() {
     
     document.getElementById('panel-nombre').textContent = p.nombre_tienda || p.name || 'Promotor';
     document.getElementById('info-tel').textContent = cfg.telefono || '';
+    document.getElementById('info-correo').textContent = cfg.correo || '';
     document.getElementById('info-tipo').textContent = cfg.tipoNegocio || cfg.tipo || '';
     document.getElementById('info-ubi').textContent = cfg.ubicate || cfg.colonia || 'No definida';
     
@@ -172,25 +173,24 @@ function actualizarStatusUI(status) {
     var btnS = document.getElementById('btn-suspender');
     
     if (status === 'suspendido') {
-        el.innerHTML = '<span class="badge badge-danger">⏸️ Suspendido</span>';
+        el.innerHTML = '<span class="badge badge-danger">Suspendido</span>';
         btnA.style.opacity = '1';
         btnS.style.opacity = '.4';
     } else {
-        el.innerHTML = '<span class="badge badge-ok">✅ Activo</span>';
+        el.innerHTML = '<span class="badge badge-ok">Activo</span>';
         btnA.style.opacity = '.4';
         btnS.style.opacity = '1';
     }
 }
 
 async function cambiarStatus(nuevoStatus) {
-    var p = promotorEncontrado;
-    var storeId = p.storeId;
+    var storeId = promotorEncontrado.storeId;
     if (!storeId) {
-        msg('panel-msg', '❌ Error: ID no encontrado', 'err');
+        msg('panel-msg', 'Error: ID no encontrado', 'err');
         return;
     }
     
-    msg('panel-msg', '⏳ Actualizando...', 'ok');
+    msg('panel-msg', 'Actualizando...', 'ok');
     
     try {
         var resp = await fetch(BACKEND_MAESTRO, {
@@ -208,12 +208,12 @@ async function cambiarStatus(nuevoStatus) {
         if (data.ok) {
             promotorEncontrado.status = nuevoStatus;
             actualizarStatusUI(nuevoStatus);
-            msg('panel-msg', nuevoStatus === 'activo' ? '✅ Visible en el mapa' : '⏸️ Oculto del mapa', 'ok');
+            msg('panel-msg', nuevoStatus === 'activo' ? 'Visible en el mapa' : 'Oculto del mapa', 'ok');
         } else {
-            msg('panel-msg', '❌ Error al actualizar', 'err');
+            msg('panel-msg', 'Error al actualizar', 'err');
         }
     } catch(e) {
-        msg('panel-msg', '❌ Error de conexión', 'err');
+        msg('panel-msg', 'Error de conexion', 'err');
     }
 }
 
@@ -229,7 +229,7 @@ function cerrarSesion() {
     codigoActual = '';
     document.getElementById('step-panel').classList.add('hidden');
     document.getElementById('step-login').classList.remove('hidden');
-    document.getElementById('login-tel').value = '';
+    document.getElementById('login-email').value = '';
 }
 </script>
 </body>
