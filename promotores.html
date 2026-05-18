@@ -203,6 +203,18 @@
     async function updateStoreStatus(storeId, status, token) {
         return await callAPI('external.store.status', { storeId: storeId, status: status, token: token });
     }
+
+// Agrega esta función para recargar datos desde el servidor
+async function recargarDatos() {
+    const storeResult = await getStoreInfo(storeId, ownerToken);
+    if (storeResult && storeResult.ok && storeResult.store) {
+        currentStore = storeResult.store;
+    }
+}
+
+
+
+
     
     // ============================================================
     // GENERAR CÓDIGO LOCAL (solo para mostrar)
@@ -389,27 +401,37 @@
             showMessage('msg', result?.error || 'Código incorrecto', 'error');
         }
     }
-    
-    async function saveStatus() {
-        const select = document.getElementById('statusSelect');
-        const newStatus = select.value;
-        
-        if (!currentStore || !ownerToken) return;
-        
-        showMessage('msg', 'Guardando...', 'success');
-        
-        const result = await updateStoreStatus(currentStore.storeId, newStatus, ownerToken);
-        
-        if (result && result.ok) {
-            currentStore.status = newStatus;
-            document.getElementById('app').innerHTML = renderDashboard(currentStore);
-            attachDashboardEvents();
-            showMessage('msg', `✅ Estado actualizado a: ${newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, 'success');
-        } else {
-            showMessage('msg', result?.error || 'Error al guardar', 'error');
-        }
+    // Agrega esta función para recargar datos desde el servidor
+async function recargarDatos() {
+    const storeResult = await getStoreInfo(storeId, ownerToken);
+    if (storeResult && storeResult.ok && storeResult.store) {
+        currentStore = storeResult.store;
     }
+}
+
+// Modifica saveStatus() - después de guardar, recarga los datos
+async function saveStatus() {
+    const select = document.getElementById('statusSelect');
+    const newStatus = select.value;
     
+    if (!currentStore || !ownerToken) return;
+    
+    showMessage('msg', 'Guardando...', 'success');
+    
+    const result = await updateStoreStatus(currentStore.storeId, newStatus, ownerToken);
+    
+    if (result && result.ok) {
+        // ✅ FORZAR RECARGA DE DATOS DESDE EL SERVIDOR
+        await recargarDatos();
+        
+        // ✅ VOLVER A RENDERIZAR CON DATOS FRESCOS
+        document.getElementById('app').innerHTML = renderDashboard(currentStore);
+        attachDashboardEvents();
+        showMessage('msg', `✅ Estado actualizado a: ${currentStore.status === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, 'success');
+    } else {
+        showMessage('msg', result?.error || 'Error al guardar', 'error');
+    }
+}
     function logout() {
         currentStore = null;
         ownerToken = null;
