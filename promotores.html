@@ -54,7 +54,11 @@
         <button class="btn btn-outline" onclick="volverLogin()">← Volver</button>
         <div id="code-msg"></div>
     </div>
-
+   
+    
+    <div class="sub" id="code-msg-sub">Revisa tu correo</div>
+    
+    
     <!-- ═══ STEP 3: PANEL PRINCIPAL ═══ -->
     <div id="step-panel" class="hidden">
         <h2>🛵 Mi Panel</h2>
@@ -113,9 +117,25 @@ async function enviarCodigo() {
         promotorEncontrado = promotor;
         codigoActual = Math.floor(100000 + Math.random() * 900000).toString();
         
-        // Enviar código por WhatsApp
-        var msgWpp = encodeURIComponent('🔐 *Código de acceso*\n\nTu código: *' + codigoActual + '*\n\nVálido 5 minutos.');
-        window.open('https://wa.me/52' + tel + '?text=' + msgWpp, '_blank');
+      / Enviar código por correo
+var correo = (promotor.config && promotor.config.correo) ? promotor.config.correo : '';
+if (correo) {
+    fetch(BACKEND_MAESTRO, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/plain;charset=utf-8'},
+        body: JSON.stringify({
+            action: 'enviarCodigoPromotor',
+            data: {
+                correo: correo,
+                codigo: codigoActual,
+                nombre: promotor.nombre_tienda || promotor.name || 'Promotor'
+            }
+        })
+    }).catch(function(){});
+    document.getElementById('code-msg-sub').textContent = 'Revisa tu correo ' + correo;
+} else {
+    document.getElementById('code-msg-sub').textContent = 'No hay correo registrado. Contacta a soporte.';
+}
         
         msg('login-msg', '', 'ok');
         document.getElementById('step-login').classList.add('hidden');
