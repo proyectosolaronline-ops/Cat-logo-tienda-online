@@ -305,6 +305,20 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 .pin-label::before{
   display:none!important;
 }
+.fab-contacto {
+  animation: pulse-contacto 2s infinite;
+}
+@keyframes pulse-contacto {
+  0%, 100% { box-shadow: 0 5px 18px rgba(37,211,102,.4); }
+  50% { box-shadow: 0 5px 30px rgba(37,211,102,.8), 0 0 20px rgba(37,211,102,.4); }
+}
+.fab-contacto {
+  animation: pulse-contacto 2s infinite;
+}
+@keyframes pulse-contacto {
+  0%, 100% { box-shadow: 0 5px 18px rgba(37,211,102,.4); }
+  50% { box-shadow: 0 5px 30px rgba(37,211,102,.8), 0 0 20px rgba(37,211,102,.4); }
+} 
 </style>
 </head>
 <body>
@@ -382,6 +396,12 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 
 
 <div class="fab-group">
+  <button class="fab fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;color:#fff;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+      <polyline points="22,6 12,13 2,6"/>
+    </svg>
+  </button>
   <button class="fab fab-fs" id="btn-fs" onclick="toggleFullscreen()" title="Pantalla completa">
     <svg id="fs-expand" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
       <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
@@ -400,7 +420,6 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
     </svg>
   </button>
 </div>
-
 <div id="searchPanel">
   <div class="sp-header">
     <div class="sp-search-inner">
