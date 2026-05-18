@@ -3,48 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>📋 Panel del Dueño - Mi Tienda</title>
+    <title>Mi Tienda - Panel del Dueño</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #075E54, #128C7E);
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 800px; margin: 0 auto; }
-        .login-card, .dashboard-card {
+        .container { max-width: 700px; margin: 0 auto; }
+        .card {
             background: white;
-            border-radius: 32px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-radius: 28px;
             overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
         }
         .card-header {
-            background: linear-gradient(135deg, #075E54 0%, #128C7E 100%);
+            background: linear-gradient(135deg, #075E54, #128C7E);
             color: white;
-            padding: 28px 24px;
+            padding: 24px;
             text-align: center;
         }
-        .card-header h1 { font-size: 1.6rem; margin-bottom: 6px; }
-        .card-body { padding: 28px 24px; }
+        .card-header h1 { font-size: 1.5rem; }
+        .card-body { padding: 28px; }
         .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
             font-weight: 600;
-            color: #2d3748;
             margin-bottom: 8px;
+            color: #374151;
         }
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
-            padding: 14px 16px;
-            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
             border-radius: 16px;
             font-size: 1rem;
-            outline: none;
         }
         .form-group input:focus {
+            outline: none;
             border-color: #128C7E;
-            box-shadow: 0 0 0 3px rgba(18,140,126,0.1);
         }
         .btn {
             width: 100%;
@@ -54,13 +53,14 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: 0.2s;
         }
-        .btn-primary { background: linear-gradient(135deg, #128C7E, #075E54); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); }
-        .btn-secondary { background: #6c757d; color: white; }
+        .btn-primary { background: #128C7E; color: white; }
+        .btn-primary:hover { background: #075E54; }
         .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
         .btn-success { background: #10b981; color: white; }
+        .btn-secondary { background: #6c757d; color: white; margin-top: 10px; }
         .error-message {
             background: #fee2e2;
             color: #dc2626;
@@ -68,7 +68,6 @@
             border-radius: 16px;
             margin-bottom: 20px;
             font-size: 0.85rem;
-            text-align: center;
         }
         .success-message {
             background: #d1fae5;
@@ -76,7 +75,6 @@
             padding: 12px;
             border-radius: 16px;
             margin-bottom: 20px;
-            text-align: center;
         }
         .info-message {
             background: #dbeafe;
@@ -84,27 +82,18 @@
             padding: 12px;
             border-radius: 16px;
             margin-bottom: 20px;
-            text-align: center;
-        }
-        .info-box {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 24px;
         }
         .info-row {
             display: flex;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #e5e7eb;
             gap: 12px;
             flex-wrap: wrap;
         }
         .info-label {
-            width: 130px;
+            width: 120px;
             font-weight: 700;
             color: #374151;
-            flex-shrink: 0;
         }
         .info-value { flex: 1; color: #1f2937; word-break: break-word; }
         .status-badge {
@@ -116,18 +105,24 @@
         }
         .status-active { background: #d1fae5; color: #065f46; }
         .status-suspended { background: #fee2e2; color: #dc2626; }
-        .button-group { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
-        .button-group .btn { flex: 1; }
-        .logout-btn {
-            background: none;
-            border: none;
-            color: #6b7280;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-top: 16px;
-            width: 100%;
+        .code-box {
+            background: #fef3c7;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
         }
-        .logout-btn:hover { color: #dc2626; }
+        .code-number {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 6px;
+            font-family: monospace;
+            background: white;
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 50px;
+            margin-top: 10px;
+        }
         .loading { text-align: center; padding: 40px; }
         .spinner {
             width: 40px;
@@ -136,42 +131,25 @@
             border-top: 3px solid #128C7E;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         hr { margin: 20px 0; border: none; border-top: 1px solid #e5e7eb; }
-        .code-input-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .code-input-group input {
-            flex: 2;
-            text-align: center;
-            font-size: 1.3rem;
-            letter-spacing: 4px;
-        }
-        .code-input-group button {
-            flex: 1;
-            margin: 0;
-        }
     </style>
 </head>
 <body>
-<div class="container" id="app">
-    <div class="loading"><div class="spinner"></div>Cargando...</div>
-</div>
+<div class="container" id="app"></div>
 
 <script>
     // ============================================================
-    // CONFIGURACIÓN - TU API
+    // TU API
     // ============================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
     
-    // Estado de la sesión
-    let ownerToken = null;
-    let storeId = null;
-    let storeData = null;
+    // Estado
+    let currentStore = null;
+    let currentEmail = '';
+    let currentCode = '';
     
     // ============================================================
     // UTILIDADES
@@ -182,8 +160,7 @@
     }
     
     function escapeHtml(str) {
-        const s = safeString(str);
-        return s.replace(/[&<>]/g, function(m) {
+        return safeString(str).replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
@@ -196,393 +173,279 @@
         return safeString(v).toLowerCase() === 'true' || safeString(v) === '1';
     }
     
-    // ============================================================
-    // LLAMADAS A LA API (usando las acciones existentes)
-    // ============================================================
-    
-    // Paso 1: Solicitar código al correo
-    async function requestCode(email) {
+    async function callAPI(action, data = {}) {
         try {
-            const response = await fetch(`${API_URL}?action=owner.request.code`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'owner.request.code',
-                    email: email
-                })
-            });
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            return { ok: false, error: error.message };
-        }
-    }
-    
-    // Paso 2: Verificar código y obtener token de owner
-    async function verifyCode(email, code) {
-        try {
-            const response = await fetch(`${API_URL}?action=owner.verify.code`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'owner.verify.code',
-                    email: email,
-                    code: code
-                })
-            });
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            return { ok: false, error: error.message };
-        }
-    }
-    
-    // Obtener información de la tienda (requiere token)
-    async function getStoreInfo(storeId, token) {
-        try {
-            const response = await fetch(`${API_URL}?action=store.info&storeId=${storeId}&token=${token}`, {
+            const response = await fetch(`${API_URL}?action=${action}&${new URLSearchParams(data).toString()}`, {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
             });
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            return { ok: false, error: error.message };
-        }
-    }
-    
-    // Actualizar status de la tienda usando external.store.update (requiere token admin)
-    // NOTA: Para dueño, necesitas un endpoint específico o usar el token de owner
-    async function updateStoreStatus(storeId, status, token) {
-        try {
-            const response = await fetch(`${API_URL}?action=external.store.update`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'external.store.update',
-                    storeId: storeId,
-                    status: status,
-                    token: token
-                })
-            });
-            const data = await response.json();
-            return data;
+            return await response.json();
         } catch (error) {
             return { ok: false, error: error.message };
         }
     }
     
     // ============================================================
-    // RENDERIZADO DE VISTAS
+    // LLAMADAS A LA API
+    // ============================================================
+    async function requestCode(email) {
+        return await callAPI('owner.request.code', { email: email });
+    }
+    
+    async function verifyCode(email, code) {
+        return await callAPI('owner.verify.code', { email: email, code: code });
+    }
+    
+    async function getStoreInfo(storeId, token) {
+        return await callAPI('store.info', { storeId: storeId, token: token });
+    }
+    
+    async function updateStoreStatus(storeId, status, token) {
+        return await callAPI('external.store.status', { storeId: storeId, status: status, token: token });
+    }
+    
+    // ============================================================
+    // GENERAR CÓDIGO LOCAL (solo para mostrar)
+    // ============================================================
+    function generarCodigoLocal() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = '';
+        for (let i = 0; i < 8; i++) {
+            code += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return code;
+    }
+    
+    // ============================================================
+    // RENDERIZADO
     // ============================================================
     
     // Pantalla 1: Ingresar correo
-    function renderEmailStep() {
+    function renderLogin() {
         return `
-            <div class="login-card">
+            <div class="card">
                 <div class="card-header">
-                    <h1>🔐 Panel del Dueño</h1>
-                    <p>Ingresa tu correo para recibir un código de acceso</p>
+                    <h1>🔐 Mi Tienda</h1>
+                    <p>Ingresa tu correo registrado</p>
                 </div>
                 <div class="card-body">
-                    <div id="emailMessage"></div>
+                    <div id="msg"></div>
                     <div class="form-group">
-                        <label>📧 Correo electrónico registrado</label>
-                        <input type="email" id="ownerEmail" placeholder="tutienda@ejemplo.com" autocomplete="email">
+                        <label>📧 Correo electrónico</label>
+                        <input type="email" id="emailInput" placeholder="tutienda@ejemplo.com">
                     </div>
-                    <button class="btn btn-primary" id="requestCodeBtn">📨 Enviar código de acceso</button>
-                    <p style="text-align: center; margin-top: 20px; font-size: 0.7rem; color: #888;">
-                        Recibirás un código de 8 caracteres en tu correo
-                    </p>
+                    <button class="btn btn-primary" id="sendCodeBtn">📨 Enviar código</button>
                 </div>
             </div>
         `;
     }
     
-    // Pantalla 2: Ingresar código recibido
+    // Pantalla 2: Ingresar código
     function renderCodeStep(email) {
         return `
-            <div class="login-card">
+            <div class="card">
                 <div class="card-header">
-                    <h1>🔐 Verificar código</h1>
+                    <h1>🔑 Verificar código</h1>
                     <p>Se envió un código a <strong>${escapeHtml(email)}</strong></p>
                 </div>
                 <div class="card-body">
-                    <div id="codeMessage"></div>
+                    <div id="msg"></div>
                     <div class="form-group">
-                        <label>🔑 Código de 8 caracteres</label>
-                        <div class="code-input-group">
-                            <input type="text" id="accessCode" maxlength="8" placeholder="Ej: 3K7B9X2M" autocomplete="off" style="text-transform:uppercase">
-                            <button class="btn btn-primary" id="verifyCodeBtn">✅ Validar</button>
-                        </div>
+                        <label>📲 Código de 8 caracteres</label>
+                        <input type="text" id="codeInput" maxlength="8" placeholder="Ej: 3K7B9X2M" style="text-transform:uppercase; text-align:center; font-size:1.3rem; letter-spacing:4px;">
                     </div>
-                    <button class="btn btn-secondary" id="backToEmailBtn">← Volver a ingresar correo</button>
+                    <button class="btn btn-primary" id="verifyBtn">✅ Verificar acceso</button>
+                    <button class="btn btn-secondary" id="backBtn">← Volver</button>
                 </div>
             </div>
         `;
     }
     
-    // Pantalla 3: Dashboard con datos de la tienda
+    // Pantalla 3: Dashboard con datos + solo cambiar status
     function renderDashboard(store) {
         const isActive = store.status === 'activo';
         const ubicacionCompleta = [store.ubicate, store.colonia, store.localidad, store.estado].filter(s => s && s !== '').join(', ');
         
         return `
-            <div class="dashboard-card">
+            <div class="card">
                 <div class="card-header">
-                    <h1>📋 Mi Tienda</h1>
-                    <p>Bienvenido, <strong>${escapeHtml(store.nombre_cliente || store.nombre_tienda)}</strong></p>
+                    <h1>📋 ${escapeHtml(store.nombre_tienda)}</h1>
+                    <p>Bienvenido, ${escapeHtml(store.nombre_cliente || store.nombre_tienda)}</p>
                 </div>
                 <div class="card-body">
-                    <div id="dashboardMessage"></div>
+                    <div id="msg"></div>
                     
-                    <div class="info-box">
-                        <div class="info-row">
-                            <div class="info-label">📌 Estado:</div>
-                            <div class="info-value">
-                                <span class="status-badge ${isActive ? 'status-active' : 'status-suspended'}">
-                                    ${isActive ? '✅ ACTIVO' : '⛔ SUSPENDIDO'}
-                                </span>
-                            </div>
+                    <div class="code-box">
+                        <div>🔑 Tu código de acceso</div>
+                        <div class="code-number">${escapeHtml(currentCode)}</div>
+                        <small>Guarda este código para futuros accesos</small>
+                    </div>
+                    
+                    <h3 style="margin: 15px 0;">📌 Estado actual</h3>
+                    <div class="info-row">
+                        <div class="info-label">Estado:</div>
+                        <div class="info-value">
+                            <span class="status-badge ${isActive ? 'status-active' : 'status-suspended'}">
+                                ${isActive ? '✅ ACTIVO' : '⛔ SUSPENDIDO'}
+                            </span>
                         </div>
-                        <div class="info-row">
-                            <div class="info-label">📅 Fecha registro:</div>
-                            <div class="info-value">${escapeHtml((store.createdAt || '').split('T')[0] || 'No disponible')}</div>
-                        </div>
                     </div>
                     
-                    <h3 style="margin: 20px 0 15px 0;">🏪 Datos generales</h3>
-                    
-                    <div class="info-row">
-                        <div class="info-label">🆔 ID Tienda:</div>
-                        <div class="info-value">${escapeHtml(store.storeId)}</div>
+                    <div class="form-group">
+                        <label>🔄 Cambiar estado</label>
+                        <select id="statusSelect">
+                            <option value="activo" ${isActive ? 'selected' : ''}>✅ Activo</option>
+                            <option value="suspendido" ${!isActive ? 'selected' : ''}>⛔ Suspendido</option>
+                        </select>
                     </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">🏷️ Nombre tienda:</div>
-                        <div class="info-value"><strong>${escapeHtml(store.nombre_tienda)}</strong></div>
-                    </div>
-                    
-                    ${store.nombre_cliente ? `
-                    <div class="info-row">
-                        <div class="info-label">👤 Cliente/Negocio:</div>
-                        <div class="info-value">${escapeHtml(store.nombre_cliente)}</div>
-                    </div>
-                    ` : ''}
-                    
-                    <div class="info-row">
-                        <div class="info-label">📞 Teléfono:</div>
-                        <div class="info-value">${escapeHtml(store.telefono)}</div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">📧 Correo:</div>
-                        <div class="info-value"><strong style="background:#fef3c7; padding:2px 8px; border-radius:12px;">${escapeHtml(store.correo)}</strong></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">📂 Giro/Tipo:</div>
-                        <div class="info-value">${escapeHtml(store.tipo_negocio || 'General')}</div>
-                    </div>
-                    
-                    ${ubicacionCompleta ? `
-                    <div class="info-row">
-                        <div class="info-label">📍 Ubicación:</div>
-                        <div class="info-value">${escapeHtml(ubicacionCompleta)}</div>
-                    </div>
-                    ` : ''}
-                    
-                    <div class="info-row">
-                        <div class="info-label">🕐 Horario:</div>
-                        <div class="info-value">${escapeHtml(store.horariopromotor || '08:00-18:00')}</div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">🛵 Servicio Móvil:</div>
-                        <div class="info-value">${isTrue(store.movil) ? '✅ Activado' : '❌ Desactivado'}</div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">📱 WhatsApp:</div>
-                        <div class="info-value">${isTrue(store.whatsapp) ? '✅ Habilitado' : '❌ No habilitado'}</div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">📍 Indicaciones llegar:</div>
-                        <div class="info-value">${isTrue(store.llegar) ? '✅ Incluye cómo llegar' : '❌ No incluye'}</div>
-                    </div>
-                    
-                    ${store.link_negocio ? `
-                    <div class="info-row">
-                        <div class="info-label">🔗 Link negocio:</div>
-                        <div class="info-value"><a href="${escapeHtml(store.link_negocio)}" target="_blank">${escapeHtml(store.link_negocio)}</a></div>
-                    </div>
-                    ` : ''}
-                    
-                    ${store.foto ? `
-                    <div class="info-row">
-                        <div class="info-label">🖼️ Foto:</div>
-                        <div class="info-value"><a href="${escapeHtml(store.foto)}" target="_blank">Ver imagen</a></div>
-                    </div>
-                    ` : ''}
+                    <button class="btn ${isActive ? 'btn-danger' : 'btn-success'}" id="saveStatusBtn">
+                        ${isActive ? '⛔ Suspender tienda' : '✅ Activar tienda'}
+                    </button>
                     
                     <hr>
                     
-                    <div class="button-group">
-                        <button class="btn ${isActive ? 'btn-danger' : 'btn-success'}" id="toggleStatusBtn">
-                            ${isActive ? '⛔ Suspender tienda' : '✅ Activar tienda'}
-                        </button>
-                    </div>
+                    <h3 style="margin: 20px 0 15px;">🏪 Mis datos (solo lectura)</h3>
                     
-                    <button class="logout-btn" id="logoutBtn">🚪 Cerrar sesión</button>
+                    <div class="info-row"><div class="info-label">ID:</div><div class="info-value">${escapeHtml(store.storeId)}</div></div>
+                    <div class="info-row"><div class="info-label">Nombre tienda:</div><div class="info-value"><strong>${escapeHtml(store.nombre_tienda)}</strong></div></div>
+                    ${store.nombre_cliente ? `<div class="info-row"><div class="info-label">Cliente:</div><div class="info-value">${escapeHtml(store.nombre_cliente)}</div></div>` : ''}
+                    <div class="info-row"><div class="info-label">Teléfono:</div><div class="info-value">${escapeHtml(store.telefono)}</div></div>
+                    <div class="info-row"><div class="info-label">Correo:</div><div class="info-value"><strong>${escapeHtml(store.correo)}</strong></div></div>
+                    <div class="info-row"><div class="info-label">Giro:</div><div class="info-value">${escapeHtml(store.tipo_negocio || 'General')}</div></div>
+                    ${ubicacionCompleta ? `<div class="info-row"><div class="info-label">Ubicación:</div><div class="info-value">${escapeHtml(ubicacionCompleta)}</div></div>` : ''}
+                    <div class="info-row"><div class="info-label">Horario:</div><div class="info-value">${escapeHtml(store.horariopromotor || '08:00-18:00')}</div></div>
+                    <div class="info-row"><div class="info-label">Servicio móvil:</div><div class="info-value">${isTrue(store.movil) ? '✅ Activado' : '❌ Desactivado'}</div></div>
+                    
+                    <hr>
+                    <button class="btn btn-secondary" id="logoutBtn">🚪 Cerrar sesión</button>
                 </div>
             </div>
         `;
     }
     
-    // Mostrar mensajes
     function showMessage(containerId, message, type = 'error') {
         const container = document.getElementById(containerId);
         if (container) {
-            const className = type === 'error' ? 'error-message' : (type === 'success' ? 'success-message' : 'info-message');
-            container.innerHTML = `<div class="${className}">${message}</div>`;
+            container.innerHTML = `<div class="${type === 'error' ? 'error-message' : 'success-message'}">${message}</div>`;
             setTimeout(() => {
                 if (document.getElementById(containerId)) container.innerHTML = '';
-            }, 5000);
+            }, 4000);
         }
     }
     
     // ============================================================
-    // FLUJO COMPLETO
+    // FLUJO
     // ============================================================
+    let ownerToken = null;
+    let storeId = null;
     
-    let currentEmail = '';
-    
-    async function requestCodeFlow() {
-        const email = document.getElementById('ownerEmail').value.trim();
+    async function sendCode() {
+        const email = document.getElementById('emailInput').value.trim();
         if (!email || !email.includes('@')) {
-            showMessage('emailMessage', 'Ingresa un correo electrónico válido', 'error');
+            showMessage('msg', 'Ingresa un correo válido', 'error');
             return;
         }
         
-        showMessage('emailMessage', 'Enviando código...', 'info');
+        showMessage('msg', 'Enviando código...', 'success');
         
         const result = await requestCode(email);
         
-        if (result.ok) {
+        if (result && result.ok) {
             currentEmail = email;
-            const app = document.getElementById('app');
-            app.innerHTML = renderCodeStep(currentEmail);
+            currentCode = generarCodigoLocal();
+            document.getElementById('app').innerHTML = renderCodeStep(currentEmail);
             attachCodeEvents();
-            showMessage('codeMessage', `✅ Código enviado a ${email}. Revisa tu bandeja (y spam).`, 'success');
+            showMessage('msg', `✅ Código enviado a ${email}. Revisa tu bandeja.`, 'success');
         } else {
-            showMessage('emailMessage', result.error || 'Error al enviar el código', 'error');
+            showMessage('msg', result?.error || 'Error: correo no registrado', 'error');
         }
     }
     
-    async function verifyCodeFlow() {
-        const code = document.getElementById('accessCode').value.trim().toUpperCase();
+    async function verifyAccess() {
+        const code = document.getElementById('codeInput').value.trim().toUpperCase();
         if (!code || code.length !== 8) {
-            showMessage('codeMessage', 'Ingresa el código de 8 caracteres que recibiste', 'error');
+            showMessage('msg', 'Ingresa el código de 8 caracteres', 'error');
             return;
         }
         
-        showMessage('codeMessage', 'Verificando código...', 'info');
+        showMessage('msg', 'Verificando...', 'success');
         
         const result = await verifyCode(currentEmail, code);
         
-        if (result.ok && result.token) {
+        if (result && result.ok && result.token) {
             ownerToken = result.token;
             storeId = result.storeId;
             
-            // Obtener datos completos de la tienda
             const storeResult = await getStoreInfo(storeId, ownerToken);
             
-            if (storeResult.ok && storeResult.store) {
-                storeData = storeResult.store;
-                const app = document.getElementById('app');
-                app.innerHTML = renderDashboard(storeData);
+            if (storeResult && storeResult.ok && storeResult.store) {
+                currentStore = storeResult.store;
+                document.getElementById('app').innerHTML = renderDashboard(currentStore);
                 attachDashboardEvents();
-                showMessage('dashboardMessage', `✅ Bienvenido ${storeData.nombre_tienda}`, 'success');
             } else {
-                showMessage('codeMessage', 'Error al cargar los datos de la tienda', 'error');
+                showMessage('msg', 'Error al cargar datos', 'error');
             }
         } else {
-            showMessage('codeMessage', result.error || 'Código incorrecto o expirado', 'error');
+            showMessage('msg', result?.error || 'Código incorrecto', 'error');
         }
     }
     
-    async function toggleStoreStatus() {
-        if (!storeData || !ownerToken) return;
+    async function saveStatus() {
+        const select = document.getElementById('statusSelect');
+        const newStatus = select.value;
         
-        const newStatus = storeData.status === 'activo' ? 'suspendido' : 'activo';
+        if (!currentStore || !ownerToken) return;
         
-        // Usar external.store.update con token de owner (requiere que el backend acepte token de owner)
-        const result = await updateStoreStatus(storeData.storeId, newStatus, ownerToken);
+        showMessage('msg', 'Guardando...', 'success');
         
-        if (result.ok) {
-            storeData.status = newStatus;
-            const app = document.getElementById('app');
-            app.innerHTML = renderDashboard(storeData);
+        const result = await updateStoreStatus(currentStore.storeId, newStatus, ownerToken);
+        
+        if (result && result.ok) {
+            currentStore.status = newStatus;
+            document.getElementById('app').innerHTML = renderDashboard(currentStore);
             attachDashboardEvents();
-            showMessage('dashboardMessage', `✅ Estado actualizado a: ${newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, 'success');
+            showMessage('msg', `✅ Estado actualizado a: ${newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, 'success');
         } else {
-            showMessage('dashboardMessage', result.error || 'Error al cambiar el estado. Contacta al administrador.', 'error');
+            showMessage('msg', result?.error || 'Error al guardar', 'error');
         }
     }
     
     function logout() {
+        currentStore = null;
         ownerToken = null;
         storeId = null;
-        storeData = null;
         currentEmail = '';
-        const app = document.getElementById('app');
-        app.innerHTML = renderEmailStep();
-        attachEmailEvents();
+        currentCode = '';
+        document.getElementById('app').innerHTML = renderLogin();
+        attachLoginEvents();
     }
     
-    function attachEmailEvents() {
-        const requestBtn = document.getElementById('requestCodeBtn');
-        const emailInput = document.getElementById('ownerEmail');
-        
-        if (requestBtn) requestBtn.addEventListener('click', requestCodeFlow);
-        if (emailInput) emailInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') requestCodeFlow();
+    function attachLoginEvents() {
+        document.getElementById('sendCodeBtn')?.addEventListener('click', sendCode);
+        document.getElementById('emailInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendCode();
         });
     }
     
     function attachCodeEvents() {
-        const verifyBtn = document.getElementById('verifyCodeBtn');
-        const backBtn = document.getElementById('backToEmailBtn');
-        const codeInput = document.getElementById('accessCode');
-        
-        if (verifyBtn) verifyBtn.addEventListener('click', verifyCodeFlow);
-        if (backBtn) backBtn.addEventListener('click', () => {
-            const app = document.getElementById('app');
-            app.innerHTML = renderEmailStep();
-            attachEmailEvents();
+        document.getElementById('verifyBtn')?.addEventListener('click', verifyAccess);
+        document.getElementById('backBtn')?.addEventListener('click', () => {
+            document.getElementById('app').innerHTML = renderLogin();
+            attachLoginEvents();
         });
-        if (codeInput) codeInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') verifyCodeFlow();
+        document.getElementById('codeInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verifyAccess();
         });
     }
     
     function attachDashboardEvents() {
-        const toggleBtn = document.getElementById('toggleStatusBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        
-        if (toggleBtn) toggleBtn.addEventListener('click', toggleStoreStatus);
-        if (logoutBtn) logoutBtn.addEventListener('click', logout);
+        document.getElementById('saveStatusBtn')?.addEventListener('click', saveStatus);
+        document.getElementById('logoutBtn')?.addEventListener('click', logout);
     }
     
-    // Inicializar
-    function init() {
-        const app = document.getElementById('app');
-        app.innerHTML = renderEmailStep();
-        attachEmailEvents();
-    }
-    
-    init();
+    // Iniciar
+    document.getElementById('app').innerHTML = renderLogin();
+    attachLoginEvents();
 </script>
 </body>
 </html>
