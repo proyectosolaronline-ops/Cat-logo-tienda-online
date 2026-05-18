@@ -941,14 +941,11 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
 
   document.getElementById('ext-actions-wrap').innerHTML = html;
   document.getElementById('ext-popup-bg').classList.add('open');
-
- /* Foto */
-  const fotoUrl=fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
-  document.getElementById('ext-foto-wrap').innerHTML= fotoExtUrl 
+/* Foto */
+const fotoExtUrl = fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
+document.getElementById('ext-foto-wrap').innerHTML = fotoExtUrl
     ?`<img class="ext-foto" src="${fotoExtUrl}" onerror="this.parentNode.innerHTML='<div class=ext-foto-ph>🏪</div>'">`
-    :`<div class="ext-foto-ph">🏪</div>`;
-
-  /* Nombre */
+    :`<div class="ext-foto-ph">🏪</div>`;  /* Nombre */
   document.getElementById('ext-nombre').textContent=s.nombre_tienda||s.name||'Tienda externa';
 // Tipo de negocio
 
