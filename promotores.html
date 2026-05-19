@@ -962,34 +962,7 @@ function loadPanel(){
       loadPanelDemo();
     });
 }  
-      // Buscar tienda cuyo correo coincida y sea movil=TRUE, status activo o suspendido
-      var stores = res.stores;
-      var tienda = null;
-      for(var i=0; i<stores.length; i++){
-        var s = stores[i];
-        if(!s.isExternal) continue;
-        var cfg = s.config || {};
-        var correoTienda = (cfg.correo || '').toLowerCase().trim();
-        var emailUser    = STATE.email.toLowerCase().trim();
-        if(correoTienda !== emailUser) continue;
-        var movil  = (cfg.Movil === true || cfg.Movil === 'TRUE' || cfg.Movil === 'true');
-        var status = (s.status || '').toLowerCase();
-        if(!movil) continue;
-        if(status !== 'active' && status !== 'activo' && status !== 'suspendido') continue;
-        tienda = s;
-        break;
-      }
-      // Si no encontró en stores.directory, intentar external.stores.list (admin) o buscar en external_stores
-      if(!tienda){
-        showPanelError(
-          'Sin acceso',
-          'No se encontró un perfil de promotor móvil activo o suspendido para el correo ' + STATE.email + '. Verifica con el administrador.'
-        );
-        return;
-      }
-      STATE.tiendaData = tienda;
-      renderPanel(tienda);
-    })
+      
     .catch(function(){
       $('skeleton').style.display = 'none';
       loadPanelDemo();
