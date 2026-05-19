@@ -549,7 +549,9 @@ function buildStoreUrl(id){return STORE_BASE+'?backend='+encodeURIComponent(BACK
 
 window.addEventListener('load',async()=>{
   try{
-    const [r1,r2]=await Promise.allSettled([fetch(BACKEND+'?action=stores.directory'),fetch(BACKEND_MAESTRO+'?action=stores.directory')]);
+    const [r1,r2]=await Promise.allSettled(fetch(BACKEND+'?action=stores.directory&t='+Date.now()),
+
+                                            fetch(BACKEND_MAESTRO+'?action=stores.directory&t='+Date.now())
     var sl=[],se=[];
     if(r1.status==='fulfilled'){const d=await r1.value.json();sl=(d.stores||[]).filter(s=>!s.isExternal);}
     if(r2.status==='fulfilled'){const d=await r2.value.json();se=(d.stores||[]).filter(s=>s.isExternal===true);}
