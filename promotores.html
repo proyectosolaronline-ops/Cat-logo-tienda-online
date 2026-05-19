@@ -188,13 +188,13 @@
     // ============================================================
     // LLAMADAS A LA API
     // ============================================================
-    async function requestCode(email) {
-        return await callAPI('owner.request.code', { email: email });
-    }
+async function requestCode(email) {
+    return await callAPI('enviarCodigoPromotor_login', { correo: email });
+}
     
-    async function verifyCode(email, code) {
-        return await callAPI('owner.verify.code', { email: email, code: code });
-    }
+async function verifyCode(email, code) {
+    return await callAPI('verificarCodigoPromotor', { correo: email, codigo: code });
+}
     
     async function getStoreInfo(storeId, token) {
         return await callAPI('store.info', { storeId: storeId, token: token });
@@ -360,36 +360,34 @@
             showMessage('msg', result?.error || 'Error: correo no registrado', 'error');
         }
     }
-    
     async function verifyAccess() {
-        const code = document.getElementById('codeInput').value.trim().toUpperCase();
-        if (!code || code.length !== 8) {
-            showMessage('msg', 'Ingresa el código de 8 caracteres', 'error');
-            return;
-        }
-        
-        showMessage('msg', 'Verificando...', 'success');
-        
-        const result = await verifyCode(currentEmail, code);
-        
-        if (result && result.ok && result.token) {
-            ownerToken = result.token;
-            storeId = result.storeId;
-            
-            const storeResult = await getStoreInfo(storeId, ownerToken);
-            
-            if (storeResult && storeResult.ok && storeResult.store) {
-                currentStore = storeResult.store;
-                document.getElementById('app').innerHTML = renderDashboard(currentStore);
-                attachDashboardEvents();
-            } else {
-                showMessage('msg', 'Error al cargar datos', 'error');
-            }
-        } else {
-            showMessage('msg', result?.error || 'Código incorrecto', 'error');
-        }
+    const code = document.getElementById('codeInput').value.trim().toUpperCase();
+    if (!code || code.length !== 8) {
+        showMessage('msg', 'Ingresa el código de 8 caracteres', 'error');
+        return;
     }
-    
+
+    showMessage('msg', 'Verificando...', 'success');
+
+    const result = await verifyCode(currentEmail, code);
+
+    if (result && result.ok && result.token) {
+        ownerToken = result.token;
+        storeId = result.storeId;
+
+        const storeResult = await callAPI('promotor.perfil', { correo: currentEmail });
+
+        if (storeResult && storeResult.ok && storeResult.tienda) {
+            currentStore = storeResult.tienda;
+            document.getElementById('app').innerHTML = renderDashboard(currentStore);
+            attachDashboardEvents();
+        } else {
+            showMessage('msg', 'Error al cargar datos', 'error');
+        }
+    } else {
+        showMessage('msg', result?.error || 'Código incorrecto', 'error');
+    }
+}
     async function saveStatus() {
         const select = document.getElementById('statusSelect');
         const newStatus = select.value;
