@@ -938,7 +938,8 @@ function verifyCode(){
 
 // ═══════════════════════════════════════════════════
 // CARGAR PANEL
-// ═══════════════════════════════════════════════════function loadPanel(){
+// ═══════════════════════════════════════════════════
+function loadPanel(){
   $('skeleton').style.display = 'block';
   $('cards-grid').style.display = 'none';
   $('panel-error').style.display = 'none';
@@ -960,10 +961,7 @@ function verifyCode(){
       $('skeleton').style.display = 'none';
       loadPanelDemo();
     });
-}
-
-
-  
+}  
       // Buscar tienda cuyo correo coincida y sea movil=TRUE, status activo o suspendido
       var stores = res.stores;
       var tienda = null;
