@@ -563,23 +563,24 @@ ALL_STORES=[...sl,...se].map(s=>{s.config=typeof s.config==='string'?JSON.parse(
     
   }catch(e){console.warn('Error:',e);}
   if(navigator.geolocation){
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      userLat = pos.coords.latitude;
-      userLng = pos.coords.longitude;
-      initMap();
-    },
-    () => {
-      userLat = 20.5881;
-      userLng = -100.3899;
-      initMap();
-    }
-  );
-} else {
-  userLat = 20.5881;
-  userLng = -100.3899;
-  initMap();
-}
+    navigator.geolocation.getCurrentPosition(
+      pos=>{
+        userLat=pos.coords.latitude;
+        userLng=pos.coords.longitude;
+        initMap();
+      },
+      ()=>{
+        userLat=20.5881;
+        userLng=-100.3899;
+        initMap();
+      }
+    );
+  } else {
+    userLat=20.5881;
+    userLng=-100.3899;
+    initMap();
+  }
+});
 
 
   async function buildPromosFromCatalogs(stores){
