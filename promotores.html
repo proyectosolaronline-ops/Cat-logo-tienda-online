@@ -1154,6 +1154,7 @@ function renderPanel(tienda){
   var cfg    = tienda.config || {};
   var status = (tienda.status || '').toLowerCase();
 
+
   // === STATUS BANNER ===
   var banner = $('status-banner');
   if(status === 'suspendido' || status === 'suspended'){
@@ -1170,15 +1171,11 @@ function renderPanel(tienda){
     banner.style.display = 'flex';
   }
 
-
-// ═══════════════════════════════════════════════════
-// CAMBIAR STATUS
-// ═══════════════════════════════════════════════════
+  // === FOTO / AVATAR ===
 
 
 
   
-  // === FOTO / AVATAR ===
   var fotoUrl = cfg.logoUrl || cfg.logo || '';
   if(fotoUrl && fotoUrl !== ''){
     var ph = $('profile-photo');
@@ -1242,38 +1239,37 @@ function renderPanel(tienda){
   // === DIRECTORIO ===
   $('d-inDirectory').innerHTML = boolBadge(cfg.inDirectory || tienda.inDirectory, 'Visible', 'Oculto');
   $('d-status').innerHTML      = statusBadge(status);
+
   $('d-foto-status').innerHTML = fotoUrl
-// === BOTONES DE STATUS ===
-var statusActual = status;
-var btnActivar = $('btn-activar');
-var btnSuspender = $('btn-suspender');
-
-// Remover clases anteriores
-btnActivar.classList.remove('active-btn', 'suspended-btn');
-btnSuspender.classList.remove('active-btn', 'suspended-btn');
-
-// Marcar botón activo según status actual
-if (statusActual === 'activo' || statusActual === 'active') {
-  btnActivar.classList.add('active-btn');
-  btnActivar.disabled = true;
-  btnSuspender.disabled = false;
-} else if (statusActual === 'suspendido' || statusActual === 'suspended') {
-  btnSuspender.classList.add('suspended-btn');
-  btnSuspender.disabled = true;
-  btnActivar.disabled = false;
-} else {
-  // Si es cancelado, pendiente, etc. - ambos disponibles
-  btnActivar.disabled = false;
-  btnSuspender.disabled = false;
-}
-
-// Guardar status actual en variable global
-STATE.statusActual = statusActual;
-
-
-    
     ? '<span class="badge badge-green">&#10003; Imagen configurada</span>'
     : '<span class="badge badge-gray">Sin imagen</span>';
+
+  // === BOTONES DE STATUS ===
+  var statusActual = status;
+  var btnActivar = $('btn-activar');
+  var btnSuspender = $('btn-suspender');
+
+  btnActivar.classList.remove('active-btn', 'suspended-btn');
+  btnSuspender.classList.remove('active-btn', 'suspended-btn');
+
+  if (statusActual === 'activo' || statusActual === 'active') {
+    btnActivar.classList.add('active-btn');
+    btnActivar.disabled = true;
+    btnSuspender.disabled = false;
+  } else if (statusActual === 'suspendido' || statusActual === 'suspended') {
+    btnSuspender.classList.add('suspended-btn');
+    btnSuspender.disabled = true;
+    btnActivar.disabled = false;
+  } else {
+    btnActivar.disabled = false;
+    btnSuspender.disabled = false;
+  }
+
+  STATE.statusActual = statusActual;
+
+
+
+  
 
   // === SERVICIO MÓVIL ===
   var esMovil = (cfg.Movil === true || cfg.Movil === 'TRUE' || cfg.Movil === 'true');
