@@ -401,27 +401,30 @@ async function verifyCode(email, code) {
     } else {
         showMessage('msg', result?.error || 'Código incorrecto', 'error');
     }
-}
-    async function saveStatus() {
-        const select = document.getElementById('statusSelect');
-        const newStatus = select.value;
-        
-        if (!currentStore || !ownerToken) return;
-        
-        showMessage('msg', 'Guardando...', 'success');
-        
-        const result = await updateStoreStatus(currentStore.storeId, newStatus, ownerToken);
-        
-        if (result && result.ok) {
-            currentStore.status = newStatus;
-            document.getElementById('app').innerHTML = renderDashboard(currentStore);
-            attachDashboardEvents();
-            showMessage('msg', `✅ Estado actualizado a: ${newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, 'success');
-        } else {
-            showMessage('msg', result?.error || 'Error al guardar', 'error');
-        }
+}async function saveStatus() {
+    const select = document.getElementById('statusSelect');
+    const newStatus = select.value;
+
+    if (!ownerToken) return;
+
+    showMessage('msg', 'Guardando...', 'success');
+
+    const sid = currentStore.storeid || currentStore.storeId;
+    const result = await callAPI('external.store.status', { 
+        storeId: sid, 
+        status: newStatus, 
+        token: ownerToken 
+    });
+
+    if (result && result.ok) {
+        currentStore.status = newStatus;
+        document.getElementById('app').innerHTML = renderDashboard(currentStore);
+        attachDashboardEvents();
+        showMessage('msg', `✅ Estado actualizado a: ${newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, 'success');
+    } else {
+        showMessage('msg', result?.error || 'Error al guardar', 'error');
     }
-    
+}
     function logout() {
         currentStore = null;
         ownerToken = null;
