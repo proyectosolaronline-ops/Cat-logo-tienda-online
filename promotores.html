@@ -76,13 +76,6 @@
             border-radius: 16px;
             margin-bottom: 20px;
         }
-        .info-message {
-            background: #dbeafe;
-            color: #1e40af;
-            padding: 12px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-        }
         .info-row {
             display: flex;
             padding: 12px 0;
@@ -123,17 +116,6 @@
             border-radius: 50px;
             margin-top: 10px;
         }
-        .loading { text-align: center; padding: 40px; }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #e0e0e0;
-            border-top: 3px solid #128C7E;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
         hr { margin: 20px 0; border: none; border-top: 1px solid #e5e7eb; }
     </style>
 </head>
@@ -141,327 +123,210 @@
 <div class="container" id="app"></div>
 
 <script>
-    // ============================================================
-    // TU API
-    // ============================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
-    
-    // Estado
+
     let currentStore = null;
     let currentEmail = '';
-    let currentCode = '';
-    
-    // ============================================================
-    // UTILIDADES
-    // ============================================================
-    function safeString(v) {
-        if (v === null || v === undefined) return '';
-        return String(v);
+    let currentCode  = '';
+    let ownerToken   = null;
+
+    function safeStr(v) { return (v === null || v === undefined) ? '' : String(v); }
+    function esc(s) {
+        return safeStr(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
     }
-    
-    function escapeHtml(str) {
-        return safeString(str).replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-    
-    function isTrue(v) {
-        if (v === true || v === false) return v;
-        return safeString(v).toLowerCase() === 'true' || safeString(v) === '1';
-    }
-    
+    function isTrue(v) { return v === true || safeStr(v).toUpperCase() === 'TRUE'; }
+
     async function callAPI(action, data = {}) {
         try {
-            const response = await fetch(`${API_URL}?action=${action}&${new URLSearchParams(data).toString()}`, {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
-            });
-            return await response.json();
-        } catch (error) {
-            return { ok: false, error: error.message };
-        }
+            const qs = new URLSearchParams({ action, ...data }).toString();
+            const r  = await fetch(`${API_URL}?${qs}`, { method: 'GET', headers: { 'Accept': 'application/json' } });
+            return await r.json();
+        } catch(e) { return { ok: false, error: e.message }; }
     }
-    
-    // ============================================================
-    // LLAMADAS A LA API
-    // ============================================================
-async function requestCode(email) {
-    return await callAPI('enviarCodigoPromotor_login', { correo: email });
-}
-    
-async function verifyCode(email, code) {
-    return await callAPI('verificarCodigoPromotor', { correo: email, codigo: code });
-}
-    
-    async function getStoreInfo(storeId, token) {
-        return await callAPI('store.info', { storeId: storeId, token: token });
+
+    function showMessage(id, msg, type = 'error') {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = `<div class="${type === 'error' ? 'error-message' : 'success-message'}">${msg}</div>`;
+        setTimeout(() => { if (document.getElementById(id)) el.innerHTML = ''; }, 4000);
     }
-    
-    async function updateStoreStatus(storeId, status, token) {
-        return await callAPI('external.store.status', { storeId: storeId, status: status, token: token });
-    }
-    
-    // ============================================================
-    // GENERAR CÓDIGO LOCAL (solo para mostrar)
-    // ============================================================
-    function generarCodigoLocal() {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let code = '';
-        for (let i = 0; i < 8; i++) {
-            code += chars[Math.floor(Math.random() * chars.length)];
-        }
-        return code;
-    }
-    
-    // ============================================================
-    // RENDERIZADO
-    // ============================================================
-    
-    // Pantalla 1: Ingresar correo
+
+    // ── PANTALLA 1: LOGIN ──
     function renderLogin() {
         return `
-            <div class="card">
-                <div class="card-header">
-                    <h1>🔐 Mi Tienda</h1>
-                    <p>Ingresa tu correo y punto .....</p>
-                </div>
-                <div class="card-body">
-                    <div id="msg"></div>
-                    <div class="form-group">
-                        <label>📧 Correo electrónico</label>
-                        <input type="email" id="emailInput" placeholder="tutienda@ejemplo.com">
-                    </div>
-                    <button class="btn btn-primary" id="sendCodeBtn">📨 Enviar código</button>
-                </div>
+        <div class="card">
+            <div class="card-header">
+                <h1>🔐 Mi Tienda</h1>
+                <p>Ingresa tu correo registrado</p>
             </div>
-        `;
+            <div class="card-body">
+                <div id="msg"></div>
+                <div class="form-group">
+                    <label>📧 Correo electrónico</label>
+                    <input type="email" id="emailInput" placeholder="tutienda@ejemplo.com">
+                </div>
+                <button class="btn btn-primary" id="sendCodeBtn">📨 Enviar código</button>
+            </div>
+        </div>`;
     }
-    
-    // Pantalla 2: Ingresar código
+
+    // ── PANTALLA 2: CÓDIGO ──
     function renderCodeStep(email) {
         return `
-            <div class="card">
-                <div class="card-header">
-                    <h1>🔑 Verificar código</h1>
-                    <p>Se envió un código a <strong>${escapeHtml(email)}</strong></p>
-                </div>
-                <div class="card-body">
-                    <div id="msg"></div>
-                    <div class="form-group">
-                        <label>📲 Código de 8 caracteres</label>
-                        <input type="text" id="codeInput" maxlength="8" placeholder="Ej: 3K7B9X2M" style="text-transform:uppercase; text-align:center; font-size:1.3rem; letter-spacing:4px;">
-                    </div>
-                    <button class="btn btn-primary" id="verifyBtn">✅ Verificar acceso</button>
-                    <button class="btn btn-secondary" id="backBtn">← Volver</button>
-                </div>
+        <div class="card">
+            <div class="card-header">
+                <h1>🔑 Verificar código</h1>
+                <p>Se envió un código a <strong>${esc(email)}</strong></p>
             </div>
-        `;
+            <div class="card-body">
+                <div id="msg"></div>
+                <div class="form-group">
+                    <label>📲 Código de 8 caracteres</label>
+                    <input type="text" id="codeInput" maxlength="8" placeholder="Ej: 3K7B9X2M"
+                        style="text-transform:uppercase;text-align:center;font-size:1.3rem;letter-spacing:4px;">
+                </div>
+                <button class="btn btn-primary" id="verifyBtn">✅ Verificar acceso</button>
+                <button class="btn btn-secondary" id="backBtn">← Volver</button>
+            </div>
+        </div>`;
     }
-    
-    // Pantalla 3: Dashboard con datos + solo cambiar status
-    function renderDashboard(store) {
-        const isActive = store.status === 'activo';
-        const ubicacionCompleta = [store.ubicate, store.colonia, store.localidad, store.estado].filter(s => s && s !== '').join(', ');
-        
+
+    // ── PANTALLA 3: DASHBOARD ──
+    function renderDashboard(s) {
+        const isActive = safeStr(s.status).toLowerCase() === 'activo';
+        const ubicacion = [s.ubicate, s.colonia, s.localidad, s.estado].filter(x => x && x !== '').join(', ');
+
         return `
-            <div class="card">
-                <div class="card-header">
-                    <h1>📋 ${escapeHtml(store.nombre_tienda)}</h1>
-                    <p>Bienvenido, ${escapeHtml(store.nombre_cliente || store.nombre_tienda)}</p>
-                </div>
-                <div class="card-body">
-                    <div id="msg"></div>
-                    
-                    <div class="code-box">
-                        <div>🔑 Tu código de acceso</div>
-                        <div class="code-number">${escapeHtml(currentCode)}</div>
-                        <small>Guarda este código para futuros accesos</small>
-                    </div>
-                    
-                    <h3 style="margin: 15px 0;">📌 Estado actual</h3>
-                    <div class="info-row">
-                        <div class="info-label">Estado:</div>
-                        <div class="info-value">
-                            <span class="status-badge ${isActive ? 'status-active' : 'status-suspended'}">
-                                ${isActive ? '✅ ACTIVO' : '⛔ SUSPENDIDO'}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>🔄 Cambiar estado</label>
-                        <select id="statusSelect">
-                            <option value="activo" ${isActive ? 'selected' : ''}>✅ Activo</option>
-                            <option value="suspendido" ${!isActive ? 'selected' : ''}>⛔ Suspendido</option>
-                        </select>
-                    </div>
-                    <button class="btn ${isActive ? 'btn-danger' : 'btn-success'}" id="saveStatusBtn">
-                        ${isActive ? '⛔ Suspender tienda' : '✅ Activar tienda'}
-                    </button>
-                    
-                    <hr>
-                    <hr>
-
-<h3 style="margin: 20px 0 15px;">🔄 Cambiar estado</h3>
-<div class="form-group">
-    <select id="statusSelect">
-        <option value="activo" ${store.status === 'activo' ? 'selected' : ''}>✅ Activo</option>
-        <option value="suspendido" ${store.status === 'suspendido' ? 'selected' : ''}>⛔ Suspendido</option>
-    </select>
-</div>
-<button class="btn ${store.status === 'activo' ? 'btn-danger' : 'btn-success'}" id="saveStatusBtn">
-    ${store.status === 'activo' ? '⛔ Suspender tienda' : '✅ Activar tienda'}
-</button>
-
-<hr>
-<button class="btn btn-secondary" id="logoutBtn">🚪 Cerrar sesión</button>
-                    <h3 style="margin: 20px 0 15px;">🏪 Mis datos (solo lectura)</h3>
-                    
-                    <div class="info-row"><div class="info-label">ID:</div><div class="info-value">${escapeHtml(store.storeId)}</div></div>
-                    <div class="info-row"><div class="info-label">Nombre tienda:</div><div class="info-value"><strong>${escapeHtml(store.nombre_tienda)}</strong></div></div>
-                    ${store.nombre_cliente ? `<div class="info-row"><div class="info-label">Cliente:</div><div class="info-value">${escapeHtml(store.nombre_cliente)}</div></div>` : ''}
-                    <div class="info-row"><div class="info-label">Teléfono:</div><div class="info-value">${escapeHtml(store.telefono)}</div></div>
-                    <div class="info-row"><div class="info-label">Correo:</div><div class="info-value"><strong>${escapeHtml(store.correo)}</strong></div></div>
-                    <div class="info-row"><div class="info-label">Giro:</div><div class="info-value">${escapeHtml(store.tipo_negocio || 'General')}</div></div>
-                    ${ubicacionCompleta ? `<div class="info-row"><div class="info-label">Ubicación:</div><div class="info-value">${escapeHtml(ubicacionCompleta)}</div></div>` : ''}
-                    <div class="info-row"><div class="info-label">Horario:</div><div class="info-value">${escapeHtml(store.horariopromotor || '08:00-18:00')}</div></div>
-                    <div class="info-row"><div class="info-label">Servicio móvil:</div><div class="info-value">${isTrue(store.movil) ? '✅ Activado' : '❌ Desactivado'}</div></div>
-                    
-                    <hr>
-                    <button class="btn btn-secondary" id="logoutBtn">🚪 Cerrar sesión</button>
-                </div>
+        <div class="card">
+            <div class="card-header">
+                <h1>📋 ${esc(s.nombre_tienda)}</h1>
+                <p>Bienvenido, ${esc(s.nombre_cliente || s.nombre_tienda)}</p>
             </div>
-        `;
+            <div class="card-body">
+                <div id="msg"></div>
+
+                <div class="code-box">
+                    <div>🔑 Tu código de acceso</div>
+                    <div class="code-number">${esc(currentCode)}</div>
+                    <small>Guarda este código para futuros accesos</small>
+                </div>
+
+                <h3 style="margin:15px 0;">📌 Estado actual</h3>
+                <div class="info-row">
+                    <div class="info-label">Estado:</div>
+                    <div class="info-value">
+                        <span class="status-badge ${isActive ? 'status-active' : 'status-suspended'}">
+                            ${isActive ? '✅ ACTIVO' : '⛔ SUSPENDIDO'}
+                        </span>
+                    </div>
+                </div>
+
+                <h3 style="margin:20px 0 10px;">🔄 Cambiar estado</h3>
+                <div class="form-group">
+                    <select id="statusSelect">
+                        <option value="activo"     ${isActive  ? 'selected' : ''}>✅ Activo</option>
+                        <option value="suspendido" ${!isActive ? 'selected' : ''}>⛔ Suspendido</option>
+                    </select>
+                </div>
+                <button class="btn ${isActive ? 'btn-danger' : 'btn-success'}" id="saveStatusBtn">
+                    ${isActive ? '⛔ Suspender tienda' : '✅ Activar tienda'}
+                </button>
+
+                <hr>
+
+                <h3 style="margin:20px 0 15px;">🏪 Mis datos (solo lectura)</h3>
+                <div class="info-row"><div class="info-label">ID:</div><div class="info-value">${esc(s.storeid)}</div></div>
+                <div class="info-row"><div class="info-label">Nombre tienda:</div><div class="info-value"><strong>${esc(s.nombre_tienda)}</strong></div></div>
+                ${s.nombre_cliente ? `<div class="info-row"><div class="info-label">Cliente:</div><div class="info-value">${esc(s.nombre_cliente)}</div></div>` : ''}
+                <div class="info-row"><div class="info-label">Teléfono:</div><div class="info-value">${esc(s.telefono)}</div></div>
+                <div class="info-row"><div class="info-label">Correo:</div><div class="info-value">${esc(s.correo)}</div></div>
+                <div class="info-row"><div class="info-label">Giro:</div><div class="info-value">${esc(s.tipo_negocio || 'General')}</div></div>
+                ${ubicacion ? `<div class="info-row"><div class="info-label">Ubicación:</div><div class="info-value">${esc(ubicacion)}</div></div>` : ''}
+                <div class="info-row"><div class="info-label">Horario:</div><div class="info-value">${esc(s.horariopromotor || '08:00-18:00')}</div></div>
+                <div class="info-row"><div class="info-label">Servicio móvil:</div><div class="info-value">${isTrue(s.movil) ? '✅ Activado' : '❌ Desactivado'}</div></div>
+
+                <hr>
+                <button class="btn btn-secondary" id="logoutBtn">🚪 Cerrar sesión</button>
+            </div>
+        </div>`;
     }
-    
-    function showMessage(containerId, message, type = 'error') {
-        const container = document.getElementById(containerId);
-        if (container) {
-            container.innerHTML = `<div class="${type === 'error' ? 'error-message' : 'success-message'}">${message}</div>`;
-            setTimeout(() => {
-                if (document.getElementById(containerId)) container.innerHTML = '';
-            }, 4000);
-        }
-    }
-    
-    // ============================================================
-    // FLUJO
-    // ============================================================
-    let ownerToken = null;
-    let storeId = null;
-    
+
+    // ── FLUJO ──
     async function sendCode() {
         const email = document.getElementById('emailInput').value.trim();
-        if (!email || !email.includes('@')) {
-            showMessage('msg', 'Ingresa un correo válido', 'error');
-            return;
-        }
-        
+        if (!email || !email.includes('@')) { showMessage('msg', 'Ingresa un correo válido', 'error'); return; }
         showMessage('msg', 'Enviando código...', 'success');
-        
-        const result = await requestCode(email);
-        
+        const result = await callAPI('enviarCodigoPromotor_login', { correo: email });
         if (result && result.ok) {
             currentEmail = email;
-            currentCode = generarCodigoLocal();
+            currentCode  = '';
             document.getElementById('app').innerHTML = renderCodeStep(currentEmail);
             attachCodeEvents();
             showMessage('msg', `✅ Código enviado a ${email}. Revisa tu bandeja.`, 'success');
         } else {
-            showMessage('msg', result?.error || 'Error: correo no registrado', 'error');
+            showMessage('msg', result?.error || 'Correo no registrado como promotor móvil', 'error');
         }
     }
+
     async function verifyAccess() {
-    const code = document.getElementById('codeInput').value.trim().toUpperCase();
-    if (!code || code.length !== 8) {
-        showMessage('msg', 'Ingresa el código de 8 caracteres', 'error');
-        return;
+        const code = document.getElementById('codeInput').value.trim().toUpperCase();
+        if (!code || code.length !== 8) { showMessage('msg', 'Ingresa el código de 8 caracteres', 'error'); return; }
+        showMessage('msg', 'Verificando...', 'success');
+        const result = await callAPI('verificarCodigoPromotor', { correo: currentEmail, codigo: code });
+        if (result && result.ok && result.token) {
+            ownerToken  = result.token;
+            currentCode = code;
+            const storeResult = await callAPI('promotor.perfil', { correo: currentEmail });
+            if (storeResult && storeResult.ok && storeResult.tienda) {
+                currentStore = storeResult.tienda;
+                document.getElementById('app').innerHTML = renderDashboard(currentStore);
+                attachDashboardEvents();
+            } else {
+                showMessage('msg', 'Error al cargar datos de la tienda', 'error');
+            }
+        } else {
+            showMessage('msg', result?.error || 'Código incorrecto', 'error');
+        }
     }
 
-    showMessage('msg', 'Verificando...', 'success');
-
-    const result = await verifyCode(currentEmail, code);
-
-    if (result && result.ok && result.token) {
-        ownerToken = result.token;
-        storeId = result.storeId;
-
-        const storeResult = await callAPI('promotor.perfil', { correo: currentEmail });
-
-        if (storeResult && storeResult.ok && storeResult.tienda) {
-            currentStore = storeResult.tienda;
+    async function saveStatus() {
+        const newStatus = document.getElementById('statusSelect').value;
+        if (!ownerToken || !currentStore) return;
+        showMessage('msg', 'Guardando...', 'success');
+        const sid    = currentStore.storeid || currentStore.storeId;
+        const result = await callAPI('external.store.status', { storeId: sid, status: newStatus, token: ownerToken });
+        if (result && result.ok) {
+            currentStore.status = newStatus;
             document.getElementById('app').innerHTML = renderDashboard(currentStore);
             attachDashboardEvents();
+            showMessage('msg', `✅ Estado actualizado a: ${newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, 'success');
         } else {
-            showMessage('msg', 'Error al cargar datos', 'error');
+            showMessage('msg', result?.error || 'Error al guardar', 'error');
         }
-    } else {
-        showMessage('msg', result?.error || 'Código incorrecto', 'error');
     }
-}async function saveStatus() {
-    const select = document.getElementById('statusSelect');
-    const newStatus = select.value;
 
-    if (!ownerToken) return;
-
-    showMessage('msg', 'Guardando...', 'success');
-
-    const sid = currentStore.storeid || currentStore.storeId;
-    const result = await callAPI('external.store.status', { 
-        storeId: sid, 
-        status: newStatus, 
-        token: ownerToken 
-    });
-
-    if (result && result.ok) {
-        currentStore.status = newStatus;
-        document.getElementById('app').innerHTML = renderDashboard(currentStore);
-        attachDashboardEvents();
-        showMessage('msg', `✅ Estado actualizado a: ${newStatus === 'activo' ? 'ACTIVO' : 'SUSPENDIDO'}`, 'success');
-    } else {
-        showMessage('msg', result?.error || 'Error al guardar', 'error');
-    }
-}
     function logout() {
-        currentStore = null;
-        ownerToken = null;
-        storeId = null;
-        currentEmail = '';
-        currentCode = '';
+        currentStore = null; ownerToken = null; currentEmail = ''; currentCode = '';
         document.getElementById('app').innerHTML = renderLogin();
         attachLoginEvents();
     }
-    
+
     function attachLoginEvents() {
         document.getElementById('sendCodeBtn')?.addEventListener('click', sendCode);
-        document.getElementById('emailInput')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendCode();
-        });
+        document.getElementById('emailInput')?.addEventListener('keypress', e => { if (e.key === 'Enter') sendCode(); });
     }
-    
     function attachCodeEvents() {
         document.getElementById('verifyBtn')?.addEventListener('click', verifyAccess);
-        document.getElementById('backBtn')?.addEventListener('click', () => {
-            document.getElementById('app').innerHTML = renderLogin();
-            attachLoginEvents();
-        });
-        document.getElementById('codeInput')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') verifyAccess();
-        });
+        document.getElementById('backBtn')?.addEventListener('click', () => { document.getElementById('app').innerHTML = renderLogin(); attachLoginEvents(); });
+        document.getElementById('codeInput')?.addEventListener('keypress', e => { if (e.key === 'Enter') verifyAccess(); });
     }
-    
     function attachDashboardEvents() {
         document.getElementById('saveStatusBtn')?.addEventListener('click', saveStatus);
         document.getElementById('logoutBtn')?.addEventListener('click', logout);
     }
-    
-    // Iniciar
+
     document.getElementById('app').innerHTML = renderLogin();
     attachLoginEvents();
 </script>
 </body>
 </html>
-
