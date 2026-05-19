@@ -303,7 +303,21 @@ async function verifyCode(email, code) {
                     </button>
                     
                     <hr>
-                    
+                    <hr>
+
+<h3 style="margin: 20px 0 15px;">🔄 Cambiar estado</h3>
+<div class="form-group">
+    <select id="statusSelect">
+        <option value="activo" ${store.status === 'activo' ? 'selected' : ''}>✅ Activo</option>
+        <option value="suspendido" ${store.status === 'suspendido' ? 'selected' : ''}>⛔ Suspendido</option>
+    </select>
+</div>
+<button class="btn ${store.status === 'activo' ? 'btn-danger' : 'btn-success'}" id="saveStatusBtn">
+    ${store.status === 'activo' ? '⛔ Suspender tienda' : '✅ Activar tienda'}
+</button>
+
+<hr>
+<button class="btn btn-secondary" id="logoutBtn">🚪 Cerrar sesión</button>
                     <h3 style="margin: 20px 0 15px;">🏪 Mis datos (solo lectura)</h3>
                     
                     <div class="info-row"><div class="info-label">ID:</div><div class="info-value">${escapeHtml(store.storeId)}</div></div>
