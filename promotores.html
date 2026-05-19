@@ -617,48 +617,24 @@
           <div class="fp-label">Foto / imagen del negocio</div>
           <div class="fp-value" id="d-foto-status">—</div>
         </div>
+        
+        <!-- BOTÓN CAMBIAR STATUS -->
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">
+            Cambiar estado del servicio
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-status" id="btn-activar" onclick="cambiarStatus('activo')" style="flex:1">
+              <span style="color:#00e5a0">●</span> Activar
+            </button>
+            <button class="btn-status" id="btn-suspender" onclick="cambiarStatus('suspendido')" style="flex:1">
+              <span style="color:#f5a623">▲</span> Suspender
+            </button>
+          </div>
+          <div id="msg-status" style="font-size:12px;margin-top:8px;display:none"></div>
+        </div>
       </div>
-///////////////////
-
-<!-- Directorio -->
-<div class="data-card">
-  <div class="data-card-title">
-    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-    Directorio público
-  </div>
-  <div class="field-pair">
-    <div class="fp-label">Visible en directorio</div>
-    <div class="fp-value" id="d-inDirectory">—</div>
-  </div>
-  <div class="field-pair">
-    <div class="fp-label">Status actual</div>
-    <div class="fp-value" id="d-status">—</div>
-  </div>
-  <div class="field-pair">
-    <div class="fp-label">Foto / imagen del negocio</div>
-    <div class="fp-value" id="d-foto-status">—</div>
-  </div>
-  
-  <!-- ═══════════ NUEVO: BOTÓN CAMBIAR STATUS ═══════════ -->
-  <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
-    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">
-      Cambiar estado del servicio
-    </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn-status" id="btn-activar" onclick="cambiarStatus('activo')" style="flex:1">
-        <span style="color:#00e5a0">●</span> Activar
-      </button>
-      <button class="btn-status" id="btn-suspender" onclick="cambiarStatus('suspendido')" style="flex:1">
-        <span style="color:#f5a623">▲</span> Suspender
-      </button>
-    </div>
-    <div id="msg-status" style="font-size:12px;margin-top:8px;display:none"></div>
-  </div>
-  <!-- ═══════════════════════════════════════════════════ -->
-  
-</div>
       
-//////////////////
       <!-- Servicio Móvil — full width -->
       <div class="movil-card">
         <div class="data-card-title">
@@ -1198,133 +1174,6 @@ function renderPanel(tienda){
 // ═══════════════════════════════════════════════════
 // CAMBIAR STATUS
 // ═══════════════════════════════════════════════════
-function cambiarStatus(nuevoStatus) {
-  var storeId = STATE.tiendaData ? STATE.tiendaData.storeId : STATE.storeId;
-  if (!storeId) {
-    mostrarMensajeStatus('No se encontró el ID de la tienda', 'error');
-    return;
-  }
-  
-  var statusActual = STATE.statusActual || '';
-  
-  // No hacer nada si es el mismo status
-  if (statusActual === nuevoStatus) {
-    mostrarMensajeStatus('El estado ya es ' + nuevoStatus, 'error');
-    return;
-  }
-  
-  // Confirmación
-  var accion = nuevoStatus === 'activo' ? 'activar' : 'suspender';
-  if (!confirm('¿Estás seguro de ' + accion + ' tu servicio?\n\n' +
-    (nuevoStatus === 'suspendido' ? '⚠️ Al suspender, dejarás de aparecer en el directorio público.' : 
-     '✅ Al activar, volverás a aparecer en el directorio.'))) {
-    return;
-  }
-  
-  mostrarMensajeStatus('Cambiando estado...', 'loading');
-  
-  // Deshabilitar botones mientras se procesa
-  $('btn-activar').disabled = true;
-  $('btn-suspender').disabled = true;
-  
-  // Llamar al backend - usar external.store.status
-  callGAS({
-    action: 'external.store.status',
-    storeId: storeId,
-    status: nuevoStatus,
-    token: STATE.token
-  })
-  .then(function(res) {
-    if (res && res.ok) {
-      mostrarMensajeStatus('Estado actualizado a: ' + nuevoStatus, 'success');
-      
-      // Actualizar UI
-      STATE.statusActual = nuevoStatus;
-      STATE.tiendaData.status = nuevoStatus;
-      
-      // Actualizar badges y banner
-      $('d-status').innerHTML = statusBadge(nuevoStatus);
-      
-      // Actualizar banner de estado
-      var banner = $('status-banner');
-      if (nuevoStatus === 'activo' || nuevoStatus === 'active') {
-        banner.className = 'status-banner activo';
-        $('banner-icon').textContent = '✓';
-        $('banner-title').textContent = 'Cuenta activa';
-        $('banner-desc').textContent = 'Tu perfil está visible en el directorio Easylink.';
-        $('btn-activar').classList.add('active-btn');
-        $('btn-activar').disabled = true;
-        $('btn-suspender').disabled = false;
-        $('btn-suspender').classList.remove('suspended-btn');
-      } else {
-        banner.className = 'status-banner suspendido';
-        $('banner-icon').textContent = '⚠️';
-        $('banner-title').textContent = 'Tu cuenta está suspendida';
-        $('banner-desc').textContent = 'Puedes ver tus datos pero no aparecerás en el directorio público.';
-        $('btn-suspender').classList.add('suspended-btn');
-        $('btn-suspender').disabled = true;
-        $('btn-activar').disabled = false;
-        $('btn-activar').classList.remove('active-btn');
-      }
-      banner.style.display = 'flex';
-      
-      // Actualizar meta badges
-      actualizarMetaBadges();
-      
-    } else {
-      var error = (res && res.error) ? res.error : 'Error al cambiar estado';
-      mostrarMensajeStatus(error, 'error');
-      // Re-habilitar botones
-      habilitarBotonesSegunStatus();
-    }
-  })
-  .catch(function(e) {
-    mostrarMensajeStatus('Error de conexión: ' + e.message, 'error');
-    habilitarBotonesSegunStatus();
-  });
-}
-
-function mostrarMensajeStatus(mensaje, tipo) {
-  var msg = $('msg-status');
-  msg.textContent = mensaje;
-  msg.className = tipo;
-  msg.style.display = 'block';
-  
-  if (tipo === 'success' || tipo === 'error') {
-    setTimeout(function() {
-      msg.style.display = 'none';
-    }, 4000);
-  }
-}
-
-function habilitarBotonesSegunStatus() {
-  var status = STATE.statusActual || '';
-  if (status === 'activo' || status === 'active') {
-    $('btn-activar').disabled = true;
-    $('btn-suspender').disabled = false;
-  } else if (status === 'suspendido' || status === 'suspended') {
-    $('btn-activar').disabled = false;
-    $('btn-suspender').disabled = true;
-  } else {
-    $('btn-activar').disabled = false;
-    $('btn-suspender').disabled = false;
-  }
-}
-
-function actualizarMetaBadges() {
-  var badges = '';
-  var status = STATE.statusActual || (STATE.tiendaData ? STATE.tiendaData.status : '');
-  var cfg = STATE.tiendaData ? (STATE.tiendaData.config || {}) : {};
-  
-  badges += statusBadge(status);
-  if (cfg.Movil === true || cfg.Movil === 'TRUE' || cfg.Movil === 'true') {
-    badges += '<span class="badge badge-movil">🛵 Servicio móvil</span>';
-  }
-  if (cfg.tipoNegocio) {
-    badges += '<span class="badge badge-gray">' + cfg.tipoNegocio + '</span>';
-  }
-  $('profile-meta').innerHTML = badges;
-}
 
 
 
@@ -1478,6 +1327,137 @@ STATE.statusActual = statusActual;
   $('cards-grid').style.display = 'grid';
 }
 
+
+function cambiarStatus(nuevoStatus) {
+  var storeId = STATE.tiendaData ? STATE.tiendaData.storeId : STATE.storeId;
+  if (!storeId) {
+    mostrarMensajeStatus('No se encontró el ID de la tienda', 'error');
+    return;
+  }
+  
+  var statusActual = STATE.statusActual || '';
+  
+  // No hacer nada si es el mismo status
+  if (statusActual === nuevoStatus) {
+    mostrarMensajeStatus('El estado ya es ' + nuevoStatus, 'error');
+    return;
+  }
+  
+  // Confirmación
+  var accion = nuevoStatus === 'activo' ? 'activar' : 'suspender';
+  if (!confirm('¿Estás seguro de ' + accion + ' tu servicio?\n\n' +
+    (nuevoStatus === 'suspendido' ? '⚠️ Al suspender, dejarás de aparecer en el directorio público.' : 
+     '✅ Al activar, volverás a aparecer en el directorio.'))) {
+    return;
+  }
+  
+  mostrarMensajeStatus('Cambiando estado...', 'loading');
+  
+  // Deshabilitar botones mientras se procesa
+  $('btn-activar').disabled = true;
+  $('btn-suspender').disabled = true;
+  
+  // Llamar al backend - usar external.store.status
+  callGAS({
+    action: 'external.store.status',
+    storeId: storeId,
+    status: nuevoStatus,
+    token: STATE.token
+  })
+  .then(function(res) {
+    if (res && res.ok) {
+      mostrarMensajeStatus('Estado actualizado a: ' + nuevoStatus, 'success');
+      
+      // Actualizar UI
+      STATE.statusActual = nuevoStatus;
+      STATE.tiendaData.status = nuevoStatus;
+      
+      // Actualizar badges y banner
+      $('d-status').innerHTML = statusBadge(nuevoStatus);
+      
+      // Actualizar banner de estado
+      var banner = $('status-banner');
+      if (nuevoStatus === 'activo' || nuevoStatus === 'active') {
+        banner.className = 'status-banner activo';
+        $('banner-icon').textContent = '✓';
+        $('banner-title').textContent = 'Cuenta activa';
+        $('banner-desc').textContent = 'Tu perfil está visible en el directorio Easylink.';
+        $('btn-activar').classList.add('active-btn');
+        $('btn-activar').disabled = true;
+        $('btn-suspender').disabled = false;
+        $('btn-suspender').classList.remove('suspended-btn');
+      } else {
+        banner.className = 'status-banner suspendido';
+        $('banner-icon').textContent = '⚠️';
+        $('banner-title').textContent = 'Tu cuenta está suspendida';
+        $('banner-desc').textContent = 'Puedes ver tus datos pero no aparecerás en el directorio público.';
+        $('btn-suspender').classList.add('suspended-btn');
+        $('btn-suspender').disabled = true;
+        $('btn-activar').disabled = false;
+        $('btn-activar').classList.remove('active-btn');
+      }
+      banner.style.display = 'flex';
+      
+      // Actualizar meta badges
+      actualizarMetaBadges();
+      
+    } else {
+      var error = (res && res.error) ? res.error : 'Error al cambiar estado';
+      mostrarMensajeStatus(error, 'error');
+      // Re-habilitar botones
+      habilitarBotonesSegunStatus();
+    }
+  })
+  .catch(function(e) {
+    mostrarMensajeStatus('Error de conexión: ' + e.message, 'error');
+    habilitarBotonesSegunStatus();
+  });
+}
+
+function mostrarMensajeStatus(mensaje, tipo) {
+  var msg = $('msg-status');
+  msg.textContent = mensaje;
+  msg.className = tipo;
+  msg.style.display = 'block';
+  
+  if (tipo === 'success' || tipo === 'error') {
+    setTimeout(function() {
+      msg.style.display = 'none';
+    }, 4000);
+  }
+}
+
+function habilitarBotonesSegunStatus() {
+  var status = STATE.statusActual || '';
+  if (status === 'activo' || status === 'active') {
+    $('btn-activar').disabled = true;
+    $('btn-suspender').disabled = false;
+  } else if (status === 'suspendido' || status === 'suspended') {
+    $('btn-activar').disabled = false;
+    $('btn-suspender').disabled = true;
+  } else {
+    $('btn-activar').disabled = false;
+    $('btn-suspender').disabled = false;
+  }
+}
+
+function actualizarMetaBadges() {
+  var badges = '';
+  var status = STATE.statusActual || (STATE.tiendaData ? STATE.tiendaData.status : '');
+  var cfg = STATE.tiendaData ? (STATE.tiendaData.config || {}) : {};
+  
+  badges += statusBadge(status);
+  if (cfg.Movil === true || cfg.Movil === 'TRUE' || cfg.Movil === 'true') {
+    badges += '<span class="badge badge-movil">🛵 Servicio móvil</span>';
+  }
+  if (cfg.tipoNegocio) {
+    badges += '<span class="badge badge-gray">' + cfg.tipoNegocio + '</span>';
+  }
+  $('profile-meta').innerHTML = badges;
+}
+
+
+  
 function setVal(id, v){
   var el = $(id);
   var val = fmt(v);
