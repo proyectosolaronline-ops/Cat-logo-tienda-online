@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Promotor — Easylink</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2026;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f0ee;
+    --text2: #8a8c92;
+    --text3: #55575e;
+    --accent: #00e5a0;
+    --accent-dim: rgba(0,229,160,0.12);
+    --accent-dim2: rgba(0,229,160,0.06);
+    --warn: #f5a623;
+    --warn-dim: rgba(245,166,35,0.12);
+    --danger: #ff4d4d;
+    --danger-dim: rgba(255,77,77,0.10);
+    --info: #4d9fff;
+    --info-dim: rgba(77,159,255,0.10);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { height: 100%; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── LOADER ─────────────────────────── */
+  #app-loader {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999; transition: opacity .4s;
+  }
+  #app-loader.hide { opacity: 0; pointer-events: none; }
+  .loader-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+    animation: ldot .8s ease-in-out infinite;
+    margin: 0 4px;
+  }
+  .loader-dot:nth-child(2) { animation-delay: .15s; }
+  .loader-dot:nth-child(3) { animation-delay: .3s; }
+  @keyframes ldot { 0%,80%,100%{transform:scale(.6);opacity:.4} 40%{transform:scale(1);opacity:1} }
+
+  /* ── LAYOUT ─────────────────────────── */
+  .screen {
+    display: none; min-height: 100vh;
+    animation: fadeIn .35s ease;
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── LOGIN ─────────────────────────── */
+  #screen-login {
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  .login-card {
+    width: 100%; max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 40px 36px 36px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 32px;
+  }
+  .brand-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--accent-dim);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .brand-icon svg { width: 22px; height: 22px; stroke: var(--accent); fill: none; stroke-width: 1.8; }
+  .brand-name { font-size: 18px; font-weight: 600; color: var(--text); }
+  .brand-sub  { font-size: 12px; color: var(--text3); font-weight: 400; }
+
+  .step-title  { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .step-sub    { font-size: 14px; color: var(--text2); margin-bottom: 28px; line-height: 1.5; }
+
+  label.field-label {
+    display: block; font-size: 12px; color: var(--text2);
+    text-transform: uppercase; letter-spacing: .06em;
+    margin-bottom: 8px; font-weight: 500;
+  }
+  input[type=email], input[type=text] {
+    width: 100%; background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); padding: 12px 16px;
+    font-size: 15px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+  }
+  input[type=email]:focus, input[type=text]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+  input::placeholder { color: var(--text3); }
+
+  .btn-primary {
+    width: 100%; padding: 13px;
+    background: var(--accent); color: #000;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 600;
+    border: none; border-radius: var(--radius-sm);
+    cursor: pointer; transition: opacity .2s, transform .15s;
+    margin-top: 20px;
+  }
+  .btn-primary:hover  { opacity: .88; }
+  .btn-primary:active { transform: scale(.98); }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border2);
+    color: var(--text2); border-radius: var(--radius-sm);
+    padding: 9px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: background .2s, color .2s;
+  }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+
+  /* OTP input group */
+  .otp-wrap {
+    display: flex; gap: 8px; margin-bottom: 8px;
+  }
+  .otp-input {
+    flex: 1; background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 14px 6px; text-align: center;
+    font-size: 20px; font-weight: 600; color: var(--text);
+    font-family: 'DM Mono', monospace;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none; caret-color: var(--accent);
+    width: 44px;
+  }
+  .otp-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+  .otp-input.filled { border-color: var(--accent); }
+
+  .msg-error {
+    background: var(--danger-dim); border: 1px solid rgba(255,77,77,.2);
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    font-size: 13px; color: #ff7070; margin-top: 12px;
+    display: none;
+  }
+  .msg-error.show { display: block; animation: fadeIn .2s ease; }
+  .msg-ok {
+    background: var(--accent-dim); border: 1px solid rgba(0,229,160,.2);
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    font-size: 13px; color: var(--accent); margin-top: 12px;
+    display: none;
+  }
+  .msg-ok.show { display: block; animation: fadeIn .2s ease; }
+
+  .timer-txt { font-size: 12px; color: var(--text3); text-align: center; margin-top: 10px; }
+  .timer-txt a { color: var(--accent); cursor: pointer; text-decoration: none; }
+  .timer-txt a:hover { text-decoration: underline; }
+
+  /* ── PANEL ─────────────────────────── */
+  #screen-panel {
+    flex-direction: column; min-height: 100vh;
+  }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar-left  { display: flex; align-items: center; gap: 12px; }
+  .topbar-brand { font-size: 16px; font-weight: 600; color: var(--text); }
+  .topbar-sub   { font-size: 12px; color: var(--text3); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .btn-logout {
+    background: none; border: 1px solid var(--border2);
+    color: var(--text2); border-radius: 8px;
+    padding: 7px 14px; font-size: 13px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    transition: background .2s, color .2s;
+  }
+  .btn-logout:hover { background: var(--danger-dim); color: var(--danger); border-color: rgba(255,77,77,.3); }
+
+  .panel-body {
+    flex: 1; padding: 28px;
+    max-width: 900px; width: 100%; margin: 0 auto;
+  }
+
+  /* status banner */
+  .status-banner {
+    border-radius: var(--radius);
+    padding: 18px 24px;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px;
+    border: 1px solid;
+  }
+  .status-banner.activo    { background: var(--accent-dim2); border-color: rgba(0,229,160,.18); }
+  .status-banner.suspendido{ background: var(--warn-dim);    border-color: rgba(245,166,35,.2); }
+  .status-banner-icon { font-size: 24px; flex-shrink: 0; }
+  .status-banner-title { font-size: 15px; font-weight: 600; }
+  .status-banner.activo     .status-banner-title { color: var(--accent); }
+  .status-banner.suspendido .status-banner-title { color: var(--warn); }
+  .status-banner-desc { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+  /* profile header */
+  .profile-header {
+    display: flex; align-items: center; gap: 20px;
+    margin-bottom: 28px;
+  }
+  .profile-photo {
+    width: 80px; height: 80px; border-radius: 16px;
+    object-fit: cover; background: var(--surface2);
+    border: 2px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; overflow: hidden;
+  }
+  .profile-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .profile-photo-placeholder { color: var(--text3); font-size: 28px; line-height: 1; }
+  .profile-name  { font-size: 22px; font-weight: 600; color: var(--text); }
+  .profile-store { font-size: 15px; color: var(--text2); margin-top: 2px; }
+  .profile-meta  { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+  /* badges */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 500; padding: 4px 10px;
+    border-radius: 6px; white-space: nowrap;
+  }
+  .badge-green   { background: rgba(0,229,160,.13); color: #00e5a0; }
+  .badge-amber   { background: rgba(245,166,35,.13); color: #f5a623; }
+  .badge-red     { background: rgba(255,77,77,.13);  color: #ff6b6b; }
+  .badge-blue    { background: rgba(77,159,255,.13); color: #4d9fff; }
+  .badge-gray    { background: rgba(255,255,255,.06);color: var(--text2); }
+  .badge-movil   { background: rgba(0,229,160,.13);  color: #00e5a0; }
+
+  /* section grid */
+  .section-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media(max-width: 640px) {
+    .section-grid { grid-template-columns: 1fr; }
+    .topbar { padding: 12px 16px; }
+    .panel-body { padding: 16px; }
+    .login-card { padding: 28px 22px; }
+  }
+
+  /* data cards */
+  .data-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .data-card-title {
+    font-size: 11px; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .07em;
+    font-weight: 500; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .data-card-title svg { width: 14px; height: 14px; stroke: var(--text3); fill: none; stroke-width: 1.8; flex-shrink: 0; }
+  .field-pair {
+    display: flex; flex-direction: column; gap: 3px; margin-bottom: 14px;
+  }
+  .field-pair:last-child { margin-bottom: 0; }
+  .fp-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; }
+  .fp-value { font-size: 14px; color: var(--text); word-break: break-all; }
+  .fp-value.mono { font-family: 'DM Mono', monospace; font-size: 13px; }
+  .fp-value.link { color: var(--info); cursor: pointer; }
+  .fp-value.link:hover { text-decoration: underline; }
+  .fp-value.empty { color: var(--text3); font-style: italic; }
+
+  /* horario bar */
+  .horario-wrap { margin-top: 8px; }
+  .horario-track {
+    width: 100%; height: 6px; background: var(--surface2);
+    border-radius: 3px; overflow: hidden; margin-bottom: 4px;
+  }
+  .horario-progress {
+    height: 100%; border-radius: 3px;
+    transition: width .5s ease;
+  }
+  .horario-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); }
+  .horario-status { font-size: 12px; margin-top: 6px; font-weight: 500; }
+
+  /* mapa / ubicate */
+  .ubicate-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px; margin-top: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .ubicate-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .ubicate-dot.live { background: var(--accent); animation: pulse-dot 1.5s ease-in-out infinite; }
+  .ubicate-dot.off  { background: var(--text3); }
+  @keyframes pulse-dot {
+    0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.4)}
+    50%{box-shadow:0 0 0 6px rgba(0,229,160,0)}
+  }
+  .ubicate-link { font-size: 13px; color: var(--info); cursor: pointer; word-break: break-all; }
+  .ubicate-link:hover { text-decoration: underline; }
+  .ubicate-empty { font-size: 13px; color: var(--text3); font-style: italic; }
+
+  /* coords */
+  .coords-row {
+    display: flex; gap: 8px; margin-top: 8px;
+  }
+  .coord-chip {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 8px 12px;
+    font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2);
+    text-align: center;
+  }
+  .coord-chip span { display: block; font-size: 10px; color: var(--text3); margin-bottom: 2px; text-transform: uppercase; letter-spacing: .04em; }
+
+  /* movil full-width */
+  .movil-card {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border: 1px solid rgba(0,229,160,.15);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* boton mapa */
+  .btn-mapa {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--info-dim); border: 1px solid rgba(77,159,255,.2);
+    color: var(--info); border-radius: var(--radius-sm);
+    padding: 8px 16px; font-size: 13px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: background .2s; text-decoration: none;
+    margin-top: 10px;
+  }
+  .btn-mapa:hover { background: rgba(77,159,255,.18); }
+  .btn-mapa svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* skeleton while loading */
+  .skel {
+    background: linear-gradient(90deg, var(--surface2) 25%, var(--surface) 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: skel-anim 1.2s infinite;
+    border-radius: 4px; height: 14px; margin: 6px 0;
+  }
+  @keyframes skel-anim { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="app-loader">
+  <div style="display:flex">
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ SCREEN: LOGIN ══════════════════ -->
+<div id="screen-login" class="screen">
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Easylink</div>
+        <div class="brand-sub">Panel promotor</div>
+      </div>
+    </div>
+
+    <!-- STEP 1: email -->
+    <div id="step-email">
+      <div class="step-title">Accede a tu panel</div>
+      <div class="step-sub">Ingresa el correo con el que te registraste. Te enviaremos un código de acceso.</div>
+      <label class="field-label" for="input-email">Correo electrónico</label>
+      <input type="email" id="input-email" placeholder="tu@correo.com" autocomplete="email" />
+      <div id="msg-email-error" class="msg-error"></div>
+      <button class="btn-primary" id="btn-send-code" onclick="sendCode()">Enviar código</button>
+    </div>
+
+    <!-- STEP 2: OTP -->
+    <div id="step-otp" style="display:none">
+      <div class="step-title">Código de acceso</div>
+      <div class="step-sub" id="otp-sub">Ingresa el código de 8 caracteres que enviamos a <strong id="otp-email-hint"></strong></div>
+      <div class="otp-wrap" id="otp-wrap"></div>
+      <div id="msg-otp-error" class="msg-error"></div>
+      <div id="msg-otp-ok" class="msg-ok"></div>
+      <button class="btn-primary" id="btn-verify" onclick="verifyCode()" disabled>Verificar</button>
+      <div class="timer-txt" id="timer-txt"></div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn-ghost" style="flex:1" onclick="goBackEmail()">Cambiar correo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SCREEN: PANEL ══════════════════ -->
+<div id="screen-panel" class="screen">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="brand-icon" style="width:32px;height:32px;border-radius:8px">
+        <svg style="width:16px;height:16px;stroke:var(--accent);fill:none;stroke-width:1.8" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <div class="topbar-brand">Easylink</div>
+        <div class="topbar-sub">Panel promotor</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span id="topbar-email" style="font-size:13px;color:var(--text2)"></span>
+      <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="panel-body">
+
+    <!-- status banner -->
+    <div id="status-banner" class="status-banner activo" style="display:none">
+      <div class="status-banner-icon" id="banner-icon"></div>
+      <div>
+        <div class="status-banner-title" id="banner-title"></div>
+        <div class="status-banner-desc"  id="banner-desc"></div>
+      </div>
+    </div>
+
+    <!-- profile header -->
+    <div class="profile-header" id="profile-header">
+      <div class="profile-photo" id="profile-photo">
+        <div class="profile-photo-placeholder">&#128100;</div>
+      </div>
+      <div>
+        <div class="profile-name"  id="profile-name">—</div>
+        <div class="profile-store" id="profile-store">—</div>
+        <div class="profile-meta"  id="profile-meta"></div>
+      </div>
+    </div>
+
+    <!-- cards grid -->
+    <div class="section-grid" id="cards-grid" style="display:none">
+
+      <!-- Información general -->
+      <div class="data-card">
+        <div class="data-card-title">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Datos generales
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Nombre del cliente</div>
+          <div class="fp-value" id="d-nombre_cliente">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Nombre de la tienda / negocio</div>
+          <div class="fp-value" id="d-nombre_tienda">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Tipo de negocio</div>
+          <div class="fp-value" id="d-tipo_negocio">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">ID de registro</div>
+          <div class="fp-value mono" id="d-storeId">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Fecha de registro</div>
+          <div class="fp-value" id="d-createdAt">—</div>
+        </div>
+      </div>
+
+      <!-- Contacto -->
+      <div class="data-card">
+        <div class="data-card-title">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.1 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .21h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.06-1.06a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          Contacto
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Teléfono</div>
+          <div class="fp-value" id="d-telefono">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Correo electrónico</div>
+          <div class="fp-value" id="d-correo">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">WhatsApp activo</div>
+          <div class="fp-value" id="d-whatsapp">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Link del negocio</div>
+          <div class="fp-value link" id="d-link_negocio" onclick="openLink(this)">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Servicio de llegada (llegar)</div>
+          <div class="fp-value" id="d-llegar">—</div>
+        </div>
+      </div>
+
+      <!-- Ubicación fija -->
+      <div class="data-card">
+        <div class="data-card-title">
+          <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Ubicación del negocio
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Localidad</div>
+          <div class="fp-value" id="d-localidad">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Colonia</div>
+          <div class="fp-value" id="d-colonia">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Estado</div>
+          <div class="fp-value" id="d-estado">—</div>
+        </div>
+        <div class="coords-row">
+          <div class="coord-chip"><span>Latitud</span><span id="d-lat">—</span></div>
+          <div class="coord-chip"><span>Longitud</span><span id="d-lng">—</span></div>
+        </div>
+        <a id="btn-mapa-fijo" class="btn-mapa" style="display:none" target="_blank">
+          <svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+          Ver en mapa
+        </a>
+      </div>
+
+      <!-- Directorio -->
+      <div class="data-card">
+        <div class="data-card-title">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Directorio público
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Visible en directorio</div>
+          <div class="fp-value" id="d-inDirectory">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Status actual</div>
+          <div class="fp-value" id="d-status">—</div>
+        </div>
+        <div class="field-pair">
+          <div class="fp-label">Foto / imagen del negocio</div>
+          <div class="fp-value" id="d-foto-status">—</div>
+        </div>
+      </div>
+
+      <!-- Servicio Móvil — full width -->
+      <div class="movil-card">
+        <div class="data-card-title">
+          <svg viewBox="0 0 24 24" style="stroke:var(--accent)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span style="color:var(--accent)">Servicio móvil</span>
+        </div>
+
+        <div class="section-grid" style="margin-bottom:0">
+          <div>
+            <div class="field-pair">
+              <div class="fp-label">Servicio móvil activo</div>
+              <div class="fp-value" id="d-movil">—</div>
+            </div>
+            <div class="field-pair">
+              <div class="fp-label">Horario de servicio</div>
+              <div class="fp-value mono" id="d-horariopromotor">—</div>
+            </div>
+            <div id="horario-wrap" class="horario-wrap" style="display:none">
+              <div class="horario-track">
+                <div class="horario-progress" id="horario-progress" style="width:0%"></div>
+              </div>
+              <div class="horario-labels">
+                <span id="hl-ini">—</span>
+                <span id="hl-fin">—</span>
+              </div>
+              <div class="horario-status" id="horario-status"></div>
+            </div>
+          </div>
+          <div>
+            <div class="field-pair">
+              <div class="fp-label">Ubicación en tiempo real (ubicate)</div>
+            </div>
+            <div class="ubicate-box" id="ubicate-box">
+              <div class="ubicate-dot off" id="ubicate-dot"></div>
+              <div>
+                <div class="ubicate-empty" id="ubicate-val">Sin ubicación activa</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.5" id="ubicate-hint">
+              El sistema limpia automáticamente este campo cuando sales del horario de servicio.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cards-grid -->
+
+    <!-- Loading skeleton -->
+    <div id="skeleton" style="display:none">
+      <div class="skel" style="width:60%;height:22px;margin-bottom:16px"></div>
+      <div class="section-grid">
+        <div class="data-card"><div class="skel"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:50%"></div></div>
+        <div class="data-card"><div class="skel"></div><div class="skel" style="width:80%"></div><div class="skel" style="width:60%"></div></div>
+      </div>
+    </div>
+
+    <!-- Error panel -->
+    <div id="panel-error" style="display:none">
+      <div style="background:var(--danger-dim);border:1px solid rgba(255,77,77,.2);border-radius:var(--radius);padding:24px;text-align:center">
+        <div style="font-size:28px;margin-bottom:8px">&#9888;</div>
+        <div style="font-size:16px;font-weight:600;color:#ff6b6b;margin-bottom:6px" id="panel-error-title">Error</div>
+        <div style="font-size:14px;color:var(--text2)" id="panel-error-desc"></div>
+        <button class="btn-ghost" style="margin-top:16px" onclick="logout()">Volver al inicio</button>
+      </div>
+    </div>
+
+  </div><!-- /panel-body -->
+</div><!-- /screen-panel -->
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIGURACIÓN — reemplaza con tu URL real de GAS
+// ═══════════════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/TU_DEPLOYMENT_ID/exec';
+
+// ═══════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════
+var STATE = {
+  email: '',
+  storeId: '',
+  token: '',
+  timerInterval: null,
+  otpValues: ['','','','','','','',''],
+  tiendaData: null
+};
+
+// ═══════════════════════════════════════════════════
+// UTILIDADES
+// ═══════════════════════════════════════════════════
+function $(id){ return document.getElementById(id); }
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){
+    s.classList.toggle('active', s.id === id);
+  });
+}
+function callGAS(params){
+  var url = GAS_URL + '?' + new URLSearchParams(params).toString();
+  return fetch(url).then(function(r){ return r.json(); });
+}
+function callGASPost(body){
+  return fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function(r){ return r.json(); });
+}
+function boolBadge(val, trueLabel, falseLabel){
+  var isTrue = (val === true || val === 'TRUE' || val === 'true');
+  if(isTrue) return '<span class="badge badge-green">&#10003; ' + (trueLabel||'Sí') + '</span>';
+  return '<span class="badge badge-gray">— ' + (falseLabel||'No') + '</span>';
+}
+function statusBadge(st){
+  if(st==='activo')     return '<span class="badge badge-green">&#9679; Activo</span>';
+  if(st==='suspendido') return '<span class="badge badge-amber">&#9650; Suspendido</span>';
+  if(st==='pendiente')  return '<span class="badge badge-blue">&#9679; Pendiente</span>';
+  if(st==='cancelado')  return '<span class="badge badge-red">&#10005; Cancelado</span>';
+  return '<span class="badge badge-gray">' + (st||'—') + '</span>';
+}
+function openLink(el){
+  var v = el.dataset.href || el.textContent;
+  if(!v || v==='—' || v==='Sin enlace') return;
+  if(!v.startsWith('http')) v = 'https://' + v;
+  window.open(v, '_blank');
+}
+function fmt(v){ return (!v || v==='' || v==='null') ? null : v; }
+function fmtDate(iso){
+  if(!iso) return '—';
+  try{
+    var d = new Date(iso);
+    return d.toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
+  }catch(e){ return iso; }
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    $('app-loader').classList.add('hide');
+    // Revisar sesión guardada
+    var saved = localStorage.getItem('promotor_session');
+    if(saved){
+      try{
+        var s = JSON.parse(saved);
+        if(s.token && s.email && s.storeId){
+          STATE.email   = s.email;
+          STATE.storeId = s.storeId;
+          STATE.token   = s.token;
+          $('topbar-email').textContent = s.email;
+          showScreen('screen-panel');
+          loadPanel();
+          return;
+        }
+      }catch(e){}
+    }
+    buildOTPInputs();
+    showScreen('screen-login');
+  }, 600);
+});
+
+// ═══════════════════════════════════════════════════
+// OTP INPUTS — 8 celdas
+// ═══════════════════════════════════════════════════
+function buildOTPInputs(){
+  var wrap = $('otp-wrap');
+  wrap.innerHTML = '';
+  for(var i=0; i<8; i++){
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.maxLength = 1;
+    inp.className = 'otp-input';
+    inp.dataset.idx = i;
+    inp.autocomplete = 'off';
+    inp.autocapitalize = 'characters';
+    inp.setAttribute('inputmode','text');
+    inp.addEventListener('input', otpInput);
+    inp.addEventListener('keydown', otpKeydown);
+    inp.addEventListener('paste', otpPaste);
+    wrap.appendChild(inp);
+    STATE.otpValues[i] = '';
+  }
+}
+
+function otpInput(e){
+  var inp = e.target;
+  var idx = parseInt(inp.dataset.idx);
+  var val = inp.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  inp.value = val.slice(-1);
+  STATE.otpValues[idx] = inp.value;
+  inp.classList.toggle('filled', !!inp.value);
+  if(inp.value && idx < 7){
+    $('otp-wrap').children[idx+1].focus();
+  }
+  checkOTPComplete();
+}
+
+function otpKeydown(e){
+  var inp = e.target;
+  var idx = parseInt(inp.dataset.idx);
+  if(e.key==='Backspace'){
+    if(!inp.value && idx > 0){
+      var prev = $('otp-wrap').children[idx-1];
+      prev.value = '';
+      STATE.otpValues[idx-1] = '';
+      prev.classList.remove('filled');
+      prev.focus();
+    }
+  }
+  if(e.key==='ArrowLeft'  && idx>0) $('otp-wrap').children[idx-1].focus();
+  if(e.key==='ArrowRight' && idx<7) $('otp-wrap').children[idx+1].focus();
+}
+
+function otpPaste(e){
+  e.preventDefault();
+  var pasted = (e.clipboardData||window.clipboardData).getData('text');
+  var clean = pasted.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);
+  var inputs = $('otp-wrap').children;
+  for(var i=0; i<8; i++){
+    var v = clean[i]||'';
+    inputs[i].value = v;
+    STATE.otpValues[i] = v;
+    inputs[i].classList.toggle('filled', !!v);
+  }
+  if(clean.length>0) inputs[Math.min(clean.length-1,7)].focus();
+  checkOTPComplete();
+}
+
+function checkOTPComplete(){
+  var full = STATE.otpValues.every(function(v){ return v!==''; });
+  $('btn-verify').disabled = !full;
+}
+
+function getOTPCode(){
+  return STATE.otpValues.join('');
+}
+
+// ═══════════════════════════════════════════════════
+// STEP 1: ENVIAR CÓDIGO
+// ═══════════════════════════════════════════════════
+function sendCode(){
+  var email = $('input-email').value.trim();
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    showMsgError('msg-email-error','Ingresa un correo electrónico válido.');
+    return;
+  }
+  hideMsgError('msg-email-error');
+  STATE.email = email;
+  var btn = $('btn-send-code');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  callGAS({ action: 'enviarCodigoPromotor_login', correo: email })
+    .then(function(res){
+      btn.disabled = false;
+      btn.textContent = 'Enviar código';
+      if(res && res.ok){
+        STATE.storeId = res.storeId || '';
+        goToOTP(email);
+      } else {
+        var err = (res && res.error) ? res.error : 'No se encontró un promotor con ese correo.';
+        showMsgError('msg-email-error', err);
+      }
+    })
+    .catch(function(){
+      btn.disabled = false;
+      btn.textContent = 'Enviar código';
+      // DEMO: permitir continuar con código simulado para desarrollo
+      STATE.storeId = 'ext_demo';
+      goToOTP(email);
+    });
+}
+
+function goToOTP(email){
+  $('step-email').style.display = 'none';
+  $('step-otp').style.display = 'block';
+  $('otp-email-hint').textContent = email;
+  buildOTPInputs();
+  checkOTPComplete();
+  hideMsgError('msg-otp-error');
+  startTimer(300);
+  setTimeout(function(){ $('otp-wrap').children[0].focus(); }, 100);
+}
+
+function goBackEmail(){
+  clearInterval(STATE.timerInterval);
+  $('step-otp').style.display = 'none';
+  $('step-email').style.display = 'block';
+}
+
+// ═══════════════════════════════════════════════════
+// TIMER OTP
+// ═══════════════════════════════════════════════════
+function startTimer(secs){
+  clearInterval(STATE.timerInterval);
+  var remaining = secs;
+  updateTimerTxt(remaining);
+  STATE.timerInterval = setInterval(function(){
+    remaining--;
+    updateTimerTxt(remaining);
+    if(remaining <= 0){
+      clearInterval(STATE.timerInterval);
+      $('timer-txt').innerHTML = 'Código expirado. <a onclick="resendCode()">Reenviar</a>';
+    }
+  }, 1000);
+}
+
+function updateTimerTxt(s){
+  var m = Math.floor(s/60), sc = s%60;
+  $('timer-txt').innerHTML = 'Código válido por <strong>' + m + ':' + (sc<10?'0':'')+sc + '</strong> · <a onclick="resendCode()">Reenviar</a>';
+}
+
+function resendCode(){
+  buildOTPInputs();
+  STATE.otpValues = ['','','','','','','',''];
+  hideMsgError('msg-otp-error');
+  hideMsgError('msg-otp-ok');
+  sendCode();
+  $('step-email').style.display = 'none';
+  $('step-otp').style.display = 'block';
+}
+
+// ═══════════════════════════════════════════════════
+// STEP 2: VERIFICAR CÓDIGO
+// ═══════════════════════════════════════════════════
+function verifyCode(){
+  var code = getOTPCode();
+  if(code.length < 8){ showMsgError('msg-otp-error','Ingresa los 8 caracteres del código.'); return; }
+  hideMsgError('msg-otp-error');
+  var btn = $('btn-verify');
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  callGAS({ action: 'verificarCodigoPromotor', correo: STATE.email, codigo: code })
+    .then(function(res){
+      btn.disabled = false;
+      btn.textContent = 'Verificar';
+      if(res && res.ok){
+        clearInterval(STATE.timerInterval);
+        STATE.token   = res.token   || '';
+        STATE.storeId = res.storeId || STATE.storeId;
+        $('msg-otp-ok').textContent = '¡Correcto! Accediendo a tu panel...';
+        $('msg-otp-ok').style.display = 'block';
+        localStorage.setItem('promotor_session', JSON.stringify({
+          email:   STATE.email,
+          storeId: STATE.storeId,
+          token:   STATE.token
+        }));
+        setTimeout(function(){
+          $('topbar-email').textContent = STATE.email;
+          showScreen('screen-panel');
+          loadPanel();
+        }, 800);
+      } else {
+        var err = (res && res.error) ? res.error : 'Código incorrecto o expirado.';
+        showMsgError('msg-otp-error', err);
+        btn.disabled = false;
+      }
+    })
+    .catch(function(e){
+      // MODO DEMO: si el backend no responde, simular datos de prueba
+      btn.disabled = false;
+      btn.textContent = 'Verificar';
+      clearInterval(STATE.timerInterval);
+      STATE.token = 'demo_token_local';
+      $('msg-otp-ok').textContent = 'Accediendo en modo demo (sin backend)...';
+      $('msg-otp-ok').style.display = 'block';
+      setTimeout(function(){
+        $('topbar-email').textContent = STATE.email;
+        showScreen('screen-panel');
+        loadPanelDemo();
+      }, 800);
+    });
+}
+
+// ═══════════════════════════════════════════════════
+// CARGAR PANEL
+// Usa action: promotor.perfil (nueva ruta dedicada)
+// Fallback: external.stores.list con token de sesión
+// Fallback 2: stores.directory sin filtro de horario
+// ═══════════════════════════════════════════════════
+function loadPanel(){
+  $('skeleton').style.display = 'block';
+  $('cards-grid').style.display = 'none';
+  $('panel-error').style.display = 'none';
+  $('status-banner').style.display = 'none';
+
+  // INTENTO 1 — ruta dedicada promotor.perfil (si la agregas al GAS)
+  callGAS({ action: 'promotor.perfil', correo: STATE.email, token: STATE.token })
+    .then(function(res){
+      if(res && res.ok && res.tienda){
+        $('skeleton').style.display = 'none';
+        STATE.tiendaData = res.tienda;
+        renderPanel(res.tienda);
+        return;
+      }
+      // INTENTO 2 — external.stores.list con token (devuelve todos sin filtro horario)
+      return buscarConListado();
+    })
+    .catch(function(){
+      return buscarConListado();
+    });
+}
+
+function buscarConListado(){
+  // external.stores.list requiere token admin — si el promotor no tiene uno,
+  // usa stores.directory con búsqueda ampliada (sin filtro movil/horario estricto)
+  callGAS({ action: 'external.stores.list', token: STATE.token })
+    .then(function(res){
+      $('skeleton').style.display = 'none';
+      if(res && res.ok && res.stores && res.stores.length){
+        var tienda = buscarPorCorreoEnRaw(res.stores);
+        if(tienda){ STATE.tiendaData = tienda; renderPanel(tienda); return; }
+      }
+      // INTENTO 3 — stores.directory ampliado (ignora filtro horario/ubicate del backend)
+      buscarEnDirectorioAmpliado();
+    })
+    .catch(function(){
+      buscarEnDirectorioAmpliado();
+    });
+}
+
+function buscarEnDirectorioAmpliado(){
+  // stores.directory es ruta pública — pero el backend ya filtró por horario.
+  // Aquí buscamos igual y además hacemos un segundo intento con status ampliado.
+  callGAS({ action: 'stores.directory' })
+    .then(function(res){
+      $('skeleton').style.display = 'none';
+      if(!res || !res.stores){
+        showPanelError('Error de conexión','No se pudo conectar al servidor. Intenta más tarde.');
+        return;
+      }
+      // Buscar en tiendas externas — SIN filtrar por movil ni horario,
+      // solo por correo y status activo/suspendido
+      var tienda = null;
+      var email = STATE.email.toLowerCase().trim();
+      for(var i=0; i<res.stores.length; i++){
+        var s = res.stores[i];
+        if(!s.isExternal) continue;
+        var cfg = s.config || {};
+        var correoTienda = (cfg.correo || '').toLowerCase().trim();
+        if(correoTienda !== email) continue;
+        var st = (s.status||'').toLowerCase();
+        if(st==='active'||st==='activo'||st==='suspendido'||st==='suspended'){
+          tienda = s; break;
+        }
+      }
+      if(tienda){ STATE.tiendaData = tienda; renderPanel(tienda); return; }
+
+      // No se encontró — dar mensaje claro con diagnóstico
+      showPanelError(
+        'No se encontró tu perfil',
+        'El correo "' + STATE.email + '" no coincide con ningún promotor en el directorio. ' +
+        'Posibles causas: (1) Tu registro tiene movil=FALSE, (2) el campo correo del sheet está vacío, ' +
+        '(3) estás fuera de horario y sin ubicate activa. Contacta al administrador.'
+      );
+    })
+    .catch(function(){
+      $('skeleton').style.display = 'none';
+      loadPanelDemo();
+    });
+}
+
+// Busca en raw de external.stores.list (filas crudas del sheet, sin mapeo config{})
+function buscarPorCorreoEnRaw(stores){
+  var email = STATE.email.toLowerCase().trim();
+  for(var i=0; i<stores.length; i++){
+    var s = stores[i];
+    // external.stores.list devuelve filas crudas con columna 'correo' directa
+    var correoRow = (s.correo || '').toLowerCase().trim();
+    if(correoRow !== email) continue;
+    var movil  = (s.movil===true||s.movil==='TRUE'||s.movil==='true');
+    var status = (s.status||'').toLowerCase();
+    if(!movil) continue;
+    if(status!=='activo'&&status!=='active'&&status!=='suspendido') continue;
+    // Convertir fila cruda al formato que espera renderPanel
+    return rawToTienda(s);
+  }
+  return null;
+}
+
+// Convierte fila cruda del sheet al objeto {storeId, name, status, isExternal, config{}}
+function rawToTienda(r){
+  return {
+    storeId:    r.storeId    || '',
+    name:       r.nombre_tienda || '',
+    status:     r.status     || 'activo',
+    isExternal: true,
+    createdAt:  r.createdAt  || '',
+    config: {
+      nombreCliente:  r.nombre_cliente  || '',
+      logoUrl:        r.foto            || '',
+      logo:           r.foto            || '',
+      correo:         r.correo          || '',
+      telefono:       r.telefono        || '',
+      whatsapp:       r.whatsapp,
+      llegar:         r.llegar,
+      Movil:          r.movil,
+      horariopromotor:r.horariopromotor || '08:00-18:00',
+      ubicate:        r.ubicate         || '',
+      locationLat:    r.locationLat     || '',
+      locationLng:    r.locationLng     || '',
+      description:    [r.colonia, r.localidad, r.estado].filter(Boolean).join(', '),
+      storeLocation:  [r.localidad, r.estado].filter(Boolean).join(', '),
+      tipoNegocio:    r.tipo_negocio    || '',
+      businessType:   r.tipo_negocio    || '',
+      linkNegocio:    r.link_negocio    || '',
+      inDirectory:    r.inDirectory,
+    }
+  };
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER PANEL
+// ═══════════════════════════════════════════════════
+function renderPanel(tienda){
+  var cfg    = tienda.config || {};
+  var status = (tienda.status || '').toLowerCase();
+
+  // === STATUS BANNER ===
+  var banner = $('status-banner');
+  if(status === 'suspendido' || status === 'suspended'){
+    banner.className = 'status-banner suspendido';
+    $('banner-icon').textContent = '⚠️';
+    $('banner-title').textContent = 'Tu cuenta está suspendida';
+    $('banner-desc').textContent  = 'Puedes ver tus datos pero no aparecerás en el directorio público. Contacta al administrador para reactivarla.';
+    banner.style.display = 'flex';
+  } else if(status === 'active' || status === 'activo'){
+    banner.className = 'status-banner activo';
+    $('banner-icon').textContent = '✓';
+    $('banner-title').textContent = 'Cuenta activa';
+    $('banner-desc').textContent  = 'Tu perfil está visible en el directorio Easylink.';
+    banner.style.display = 'flex';
+  }
+
+  // === FOTO / AVATAR ===
+  var fotoUrl = cfg.logoUrl || cfg.logo || '';
+  if(fotoUrl && fotoUrl !== ''){
+    var ph = $('profile-photo');
+    ph.innerHTML = '';
+    var img = document.createElement('img');
+    img.src = fotoUrl;
+    img.alt = tienda.name || '';
+    img.onerror = function(){ ph.innerHTML = '<div class="profile-photo-placeholder">🏪</div>'; };
+    ph.appendChild(img);
+  }
+
+  // === HEADER ===
+  $('profile-name').textContent  = cfg.nombreCliente  || tienda.name || '—';
+  $('profile-store').textContent = tienda.name || '—';
+
+  // badges en header
+  var badges = '';
+  badges += statusBadge(status);
+  if(cfg.Movil === true || cfg.Movil === 'TRUE' || cfg.Movil === 'true'){
+    badges += '<span class="badge badge-movil">🛵 Servicio móvil</span>';
+  }
+  if(cfg.tipoNegocio) badges += '<span class="badge badge-gray">' + cfg.tipoNegocio + '</span>';
+  $('profile-meta').innerHTML = badges;
+
+  // === DATOS GENERALES ===
+  setVal('d-nombre_cliente', cfg.nombreCliente);
+  setVal('d-nombre_tienda',  tienda.name);
+  setVal('d-tipo_negocio',   cfg.tipoNegocio   || cfg.businessType);
+  setVal('d-storeId',        tienda.storeId);
+  $('d-createdAt').textContent = fmtDate(tienda.createdAt);
+
+  // === CONTACTO ===
+  setVal('d-telefono', cfg.telefono);
+  setVal('d-correo',   cfg.correo);
+  $('d-whatsapp').innerHTML = boolBadge(cfg.whatsapp, 'WhatsApp activo', 'Sin WhatsApp');
+  var link = fmt(cfg.linkNegocio);
+  if(link){
+    $('d-link_negocio').textContent = link;
+    $('d-link_negocio').dataset.href = link;
+    $('d-link_negocio').classList.remove('empty');
+  } else {
+    $('d-link_negocio').textContent = 'Sin enlace';
+    $('d-link_negocio').classList.add('empty');
+  }
+  $('d-llegar').innerHTML = boolBadge(cfg.llegar, 'Sí llega al cliente', 'No disponible');
+
+  // === UBICACIÓN ===
+  setVal('d-localidad', cfg.storeLocation ? cfg.storeLocation.split(',')[0] : null);
+  var desc = cfg.description || '';
+  var partes = desc.split(',');
+  $('d-colonia').textContent  = (partes[0] || '—').trim();
+  $('d-estado').textContent   = (partes[2] || partes[1] || '—').trim();
+  $('d-lat').textContent      = fmt(cfg.locationLat) ? Number(cfg.locationLat).toFixed(5) : '—';
+  $('d-lng').textContent      = fmt(cfg.locationLng) ? Number(cfg.locationLng).toFixed(5) : '—';
+  if(fmt(cfg.locationLat) && fmt(cfg.locationLng)){
+    var btnMapa = $('btn-mapa-fijo');
+    btnMapa.href = 'https://www.google.com/maps?q=' + cfg.locationLat + ',' + cfg.locationLng;
+    btnMapa.style.display = 'inline-flex';
+  }
+
+  // === DIRECTORIO ===
+  $('d-inDirectory').innerHTML = boolBadge(cfg.inDirectory || tienda.inDirectory, 'Visible', 'Oculto');
+  $('d-status').innerHTML      = statusBadge(status);
+  $('d-foto-status').innerHTML = fotoUrl
+    ? '<span class="badge badge-green">&#10003; Imagen configurada</span>'
+    : '<span class="badge badge-gray">Sin imagen</span>';
+
+  // === SERVICIO MÓVIL ===
+  var esMovil = (cfg.Movil === true || cfg.Movil === 'TRUE' || cfg.Movil === 'true');
+  $('d-movil').innerHTML = boolBadge(esMovil, 'Activo', 'No aplica');
+
+  var horario = fmt(cfg.horariopromotor) || '08:00-18:00';
+  $('d-horariopromotor').textContent = horario;
+
+  // barra de horario
+  try{
+    var parteH = horario.split('-');
+    var ini    = parteH[0].split(':').map(Number);
+    var finH   = parteH[1].split(':').map(Number);
+    var mIni   = ini[0]*60+ini[1];
+    var mFin   = finH[0]*60+finH[1];
+    var ahora  = new Date();
+    var mAhora = ahora.getHours()*60+ahora.getMinutes();
+    var pct    = Math.min(100, Math.max(0, Math.round((mAhora-mIni)/(mFin-mIni)*100)));
+    var dentro = mAhora >= mIni && mAhora <= mFin;
+    $('hl-ini').textContent = parteH[0];
+    $('hl-fin').textContent = parteH[1];
+    var prog = $('horario-progress');
+    prog.style.width = pct + '%';
+    prog.style.background = dentro ? '#00e5a0' : '#ff4d4d';
+    $('horario-status').innerHTML = dentro
+      ? '<span style="color:var(--accent)">&#9679; En horario activo (' + pct + '% transcurrido)</span>'
+      : '<span style="color:var(--text2)">Fuera de horario — ' + (mAhora < mIni ? 'inicia a las '+parteH[0] : 'finalizó a las '+parteH[1]) + '</span>';
+    $('horario-wrap').style.display = 'block';
+  }catch(e){}
+
+  // ubicate
+  var ubicate = fmt(cfg.ubicate);
+  var dot     = $('ubicate-dot');
+  var valEl   = $('ubicate-val');
+  var hint    = $('ubicate-hint');
+  if(ubicate && ubicate !== 'null'){
+    dot.className = 'ubicate-dot live';
+    valEl.className = 'ubicate-link';
+    valEl.textContent = ubicate;
+    valEl.onclick = function(){ window.open(ubicate,'_blank'); };
+    hint.textContent = 'Ubicación en tiempo real activa. Se limpiará automáticamente al finalizar tu horario.';
+    hint.style.color = 'var(--accent)';
+  } else {
+    dot.className = 'ubicate-dot off';
+    valEl.className = 'ubicate-empty';
+    valEl.textContent = 'Sin ubicación activa';
+    valEl.onclick = null;
+    hint.textContent = 'No tienes ubicación activa. Cuando estés en tu horario, el sistema puede solicitar tu ubicación por WhatsApp.';
+  }
+
+  $('cards-grid').style.display = 'grid';
+}
+
+function setVal(id, v){
+  var el = $(id);
+  var val = fmt(v);
+  if(val){ el.textContent = val; el.classList.remove('empty'); }
+  else   { el.textContent = '—'; el.classList.add('empty'); }
+}
+
+// ═══════════════════════════════════════════════════
+// DEMO DATA (cuando backend no responde)
+// ═══════════════════════════════════════════════════
+function loadPanelDemo(){
+  var demo = {
+    storeId: 'ext_demo_001',
+    name: 'Tortillería La Esperanza',
+    status: 'active',
+    isExternal: true,
+    createdAt: '2024-03-15T10:00:00Z',
+    config: {
+      nombreCliente: 'María González',
+      logoUrl: '',
+      correo: STATE.email,
+      telefono: '442 123 4567',
+      whatsapp: true,
+      llegar: true,
+      Movil: true,
+      horariopromotor: '08:00-18:00',
+      ubicate: '',
+      locationLat: '20.6397',
+      locationLng: '-100.4327',
+      description: 'Hacienda El Jacal, El Marqués, Querétaro',
+      storeLocation: 'El Marqués, Querétaro',
+      tipoNegocio: 'Alimentos',
+      businessType: 'Alimentos',
+      linkNegocio: '',
+      inDirectory: true
+    }
+  };
+  $('skeleton').style.display = 'none';
+  var infoBanner = document.createElement('div');
+  infoBanner.style.cssText = 'background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.2);border-radius:10px;padding:10px 16px;font-size:12px;color:#4d9fff;margin-bottom:16px';
+  infoBanner.textContent = 'Modo demo — conecta tu URL de GAS para ver datos reales del sheet.';
+  $('panel-body').insertBefore(infoBanner, $('status-banner'));
+  renderPanel(demo);
+}
+
+function showPanelError(title, desc){
+  $('skeleton').style.display   = 'none';
+  $('cards-grid').style.display = 'none';
+  $('panel-error').style.display = 'block';
+  $('panel-error-title').textContent = title;
+  $('panel-error-desc').textContent  = desc;
+}
+
+// ═══════════════════════════════════════════════════
+// HELPERS MENSAJES
+// ═══════════════════════════════════════════════════
+function showMsgError(id, txt){ var el=$(id); el.textContent=txt; el.classList.add('show'); }
+function hideMsgError(id){ var el=$(id); el.classList.remove('show'); }
+
+// ═══════════════════════════════════════════════════
+// LOGOUT
+// ═══════════════════════════════════════════════════
+function logout(){
+  localStorage.removeItem('promotor_session');
+  STATE = { email:'', storeId:'', token:'', timerInterval:null, otpValues:['','','','','','','',''], tiendaData:null };
+  clearInterval(STATE.timerInterval);
+  $('input-email').value = '';
+  $('step-otp').style.display   = 'none';
+  $('step-email').style.display = 'block';
+  hideMsgError('msg-email-error');
+  hideMsgError('msg-otp-error');
+  buildOTPInputs();
+  showScreen('screen-login');
+}
+</script>
+</body>
+</html>
