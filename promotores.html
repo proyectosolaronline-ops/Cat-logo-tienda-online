@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Panel Promotor - Easylink</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #075E54, #128C7E);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 700px; margin: 0 auto; }
+        .card {
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #075E54, #128C7E);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        .card-header h1 { font-size: 1.5rem; }
+        .card-header p { font-size: 0.9rem; margin-top: 6px; opacity: 0.9; }
+        .card-body { padding: 28px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 16px;
+            font-size: 1rem;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #128C7E;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+        }
+        .btn-primary { background: #128C7E; color: white; }
+        .btn-primary:hover { background: #075E54; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #495057; }
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+        }
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+        }
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .info-label {
+            width: 130px;
+            font-weight: 700;
+            color: #374151;
+            flex-shrink: 0;
+        }
+        .info-value { flex: 1; color: #1f2937; word-break: break-word; }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-active   { background: #d1fae5; color: #065f46; }
+        .status-suspended{ background: #fee2e2; color: #dc2626; }
+        hr { margin: 20px 0; border: none; border-top: 1px solid #e5e7eb; }
+        .section-title { font-size: 1rem; font-weight: 700; color: #374151; margin: 20px 0 12px; }
+    </style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
+
+    let currentStore = null;
+    let currentEmail = '';
+    let currentCode  = '';
+    let ownerToken   = null;
+
+    function s(v) { return (v === null || v === undefined || v === 'null') ? '' : String(v).trim(); }
+    function esc(v) {
+        return s(v).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+    }
+    function isTrue(v) { return v === true || s(v).toUpperCase() === 'TRUE'; }
+
+    async function api(action, data = {}) {
+        try {
+            const qs = new URLSearchParams({ action, ...data }).toString();
+            const r  = await fetch(`${API_URL}?${qs}`);
+            return await r.json();
+        } catch(e) { return { ok: false, error: e.message }; }
+    }
+
+    function msg(id, text, type = 'error') {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = `<div class="${type === 'error' ? 'error-message' : 'success-message'}">${text}</div>`;
+        setTimeout(() => { if(document.getElementById(id)) el.innerHTML = ''; }, 5000);
+    }
+
+    // ══ PANTALLA 1: LOGIN ══
+    function renderLogin() {
+        return `
+        <div class="card">
+            <div class="card-header">
+                <h1>🛵 Panel Promotor</h1>
+                <p>Easylink — Ingresa tu correo registrado</p>
+            </div>
+            <div class="card-body">
+                <div id="msg"></div>
+                <div class="form-group">
+                    <label>📧 Correo electrónico</label>
+                    <input type="email" id="emailInput" placeholder="tu@correo.com">
+                </div>
+                <button class="btn btn-primary" id="sendCodeBtn">📨 Enviar código de acceso</button>
+            </div>
+        </div>`;
+    }
+
+    // ══ PANTALLA 2: CÓDIGO OTP ══
+    function renderCodeStep(email) {
+        return `
+        <div class="card">
+            <div class="card-header">
+                <h1>🔑 Código de acceso</h1>
+                <p>Enviado a <strong>${esc(email)}</strong></p>
+            </div>
+            <div class="card-body">
+                <div id="msg"></div>
+                <div class="form-group">
+                    <label>📲 Ingresa el código de 8 caracteres</label>
+                    <input type="text" id="codeInput" maxlength="8" placeholder="Ej: 3K7B9X2M"
+                        style="text-transform:uppercase;text-align:center;font-size:1.4rem;letter-spacing:6px;font-family:monospace;">
+                </div>
+                <button class="btn btn-primary" id="verifyBtn">✅ Verificar</button>
+                <button class="btn btn-secondary" id="backBtn">← Volver</button>
+            </div>
+        </div>`;
+    }
+
+    // ══ PANTALLA 3: DASHBOARD ══
+    function renderDashboard(t) {
+        // t = objeto plano del sheet (keys en minúsculas)
+        const isActive  = s(t.status).toLowerCase() === 'activo';
+        const ubicacion = [t.colonia, t.localidad, t.estado].filter(x => s(x)).join(', ');
+
+        return `
+        <div class="card">
+            <div class="card-header">
+                <h1>📋 ${esc(t.nombre_tienda)}</h1>
+                <p>Bienvenido, ${esc(t.nombre_cliente)}</p>
+            </div>
+            <div class="card-body">
+                <div id="msg"></div>
+
+                <div class="section-title">📌 Estado actual</div>
+                <div class="info-row">
+                    <div class="info-label">Estado:</div>
+                    <div class="info-value">
+                        <span class="status-badge ${isActive ? 'status-active' : 'status-suspended'}">
+                            ${isActive ? '✅ ACTIVO' : '⛔ SUSPENDIDO'}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="section-title">🔄 Cambiar estado</div>
+                <div class="form-group">
+                    <select id="statusSelect">
+                        <option value="activo"     ${isActive  ? 'selected' : ''}>✅ Activo</option>
+                        <option value="suspendido" ${!isActive ? 'selected' : ''}>⛔ Suspendido</option>
+                    </select>
+                </div>
+                <button class="btn ${isActive ? 'btn-danger' : 'btn-success'}" id="saveStatusBtn">
+                    ${isActive ? '⛔ Suspender mi tienda' : '✅ Activar mi tienda'}
+                </button>
+
+                <hr>
+
+                <div class="section-title">🏪 Mis datos</div>
+                <div class="info-row"><div class="info-label">ID tienda:</div><div class="info-value">${esc(t.storeid)}</div></div>
+                <div class="info-row"><div class="info-label">Nombre tienda:</div><div class="info-value"><strong>${esc(t.nombre_tienda)}</strong></div></div>
+                <div class="info-row"><div class="info-label">Cliente:</div><div class="info-value">${esc(t.nombre_cliente)}</div></div>
+                <div class="info-row"><div class="info-label">Teléfono:</div><div class="info-value">${esc(t.telefono)}</div></div>
+                <div class="info-row"><div class="info-label">Correo:</div><div class="info-value">${esc(t.correo)}</div></div>
+                <div class="info-row"><div class="info-label">Giro:</div><div class="info-value">${esc(t.tipo_negocio) || 'General'}</div></div>
+                ${ubicacion ? `<div class="info-row"><div class="info-label">Ubicación:</div><div class="info-value">${esc(ubicacion)}</div></div>` : ''}
+                <div class="info-row"><div class="info-label">Horario:</div><div class="info-value">${esc(t.horariopromotor) || '08:00-18:00'}</div></div>
+                <div class="info-row"><div class="info-label">Servicio móvil:</div><div class="info-value">${isTrue(t.movil) ? '✅ Activado' : '❌ Desactivado'}</div></div>
+                ${s(t.ubicate) ? `<div class="info-row"><div class="info-label">Ubicate:</div><div class="info-value"><a href="${esc(t.ubicate)}" target="_blank">📍 Ver ubicación</a></div></div>` : ''}
+
+                <hr>
+                <button class="btn btn-secondary" id="logoutBtn">🚪 Cerrar sesión</button>
+            </div>
+        </div>`;
+    }
+
+    // ══ FLUJO ══
+    async function sendCode() {
+        const email = document.getElementById('emailInput').value.trim();
+        if (!email || !email.includes('@')) { msg('msg', 'Ingresa un correo válido', 'error'); return; }
+        msg('msg', 'Enviando código...', 'success');
+        const res = await api('enviarCodigoPromotor_login', { correo: email });
+        if (res && res.ok) {
+            currentEmail = email;
+            document.getElementById('app').innerHTML = renderCodeStep(email);
+            attachCodeEvents();
+            msg('msg', `✅ Código enviado a ${email}. Revisa tu bandeja.`, 'success');
+        } else {
+            msg('msg', res?.error || 'Correo no registrado como promotor móvil activo', 'error');
+        }
+    }
+
+    async function verifyAccess() {
+        const code = document.getElementById('codeInput').value.trim().toUpperCase();
+        if (!code || code.length !== 8) { msg('msg', 'Ingresa los 8 caracteres del código', 'error'); return; }
+        msg('msg', 'Verificando...', 'success');
+        const res = await api('verificarCodigoPromotor', { correo: currentEmail, codigo: code });
+        if (res && res.ok && res.token) {
+            ownerToken  = res.token;
+            currentCode = code;
+            // Cargar datos desde external_stores via promotor.perfil
+            const perfil = await api('promotor.perfil', { correo: currentEmail });
+            if (perfil && perfil.ok && perfil.tienda) {
+                currentStore = perfil.tienda;
+                document.getElementById('app').innerHTML = renderDashboard(currentStore);
+                attachDashboardEvents();
+            } else {
+                msg('msg', perfil?.error || 'Error al cargar datos', 'error');
+            }
+        } else {
+            msg('msg', res?.error || 'Código incorrecto o expirado', 'error');
+        }
+    }
+
+    async function saveStatus() {
+        const newStatus = document.getElementById('statusSelect').value;
+        if (!ownerToken || !currentStore) return;
+        msg('msg', 'Guardando...', 'success');
+        const sid = s(currentStore.storeid) || s(currentStore.storeId);
+        const res = await api('external.store.status', { storeId: sid, status: newStatus, token: ownerToken });
+        if (res && res.ok) {
+            currentStore.status = newStatus;
+            document.getElementById('app').innerHTML = renderDashboard(currentStore);
+            attachDashboardEvents();
+            msg('msg', `✅ Estado actualizado a: ${newStatus.toUpperCase()}`, 'success');
+        } else {
+            msg('msg', res?.error || 'Error al guardar', 'error');
+        }
+    }
+
+    function logout() {
+        currentStore = null; ownerToken = null; currentEmail = ''; currentCode = '';
+        document.getElementById('app').innerHTML = renderLogin();
+        attachLoginEvents();
+    }
+
+    function attachLoginEvents() {
+        document.getElementById('sendCodeBtn')?.addEventListener('click', sendCode);
+        document.getElementById('emailInput')?.addEventListener('keypress', e => { if(e.key==='Enter') sendCode(); });
+    }
+    function attachCodeEvents() {
+        document.getElementById('verifyBtn')?.addEventListener('click', verifyAccess);
+        document.getElementById('backBtn')?.addEventListener('click', () => {
+            document.getElementById('app').innerHTML = renderLogin();
+            attachLoginEvents();
+        });
+        document.getElementById('codeInput')?.addEventListener('keypress', e => { if(e.key==='Enter') verifyAccess(); });
+    }
+    function attachDashboardEvents() {
+        document.getElementById('saveStatusBtn')?.addEventListener('click', saveStatus);
+        document.getElementById('logoutBtn')?.addEventListener('click', logout);
+    }
+
+    document.getElementById('app').innerHTML = renderLogin();
+    attachLoginEvents();
+</script>
+</body>
+</html>
