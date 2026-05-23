@@ -1,4 +1,4 @@
-//////---- version 20s tiendas
+//////---- version 20s tiendas v2
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1105,7 +1105,7 @@ window.addEventListener('load', async () => {
   // Sin esperar al otro
   var b1ok = false, b2ok = false;
 
-  function procesarStores(stores) {
+function procesarStores(stores) {
     if (!stores || !stores.length) return;
     stores.forEach(s => {
       s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {});
@@ -1117,10 +1117,18 @@ window.addEventListener('load', async () => {
       return !isNaN(lat) && !isNaN(lng) && haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
     });
     if (!cercanas.length) return;
+    var baseCount = nearbyStores.length;
     nearbyStores = nearbyStores.concat(cercanas);
+    var totalFinal = nearbyStores.length;
     addMarkersToMap(cercanas);
+    // Contador animado: sube de baseCount hasta totalFinal de 1 en 1
+    var contador = baseCount;
     var st = document.getElementById('overlay-status');
-    if (st) st.textContent = nearbyStores.length + ' tiendas encontradas...';
+    var timer = setInterval(function() {
+      contador++;
+      if (st) st.textContent = '📍 ' + contador + ' tiendas encontradas...';
+      if (contador >= totalFinal) clearInterval(timer);
+    }, 120);
   }
 
   function finalizarCarga() {
