@@ -1,4 +1,4 @@
-//////---- version 06
+//////---- version 20s tiendas
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1083,15 +1083,13 @@ function haversineKm(la1,ln1,la2,ln2){var R=6371,dL=(la2-la1)*Math.PI/180,dN=(ln
 function buildStoreUrl(id){return STORE_BASE+'?backend='+encodeURIComponent(BACKEND)+'&store='+encodeURIComponent(id);}
 window.addEventListener('load', async () => {
 
-  // ── PASO 1: Mapa arranca inmediato con coords default ──
+  // PASO 1 — Mapa visible de inmediato
   userLat = 20.5881;
   userLng = -100.3899;
   initMap();
-
-  // ── PASO 2: Mostrar overlay de carga ENCIMA del mapa ──
   mostrarOverlayCargando();
 
-  // ── PASO 3: Pedir GPS en paralelo (no bloquea) ──
+  // PASO 2 — GPS en paralelo, no bloquea
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       pos => {
@@ -1099,33 +1097,61 @@ window.addEventListener('load', async () => {
         userLng = pos.coords.longitude;
         actualizarUbicacionEnMapa();
       },
-      () => {} // silencioso — ya tiene default
+      () => {}
     );
   }
 
-  // ── PASO 4: Cargar tiendas en paralelo ──
-  try {
-    const [r1, r2] = await Promise.allSettled([
-      fetch(BACKEND + '?action=stores.directory&t=' + Date.now()),
-      fetch(BACKEND_MAESTRO + '?action=stores.directory&t=' + Date.now())
-    ]);
-    var sl = [], se = [];
-    if (r1.status === 'fulfilled') { const d = await r1.value.json(); sl = (d.stores || []).filter(s => !s.isExternal); }
-    if (r2.status === 'fulfilled') { const d = await r2.value.json(); se = (d.stores || []).filter(s => s.isExternal === true); }
-    ALL_STORES = [...sl, ...se].map(s => { s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {}); return s; });
-  } catch(e) { console.warn('Error:', e); }
+  // PASO 3 — Cada backend pinta sus tiendas en cuanto responde
+  // Sin esperar al otro
+  var b1ok = false, b2ok = false;
 
-  // ── PASO 5: Tiendas cargadas — actualizar mapa y ocultar overlay ──
-  nearbyStores = ALL_STORES.filter(s => {
-    const cfg = s.config || {}, lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
-    return !isNaN(lat) && !isNaN(lng) && haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
-  });
-  addMarkersToMap(nearbyStores);
-  map.whenReady(() => setTimeout(fitToNearestStore, 250));
-  buildPromosFromCatalogs(nearbyStores);
-  ocultarOverlayCargando();
+  function procesarStores(stores) {
+    if (!stores || !stores.length) return;
+    stores.forEach(s => {
+      s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {});
+    });
+    ALL_STORES = ALL_STORES.concat(stores);
+    var cercanas = stores.filter(s => {
+      var cfg = s.config || {};
+      var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+      return !isNaN(lat) && !isNaN(lng) && haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
+    });
+    if (!cercanas.length) return;
+    nearbyStores = nearbyStores.concat(cercanas);
+    addMarkersToMap(cercanas);
+    var st = document.getElementById('overlay-status');
+    if (st) st.textContent = nearbyStores.length + ' tiendas encontradas...';
+  }
+
+  function finalizarCarga() {
+    if (!b1ok || !b2ok) return;
+    ocultarOverlayCargando();
+    if (nearbyStores.length) {
+      fitToNearestStore();
+      buildPromosFromCatalogs(nearbyStores);
+    }
+  }
+
+  // Backend 1 — tiendas propias (timeout 9s)
+  var ctrl1 = new AbortController();
+  setTimeout(() => ctrl1.abort(), 9000);
+  fetch(BACKEND + '?action=stores.directory&t=' + Date.now(), { signal: ctrl1.signal })
+    .then(r => r.json())
+    .then(d => procesarStores((d.stores || []).filter(s => !s.isExternal)))
+    .catch(() => {})
+    .finally(() => { b1ok = true; finalizarCarga(); });
+
+  // Backend 2 — tiendas externas (timeout 12s)
+  var ctrl2 = new AbortController();
+  setTimeout(() => ctrl2.abort(), 12000);
+  fetch(BACKEND_MAESTRO + '?action=stores.directory&t=' + Date.now(), { signal: ctrl2.signal })
+    .then(r => r.json())
+    .then(d => procesarStores((d.stores || []).filter(s => s.isExternal === true)))
+    .catch(() => {})
+    .finally(() => { b2ok = true; finalizarCarga(); });
+
 });
-
+ 
 function actualizarUbicacionEnMapa() {
   if (!map) return;
   map.eachLayer(l => {
