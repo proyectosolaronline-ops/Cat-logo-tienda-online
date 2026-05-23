@@ -1,4 +1,4 @@
-//////---- version 01
+//////---- version 03
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1082,68 +1082,61 @@ function haversineKm(la1,ln1,la2,ln2){var R=6371,dL=(la2-la1)*Math.PI/180,dN=(ln
 
 function buildStoreUrl(id){return STORE_BASE+'?backend='+encodeURIComponent(BACKEND)+'&store='+encodeURIComponent(id);}
 
-window.addEventListener('load',async()=>{
+window.addEventListener('load', async () => {
 
-  try{
+  // ── PASO 1: Mapa arranca inmediato con coords default ──
+  userLat = 20.5881;
+  userLng = -100.3899;
+  initMap();
 
-    const [r1,r2]=await Promise.allSettled([
+  // ── PASO 2: Mostrar overlay de carga ENCIMA del mapa ──
+  mostrarOverlayCargando();
 
-      fetch(BACKEND+'?action=stores.directory&t='+Date.now()),
-
-      fetch(BACKEND_MAESTRO+'?action=stores.directory&t='+Date.now())
-
-    ]);
-
-    var sl=[],se=[];
-
-    if(r1.status==='fulfilled'){const d=await r1.value.json();sl=(d.stores||[]).filter(s=>!s.isExternal);}
-
-    if(r2.status==='fulfilled'){const d=await r2.value.json();se=(d.stores||[]).filter(s=>s.isExternal===true);}
-
-ALL_STORES=[...sl,...se].map(s=>{s.config=typeof s.config==='string'?JSON.parse(s.config):(s.config||{});return s;});
-
-    
-
-  }catch(e){console.warn('Error:',e);}
-
-  if(navigator.geolocation){
-
+  // ── PASO 3: Pedir GPS en paralelo (no bloquea) ──
+  if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-
-      pos=>{
-
-        userLat=pos.coords.latitude;
-
-        userLng=pos.coords.longitude;
-
-        initMap();
-
+      pos => {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        actualizarUbicacionEnMapa();
       },
-
-      ()=>{
-
-        userLat=20.5881;
-
-        userLng=-100.3899;
-
-        initMap();
-
-      }
-
+      () => {} // silencioso — ya tiene default
     );
-
-  } else {
-
-    userLat=20.5881;
-
-    userLng=-100.3899;
-
-    initMap();
-
   }
 
+  // ── PASO 4: Cargar tiendas en paralelo ──
+  try {
+    const [r1, r2] = await Promise.allSettled([
+      fetch(BACKEND + '?action=stores.directory&t=' + Date.now()),
+      fetch(BACKEND_MAESTRO + '?action=stores.directory&t=' + Date.now())
+    ]);
+    var sl = [], se = [];
+    if (r1.status === 'fulfilled') { const d = await r1.value.json(); sl = (d.stores || []).filter(s => !s.isExternal); }
+    if (r2.status === 'fulfilled') { const d = await r2.value.json(); se = (d.stores || []).filter(s => s.isExternal === true); }
+    ALL_STORES = [...sl, ...se].map(s => { s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {}); return s; });
+  } catch(e) { console.warn('Error:', e); }
+
+  // ── PASO 5: Tiendas cargadas — actualizar mapa y ocultar overlay ──
+  nearbyStores = ALL_STORES.filter(s => {
+    const cfg = s.config || {}, lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+    return !isNaN(lat) && !isNaN(lng) && haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
+  });
+  addMarkersToMap(nearbyStores);
+  map.whenReady(() => setTimeout(fitToNearestStore, 250));
+  buildPromosFromCatalogs(nearbyStores);
+  ocultarOverlayCargando();
 });
 
+function actualizarUbicacionEnMapa() {
+  if (!map) return;
+  map.eachLayer(l => {
+    if (l instanceof L.CircleMarker) map.removeLayer(l);
+  });
+  L.circleMarker([userLat, userLng], {
+    radius: 9, color: '#16a34a', fillColor: '#fff', weight: 3, fillOpacity: 1, zIndexOffset: 1000
+  }).addTo(map).bindTooltip('Tu ubicación', { permanent: false, direction: 'top' });
+  map.setView([userLat, userLng], 13, { animate: true });
+}
   async function buildPromosFromCatalogs(stores){
 
   const soloPropias=stores.filter(s=>!s.isExternal);
