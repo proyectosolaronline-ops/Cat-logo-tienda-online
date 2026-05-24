@@ -1,4 +1,4 @@
-//////---- version 20s tiendas v8
+//////---- version 20s tiendas v9
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1160,6 +1160,14 @@ window.addEventListener('load', async () => {
       nearbyStores = filtradas10;
       addMarkersToMap(filtradas10);
       buildPromosFromCatalogs(filtradas10);
+        // Actualizar selector visual a 10 km
+    RADIO_KM = 10;
+    document.getElementById('kmRadio').textContent = '10 km';
+    var selector = document.getElementById('kmradio-selector');
+    if (selector) {
+      selector.style.background = 'rgba(16,185,129,0.92)'; // Verde = filtro aplicado
+      selector.style.transition = 'background 0.5s ease';
+    }
     }, 3000);
   }
 
