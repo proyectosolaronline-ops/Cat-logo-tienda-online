@@ -1,4 +1,4 @@
-//-- version 3
+//-- version 4
 <!DOCTYPE html>
 
 <html lang="es">
@@ -589,19 +589,32 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 }
 
 .fab-contacto {
-
   animation: pulse-contacto 2s infinite;
-
 }
-
 @keyframes pulse-contacto {
-
   0%, 100% { box-shadow: 0 5px 18px rgba(37,211,102,.4); }
-
   50% { box-shadow: 0 5px 30px rgba(37,211,102,.8), 0 0 20px rgba(37,211,102,.4); }
-
-} 
-
+}
+#timer-permanencia{
+  position:fixed;
+  bottom:92px;
+  right:14px;
+  z-index:1201;
+  background:rgba(0,0,0,.55);
+  color:#fff;
+  border-radius:50%;
+  width:28px;
+  height:28px;
+  font-size:10px;
+  font-weight:700;
+  font-family:'Inter',sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  transition:background .4s;
+}
+#timer-permanencia.alerta{background:rgba(255,105,0,.9);}
 </style>
 
 </head>
@@ -735,9 +748,8 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 </button> -->
 
 <div class="fab-group">
-
-<button class="fab fab-contacto" id="fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;color:#fff;display:none;"> 
-
+<div id="timer-permanencia">0:00</div>
+<button class="fab fab-contacto" id="fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;color:#fff;display:none;">
  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 
       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -2769,28 +2781,53 @@ async function enviarSolicitudContacto() {
 
 // Mostrar botón de contacto solo si: clic en tienda + 10 min navegando
 
+window._clicksTienda = 0;
 window._timeStart = Date.now();
 
- window._clicksTienda = 0;
+(function(){
+  var LIMITE_MS = 3 * 60 * 1000; // 3 minutos
+  var timerEl = null;
 
-window._timeStart = Date.now();
+  function pad(n){ return n < 10 ? '0'+n : ''+n; }
 
-setInterval(function(){
+  function actualizarTimer(){
+    timerEl = timerEl || document.getElementById('timer-permanencia');
+    if(!timerEl) return;
 
-    var btn = document.getElementById('fab-contacto');
+    var elapsed = Date.now() - window._timeStart;
+    var seg     = Math.floor(elapsed / 1000);
+    var min     = Math.floor(seg / 60);
+    var s       = seg % 60;
 
-    if(!btn) return;
+    timerEl.textContent = min + ':' + pad(s);
 
-    var visible = btn.style.display !== 'none';
-
-    if(!visible && window._clicksTienda >= 3 && (Date.now() - window._timeStart) >= 600000){
-
+    if(elapsed >= LIMITE_MS){
+      // Llegó a 3 min → ocultar timer, mostrar botón
+      timerEl.style.display = 'none';
+      var btn = document.getElementById('fab-contacto');
+      if(btn && btn.style.display === 'none'){
         btn.style.display = 'flex';
-
+        // Pulso extra para llamar atención
+        btn.style.transform = 'scale(1.18)';
+        setTimeout(function(){ btn.style.transform = 'scale(1)'; btn.style.transition='transform .3s'; }, 400);
+      }
+      clearInterval(window._timerInterval);
+      return;
     }
 
-}, 10000);
+    // Amarillo-naranja al acercarse (último minuto)
+    if(elapsed >= LIMITE_MS - 60000){
+      timerEl.classList.add('alerta');
+    }
+  }
 
+  // Arrancar solo cuando el DOM esté listo
+  window.addEventListener('load', function(){
+    timerEl = document.getElementById('timer-permanencia');
+    actualizarTimer();
+    window._timerInterval = setInterval(actualizarTimer, 1000);
+  });
+})();
 var _tapExtCount=0,_tapExtTimer=null;
 
 function contarTapExt(e){e.stopPropagation();_tapExtCount++;clearTimeout(_tapExtTimer);_tapExtTimer=setTimeout(function(){_tapExtCount=0;},800);if(_tapExtCount>=3){_tapExtCount=0;window.open('promotores.html','_blank');}}
