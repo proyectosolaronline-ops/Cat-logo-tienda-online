@@ -1120,8 +1120,25 @@ function procesarStores(stores) {
     var baseCount = nearbyStores.length;
     nearbyStores = nearbyStores.concat(cercanas);
     var totalFinal = nearbyStores.length;
-    addMarkersToMap(cercanas);
-    // Contador animado: sube de baseCount hasta totalFinal de 1 en 1
+var etapas = [5, 10, 15, 20, 25, 30];
+var yaAgregadas = [];
+
+etapas.forEach(function(km, idx) {
+  if (km > RADIO_KM) return;
+  setTimeout(function() {
+    var tiendasEtapa = cercanas.filter(function(s) {
+      var cfg = s.config || {};
+      var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+      if (isNaN(lat) || isNaN(lng)) return false;
+      var dist = haversineKm(userLat, userLng, lat, lng);
+      return dist <= km && yaAgregadas.indexOf(s.storeId) === -1;
+    });
+    tiendasEtapa.forEach(function(s) { yaAgregadas.push(s.storeId); });
+    if (tiendasEtapa.length > 0) {
+      addMarkersToMap(tiendasEtapa);
+    }
+  }, idx * 600);
+});    // Contador animado: sube de baseCount hasta totalFinal de 1 en 1
     var contador = baseCount;
     var st = document.getElementById('overlay-status');
     var timer = setInterval(function() {
