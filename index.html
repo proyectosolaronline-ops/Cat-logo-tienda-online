@@ -2822,7 +2822,7 @@ window._clicksTienda = 0;
 window._timeStart = Date.now();
 
 (function(){
-  var LIMITE_MS = 3 * 60 * 1000; // 3 minutos
+  var LIMITE_MS = 3 * 60 * 1000;
   var timerEl = null;
 
   function pad(n){ return n < 10 ? '0'+n : ''+n; }
@@ -2838,28 +2838,24 @@ window._timeStart = Date.now();
 
     timerEl.textContent = min + ':' + pad(s);
 
-    if(elapsed >= LIMITE_MS){
-      // Llegó a 3 min → ocultar timer, mostrar botón
-      timerEl.style.display = 'none';
-      var btn = document.getElementById('fab-contacto-left');
-      if(btn){
-        btn.style.display = 'flex';
-      }
-
-    // Amarillo-naranja al acercarse (último minuto)
     if(elapsed >= LIMITE_MS - 60000){
       timerEl.classList.add('alerta');
     }
+
+    if(elapsed >= LIMITE_MS){
+      timerEl.style.display = 'none';
+      var btn = document.getElementById('fab-contacto-left');
+      if(btn){ btn.style.display = 'flex'; }
+      clearInterval(window._timerInterval);
+    }
   }
 
-  // Arrancar solo cuando el DOM esté listo
   window.addEventListener('load', function(){
     timerEl = document.getElementById('timer-permanencia');
     actualizarTimer();
     window._timerInterval = setInterval(actualizarTimer, 1000);
   });
-})();
-var _tapExtCount=0,_tapExtTimer=null;
+})();var _tapExtCount=0,_tapExtTimer=null;
 
 function contarTapExt(e){e.stopPropagation();_tapExtCount++;clearTimeout(_tapExtTimer);_tapExtTimer=setTimeout(function(){_tapExtCount=0;},800);if(_tapExtCount>=3){_tapExtCount=0;window.open('promotores.html','_blank');}}
 
