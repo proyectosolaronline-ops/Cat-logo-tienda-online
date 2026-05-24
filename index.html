@@ -1,4 +1,4 @@
-//-- version 4
+//-- version 5
 <!DOCTYPE html>
 
 <html lang="es">
@@ -594,8 +594,7 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 @keyframes pulse-contacto {
   0%, 100% { box-shadow: 0 5px 18px rgba(37,211,102,.4); }
   50% { box-shadow: 0 5px 30px rgba(37,211,102,.8), 0 0 20px rgba(37,211,102,.4); }
-}
-#timer-permanencia{
+}#timer-permanencia{
   position:fixed;
   bottom:92px;
   right:14px;
@@ -615,6 +614,36 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
   transition:background .4s;
 }
 #timer-permanencia.alerta{background:rgba(255,105,0,.9);}
+
+#fab-contacto-left{
+  position:fixed;
+  bottom:28px;
+  left:14px;
+  z-index:1202;
+  display:none;
+  align-items:center;
+  gap:9px;
+  background:#f59e0b;
+  color:#000;
+  border:none;
+  border-radius:50px;
+  padding:12px 18px 12px 14px;
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 5px 18px rgba(245,158,11,.45);
+  animation:pulso-amber 1.4s ease-in-out infinite;
+  white-space:nowrap;
+}
+@keyframes pulso-amber{
+  0%  {background:#f59e0b;box-shadow:0 5px 18px rgba(245,158,11,.45);}
+  25% {background:#d97706;box-shadow:0 5px 26px rgba(217,119,6,.7);}
+  50% {background:#b45309;box-shadow:0 5px 32px rgba(180,83,9,.85),0 0 18px rgba(180,83,9,.4);}
+  75% {background:#d97706;box-shadow:0 5px 26px rgba(217,119,6,.7);}
+  100%{background:#f59e0b;box-shadow:0 5px 18px rgba(245,158,11,.45);}
+}
+#fab-contacto-left svg{flex-shrink:0;}
 </style>
 
 </head>
@@ -749,7 +778,8 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 
 <div class="fab-group">
 <div id="timer-permanencia">0:00</div>
-<button class="fab fab-contacto" id="fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;color:#fff;display:none;">
+<button class="fab fab-contacto" id="fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;
+ color:#fff;display:none;">
  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 
       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -760,7 +790,14 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 
   </button>
 
- 
+ </button>
+<button id="fab-contacto-left" onclick="abrirFormularioContacto()">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+    <path d="M12 8v4m0 4h.01"/>
+  </svg>
+  📋 Ser parte del directorio
+</button>
 
   <button class="fab fab-fs" id="btn-fs" onclick="toggleFullscreen()" title="Pantalla completa">
 
@@ -2804,16 +2841,10 @@ window._timeStart = Date.now();
     if(elapsed >= LIMITE_MS){
       // Llegó a 3 min → ocultar timer, mostrar botón
       timerEl.style.display = 'none';
-      var btn = document.getElementById('fab-contacto');
-      if(btn && btn.style.display === 'none'){
+      var btn = document.getElementById('fab-contacto-left');
+      if(btn){
         btn.style.display = 'flex';
-        // Pulso extra para llamar atención
-        btn.style.transform = 'scale(1.18)';
-        setTimeout(function(){ btn.style.transform = 'scale(1)'; btn.style.transition='transform .3s'; }, 400);
       }
-      clearInterval(window._timerInterval);
-      return;
-    }
 
     // Amarillo-naranja al acercarse (último minuto)
     if(elapsed >= LIMITE_MS - 60000){
