@@ -1,0 +1,1076 @@
+
+//////---- version claude v1
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Directorio de Tiendas y Negocios en el Estado de Querétaro — Easylink</title>
+    <meta name="description" content="Directorio multi-negocios de tiendas, comercios y servicios en todo el estado de Querétaro.prestamos en efectivo, Abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios, electrónica, accesorios para celular, comunicaciones, ropa, calzado, mascotas, muebles y más." />
+    <meta name="keywords" content="directorio Querétaro, tiendas Querétaro, negocios Querétaro, prestamos en efectivo, abarrotes, ferretería, farmacia, boutique, restaurantes, consultorio médico, electrónica, accesorios celular, comunicaciones, directorio multi-negocio, Easylink" />
+    <meta name="google-site-verification" content="googleea029779e98c8167" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/" />
+    <meta property="og:title" content="Directorio de Tiendas y Negocios en el Estado de Querétaro — Easylink" />
+    <meta property="og:description" content="Encuentra abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios, electrónica,prestamos y más cerca de ti en todo el estado de Querétaro." />
+    <meta property="og:url" content="https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/img/og-image-easylink.jpg" />
+    <meta property="og:image:alt" content="Mapa del estado de Querétaro con marcadores de negocios del directorio Easylink" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="es_MX" />
+    <meta property="og:site_name" content="Directorio Easylink Querétaro" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Directorio de Tiendas y Negocios en el Estado de Querétaro — Easylink" />
+    <meta name="twitter:description" content="Encuentra abarrotes, ferreterías, farmacias, boutiques, restaurantes, consultorios,prestamos, electrónica y más cerca de ti en todo el estado de Querétaro." />
+    <meta name="twitter:image" content="https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/img/og-image-easylink.jpg" />
+    <meta name="twitter:image:alt" content="Mapa del estado de Querétaro con marcadores de negocios del directorio Easylink" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":["Organization","LocalBusiness"],"@id":"https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/#organization","name":"Directorio Easylink Querétaro","description":"Directorio multi-negocios de tiendas, comercios y servicios en todo el estado de Querétaro.","url":"https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/","logo":"https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/img/logo-easylink.png","telephone":"+524424003376","priceRange":"$$","address":{"@type":"PostalAddress","addressRegion":"Querétaro","addressCountry":"MX"},"areaServed":{"@type":"State","name":"Querétaro"}}</script>
+    <script type="application/ld+json" id="schema-nearby-stores">{"@context":"https://schema.org","@type":"ItemList","name":"Tiendas y Negocios Cercanos en Querétaro","numberOfItems":0,"itemListElement":[]}</script>
+    <script type="application/ld+json" id="schema-products">{"@context":"https://schema.org","@type":"ItemList","name":"Promociones y Productos Destacados en Querétaro","numberOfItems":0,"itemListElement":[]}</script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--primary:#1a73e8;--primary-dark:#0d47a1;--cta:#ff6900;--bg:#f5f6fa;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Inter',sans-serif;background:#e8e0d8;color:#fff;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+#header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:12px 16px 10px;display:flex;flex-direction:column;gap:10px;transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s,padding .35s;flex-shrink:0;z-index:1100;overflow:hidden;max-height:80px;}
+#header.promo-active{max-height:0;padding-top:0;padding-bottom:0;opacity:0;pointer-events:none;}
+#header.hidden{transform:translateY(-100%);opacity:0;pointer-events:none;position:absolute;top:0;left:0;right:0;}
+.header-top{display:flex;align-items:center;gap:12px;}
+.header-logo{width:44px;height:44px;flex-shrink:0;background:rgba(255,255,255,.18);border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.header-title{font-size:13px;font-weight:700;line-height:1.3;}
+.header-sub{font-size:10px;opacity:.7;margin-top:1px;}
+#promo-ticker{overflow:hidden;height:0;transition:height .35s cubic-bezier(.4,0,.2,1);background:linear-gradient(135deg,var(--primary),var(--primary-dark));position:absolute;bottom:0;left:0;right:0;z-index:1100;border-radius:12px 12px 0 0;}
+#promo-ticker.has-promos{height:70px;}
+.pticker-track{display:flex;flex-direction:column;transition:transform .5s cubic-bezier(.4,0,.2,1);}
+.pticker-card{height:70px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 14px;cursor:pointer;position:relative;}
+.pticker-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:rgba(255,255,255,.07);}
+.pticker-img{width:50px;height:50px;border-radius:10px;object-fit:cover;flex-shrink:0;background:rgba(255,255,255,.1);}
+.pticker-img-ph{width:50px;height:50px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,var(--primary),#0d47a1);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.pticker-info{flex:1;overflow:hidden;}
+.pticker-badge{font-size:9px;font-weight:700;color:var(--cta);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;display:flex;align-items:center;gap:4px;}
+.pticker-badge-pill{background:rgba(255,105,0,.18);color:var(--cta);border-radius:20px;padding:1px 6px;font-size:8px;font-weight:800;}
+.pticker-name{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pticker-store{font-size:10px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pticker-arrow{font-size:16px;color:rgba(255,255,255,.35);}
+.pticker-dots{position:absolute;top:50%;right:42px;transform:translateY(-50%);display:flex;flex-direction:column;gap:3px;}
+.pticker-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.25);transition:background .3s,transform .3s;}
+.pticker-dot.active{background:#fff;transform:scale(1.3);}
+.search-wrap{padding:10px 16px 12px;background:linear-gradient(180deg,rgba(26,115,232,.08) 0%,transparent 100%);flex-shrink:0;z-index:1050;}
+.search-inner{display:flex;align-items:center;gap:10px;background:#fff;border-radius:50px;padding:0 14px;box-shadow:0 4px 20px rgba(0,0,0,.25);height:46px;}
+.search-inner svg{flex-shrink:0;opacity:.45;}
+#searchInput{flex:1;border:none;outline:none;font-size:15px;color:#222;background:transparent;font-family:'Inter',sans-serif;}
+#searchInput::placeholder{color:#aaa;}
+#clearBtn{background:none;border:none;cursor:pointer;padding:4px;display:none;color:#999;font-size:20px;line-height:1;}
+#map{flex:1;z-index:1;}
+body.fs-mode #header,body.fs-mode .search-wrap,body.fs-mode .btn-mostrar-bottom{display:none!important;}
+body.fs-mode .fab-group{bottom:18px;right:12px;}
+.fab-group{position:absolute;bottom:28px;right:14px;display:flex;flex-direction:column;gap:10px;z-index:1200;}
+.fab{width:50px;height:50px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 18px rgba(0,0,0,.35);transition:transform .15s;-webkit-user-select:none;user-select:none;}
+.fab:active{transform:scale(.92);}
+.fab-fs{background:#fff;color:#333;}
+.fab-qr{background:#fff;color:var(--primary);}
+#searchPanel{display:none;position:absolute;top:80px;left:0;right:0;bottom:0;background:var(--bg);z-index:1300;flex-direction:column;overflow:hidden;}
+#searchPanel.active{display:flex;}
+.sp-header{background:#fff;padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;}
+.sp-search-inner{flex:1;display:flex;align-items:center;gap:8px;background:#f1f3f6;border-radius:50px;padding:0 14px;height:42px;}
+.sp-search-inner input{flex:1;border:none;outline:none;font-size:15px;background:transparent;font-family:'Inter',sans-serif;}
+.sp-close{background:#f1f3f6;border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:#555;}
+.sp-results{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.sp-empty{text-align:center;padding:60px 20px;color:#999;font-size:15px;}
+.sp-item{display:flex;gap:14px;padding:14px 16px;background:#fff;border-bottom:1px solid #f0f0f0;cursor:pointer;align-items:center;}
+.sp-item:active{background:#f0f4ff;}
+.sp-logo{width:58px;height:58px;flex-shrink:0;border-radius:14px;overflow:hidden;background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.sp-logo img{width:100%;height:100%;object-fit:cover;}
+.sp-info h3{font-size:15px;font-weight:600;color:#111;margin-bottom:2px;}
+.sp-dist{font-size:12px;font-weight:600;color:#16a34a;}
+.sp-desc{font-size:12px;color:#777;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sp-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:#e8f5e9;color:#2e7d32;font-weight:600;margin-left:5px;}
+.popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:flex-end;justify-content:center;}
+.popup-bg.open{display:flex;}
+.popup{background:#fff;color:#222;border-radius:24px 24px 0 0;width:100%;max-height:88dvh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.4);animation:slideUp .3s cubic-bezier(.4,0,.2,1);}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.popup-drag{width:36px;height:4px;background:#ddd;border-radius:2px;margin:10px auto 0;display:block;}
+.popup-banner{height:150px;background-size:cover;background-position:center;position:relative;margin:0 0 48px;}
+.popup-close{position:absolute;top:10px;right:10px;width:32px;height:32px;background:rgba(0,0,0,.45);border:none;border-radius:50%;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.popup-logo{width:74px;height:74px;border-radius:16px;border:4px solid #fff;position:absolute;bottom:-37px;left:18px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+.popup-body{padding:0 18px 28px;}
+.popup-name{font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px;}
+.popup-desc{line-height:1.6;color:#444;font-size:14px;margin-bottom:18px;}
+.popup-btn{display:block;padding:14px;background:var(--primary);color:#fff;text-align:center;border-radius:14px;text-decoration:none;font-weight:600;font-size:15px;}
+#ext-popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2050;align-items:flex-end;justify-content:center;}
+#ext-popup-bg.open{display:flex;}
+#ext-popup{background:#fff;color:#222;border-radius:24px 24px 0 0;width:100%;max-height:90dvh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.45);animation:slideUp .3s cubic-bezier(.4,0,.2,1);}
+.ext-drag{width:36px;height:4px;background:#ddd;border-radius:2px;margin:10px auto 0;display:block;}
+.ext-foto{width:100%;height:210px;object-fit:cover;display:block;background:#f0f0f0;}
+.ext-foto-ph{width:100%;height:210px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);display:flex;align-items:center;justify-content:center;font-size:72px;}
+.ext-body{padding:16px 18px 36px;position:relative;}
+.ext-close{position:absolute;top:-42px;right:14px;width:32px;height:32px;background:rgba(0,0,0,.5);border:none;border-radius:50%;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.ext-pill{display:inline-flex;align-items:center;gap:5px;background:#fff3e0;color:#e65100;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;}
+.ext-nombre{font-family:'Outfit',sans-serif;font-size:23px;font-weight:800;color:#111;line-height:1.2;margin-bottom:5px;}
+.ext-ubicacion{font-size:12px;color:#888;margin-bottom:20px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.ext-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.ext-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:16px 10px;border-radius:16px;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;text-decoration:none;transition:transform .12s,opacity .12s;color:#fff;}
+.ext-btn:active{transform:scale(.95);}
+.ext-btn-llegar{background:#1a73e8;}
+.ext-btn-wpp{background:#25D366;}
+.ext-btn-icon{font-size:24px;line-height:1;}
+.ext-btn-link{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#f5f6fa;color:#1a73e8;border-radius:14px;font-size:14px;font-weight:700;text-decoration:none;border:1.5px solid #e0e7ff;transition:background .15s;}
+.ext-btn-link:active{background:#e8f0fe;}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2100;align-items:flex-end;justify-content:center;}
+.modal.open{display:flex;}
+.modal-content{background:#fff;color:#222;width:100%;border-radius:24px 24px 0 0;max-height:82dvh;overflow:hidden;display:flex;flex-direction:column;}
+.modal-header{padding:16px 20px;background:var(--primary);color:#fff;font-weight:700;display:flex;justify-content:space-between;align-items:center;font-size:15px;}
+.modal-close{font-size:26px;cursor:pointer;line-height:1;}
+.modal-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.store-item{display:flex;gap:14px;padding:14px 16px;border-bottom:1px solid #f0f0f0;cursor:pointer;align-items:center;}
+.store-item:active{background:#f0f4ff;}
+.store-logo{width:60px;height:60px;border-radius:14px;overflow:hidden;background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.store-logo img{width:100%;height:100%;object-fit:cover;}
+.qr-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2200;align-items:center;justify-content:center;padding:20px;}
+.qr-modal.open{display:flex;}
+.qr-box{background:#fff;color:#222;border-radius:24px;padding:28px 24px 24px;max-width:320px;width:100%;text-align:center;}
+.qr-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+.qr-sub{font-size:12px;color:#777;margin-bottom:20px;}
+#qr-canvas{display:flex;justify-content:center;margin-bottom:20px;}
+#qr-canvas canvas,#qr-canvas img{border-radius:12px;}
+.qr-url{font-size:11px;color:#aaa;word-break:break-all;margin-bottom:18px;padding:8px 12px;background:#f5f5f5;border-radius:8px;}
+.qr-actions{display:flex;gap:10px;}
+.qr-btn{flex:1;padding:12px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;}
+.qr-btn-close{background:#f1f3f6;color:#444;}
+#catalog-sheet-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2300;align-items:flex-end;justify-content:center;}
+#catalog-sheet-bg.open{display:flex;}
+#catalog-sheet{background:#fff;color:#222;width:100%;border-radius:24px 24px 0 0;max-height:88dvh;overflow:hidden;display:flex;flex-direction:column;animation:slideUp .35s cubic-bezier(.4,0,.2,1);}
+.cs-drag{width:36px;height:4px;background:#ddd;border-radius:2px;margin:10px auto 4px;display:block;}
+.cs-header{padding:8px 18px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0;flex-shrink:0;}
+.cs-store-row{display:flex;align-items:center;gap:10px;}
+.cs-store-logo{width:40px;height:40px;border-radius:10px;overflow:hidden;background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.cs-store-logo img{width:100%;height:100%;object-fit:cover;}
+.cs-store-name{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:#111;}
+.cs-store-dist{font-size:11px;color:#16a34a;font-weight:600;}
+.cs-close{width:32px;height:32px;border-radius:50%;background:#f1f3f6;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:#555;}
+.cs-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;}
+.cs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.cs-prod{border-radius:12px;overflow:hidden;background:#f8f9fb;border:1px solid #eee;cursor:pointer;transition:transform .15s;display:flex;flex-direction:column;}
+.cs-prod:active{transform:scale(.97);}
+.cs-prod-img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#e8f0fe;}
+.cs-prod-img-ph{width:100%;aspect-ratio:1/1;background:linear-gradient(135deg,#e8f0fe,#dde8ff);display:flex;align-items:center;justify-content:center;font-size:28px;}
+.cs-prod-body{padding:7px 8px 8px;flex:1;}
+.cs-prod-badge{display:inline-block;font-size:8px;font-weight:700;padding:1px 6px;border-radius:20px;background:var(--cta);color:#fff;margin-bottom:4px;}
+.cs-prod-name{font-size:11px;font-weight:700;color:#111;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.cs-prod-price{font-size:12px;font-weight:700;color:var(--primary);margin-top:4px;}
+.cs-footer{padding:14px 18px 18px;border-top:1px solid #f0f0f0;flex-shrink:0;}
+.cs-visit-btn{display:block;width:100%;padding:14px;background:var(--primary);color:#fff;text-align:center;border-radius:14px;text-decoration:none;font-weight:700;font-size:15px;border:none;cursor:pointer;font-family:'Outfit',sans-serif;}
+.cs-skel{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;}
+.cs-skel-card{border-radius:12px;background:#f0f0f0;height:140px;animation:skelpulse 1.4s ease-in-out infinite;}
+@keyframes skelpulse{0%,100%{opacity:1}50%{opacity:.45}}
+#prod-popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2400;align-items:center;justify-content:center;padding:20px;}
+#prod-popup-bg.open{display:flex;}
+#prod-popup{background:#fff;color:#222;border-radius:20px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .3s cubic-bezier(.4,0,.2,1);}
+.pp-img{width:100%;height:200px;object-fit:cover;display:block;}
+.pp-img-ph{width:100%;height:200px;background:linear-gradient(135deg,#e8f0fe,#dde8ff);display:flex;align-items:center;justify-content:center;font-size:64px;}
+.pp-body{padding:18px;}
+.pp-badge{display:inline-block;background:var(--cta);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:10px;}
+.pp-name{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;}
+.pp-store{font-size:12px;color:#888;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.pp-store-logo{width:22px;height:22px;border-radius:5px;overflow:hidden;background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+.pp-store-logo img{width:100%;height:100%;object-fit:cover;}
+.pp-desc{font-size:13px;color:#444;line-height:1.6;margin-bottom:16px;}
+.pp-price{font-size:22px;font-weight:800;color:var(--primary);margin-bottom:16px;}
+.pp-actions{display:flex;gap:10px;}
+.pp-btn-visit{flex:1;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;}
+.pp-close{position:absolute;top:10px;right:10px;width:30px;height:30px;background:rgba(0,0,0,.45);border:none;border-radius:50%;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.no-stores{text-align:center;padding:50px 20px;color:#999;font-size:14px;}
+.leaflet-control-zoom{margin-bottom:76px!important;margin-right:8px!important;}
+.pin-label{background:rgba(255,255,255,.88)!important;border:none!important;border-radius:6px!important;padding:2px 6px!important;box-shadow:0 1px 4px rgba(0,0,0,.1)!important;font-size:9px!important;}
+.pin-label::before{display:none!important;}
+.fab-contacto{animation:pulse-contacto 2s infinite;}
+@keyframes pulse-contacto{0%,100%{box-shadow:0 5px 18px rgba(37,211,102,.4);}50%{box-shadow:0 5px 30px rgba(37,211,102,.8),0 0 20px rgba(37,211,102,.4);}}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="header-top">
+    <div class="header-logo" id="header-logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">Directorio tienda Easylink</div>
+      <div class="header-sub">cercanas a tu ubicación</div>
+    </div>
+  </div>
+</div>
+
+<div class="search-wrap">
+  <div class="search-inner">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="¿Qué necesitas? Ej: zapatos, pastel, ropa..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <button id="clearBtn" onclick="clearSearch()">✕</button>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<!-- SELECTOR RADIO KM -->
+<div id="kmradio-selector" style="position:absolute;top:50%;left:10px;transform:translateY(-50%);z-index:1000;background:rgba(255,255,255,0.92);backdrop-filter:blur(10px);border-radius:20px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:Inter,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,0.2);font-size:12px;">
+  <button onclick="cambiarRadioKm(1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #007bff;background:#fff;color:#007bff;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
+  <span id="kmRadio" style="font-weight:700;color:#007bff;text-align:center;font-size:13px;">10<br>km</span>
+  <button onclick="cambiarRadioKm(-1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #007bff;background:#fff;color:#007bff;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">−</button>
+</div>
+
+<div id="promo-ticker">
+  <div class="pticker-track" id="pticker-track"></div>
+  <div class="pticker-dots" id="pticker-dots"></div>
+</div>
+
+<div id="stats-panel" style="display:none;position:absolute;bottom:90px;left:10px;z-index:999;background:rgba(0,0,0,.55);color:#fff;padding:4px 8px;border-radius:6px;font-family:Inter,sans-serif;font-size:9px;transition:opacity .4s;pointer-events:none;">
+  🖱️ <span id="stats-clicks">0</span> · 🔍 <span id="stats-searches">0</span> · 📱 <span id="stats-qr">0</span>
+</div>
+
+<div id="login-flyer-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;padding:28px 22px;max-width:360px;width:90%;text-align:center;font-family:Inter,sans-serif;">
+    <div style="font-size:40px;margin-bottom:8px;">🔐</div>
+    <div style="font-size:18px;font-weight:800;color:#1a1a1a;margin-bottom:4px;">Acceso Flyer QR</div>
+    <div style="font-size:12px;color:#888;margin-bottom:20px;">Ingresa tu número de WhatsApp registrado</div>
+    <div id="step-phone">
+      <input id="login-phone" type="tel" placeholder="4421234567" style="width:100%;padding:14px;border:2px solid #ddd;border-radius:12px;font-size:18px;text-align:center;font-family:Inter,sans-serif;margin-bottom:12px;" maxlength="10">
+      <button onclick="enviarCodigoFlyer()" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">💬 Enviar código por WhatsApp</button>
+    </div>
+    <div id="step-code" style="display:none;">
+      <div style="font-size:12px;color:#888;margin-bottom:8px;">Código enviado a tu WhatsApp</div>
+      <input id="login-code" type="text" placeholder="000000" style="width:100%;padding:14px;border:2px solid #ddd;border-radius:12px;font-size:24px;text-align:center;letter-spacing:8px;font-family:monospace;margin-bottom:12px;" maxlength="6">
+      <button onclick="verificarCodigoFlyer()" style="width:100%;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">✅ Verificar y abrir Flyer</button>
+    </div>
+    <button onclick="cerrarLoginFlyer()" style="margin-top:16px;background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;">Cancelar</button>
+  </div>
+</div>
+
+<button onclick="refreshGPS()" style="position:absolute;bottom:100px;left:10px;z-index:1000;background:rgba(255,255,255,.85);border:1px solid #ddd;border-radius:20px;width:36px;height:36px;font-size:16px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;" title="Actualizar ubicación">📍</button>
+<button onclick="showStoresModal()" style="position:absolute;top:10px;right:10px;z-index:1000;background:white;border:none;border-radius:50%;width:40px;height:40px;box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:18px;">📋</button>
+
+<div class="fab-group">
+  <button class="fab" id="fab-contacto" title="Ser parte del directorio" style="background:#f59e0b;color:#fff;display:flex;position:relative;">
+    <span id="fab-icon-contacto" style="font-size:20px;">🔔</span>
+    <span id="fab-contador-clicks" style="position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:50%;width:20px;height:20px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;">0</span>
+  </button>
+  <button class="fab fab-fs" id="btn-fs" onclick="toggleFullscreen()" title="Pantalla completa">
+    <svg id="fs-expand" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+    <svg id="fs-compress" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="display:none;"><path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3"/></svg>
+  </button>
+  <button class="fab fab-qr" onclick="showQRModal()" title="Compartir directorio">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="5" y="5" width="3" height="3" fill="currentColor"/><rect x="16" y="5" width="3" height="3" fill="currentColor"/><rect x="5" y="16" width="3" height="3" fill="currentColor"/><path d="M14 14h3v3m0 4h3M17 14v3M14 21h3"/></svg>
+  </button>
+</div>
+
+<div id="searchPanel">
+  <div class="sp-header">
+    <div class="sp-search-inner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput2" placeholder="¿Qué necesitas? Ej: zapatos, pastel, ropa..." autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <button class="sp-close" onclick="clearSearch()">✕</button>
+  </div>
+  <div class="sp-results" id="searchResults"></div>
+</div>
+
+<div class="popup-bg" id="popup-bg" onclick="if(event.target===this)closePopup()">
+  <div class="popup">
+    <span class="popup-drag"></span>
+    <div class="popup-banner" id="popup-banner">
+      <button class="popup-close" onclick="closePopup()">✕</button>
+      <div class="popup-logo" id="popup-logo"></div>
+    </div>
+    <div class="popup-body">
+      <div class="popup-name" id="popup-name"></div>
+      <div class="popup-desc" id="popup-desc"></div>
+      <a id="popup-visit-btn" href="#" target="_blank" class="popup-btn">Ver tienda completa →</a>
+    </div>
+  </div>
+</div>
+
+<div id="ext-popup-bg" onclick="if(event.target===this)closeExtPopup()">
+  <div id="ext-popup">
+    <span class="ext-drag"></span>
+    <div id="ext-foto-wrap" onclick="contarTapExt(event)">
+      <div class="ext-body">
+        <button class="ext-close" onclick="closeExtPopup()">✕</button>
+        <div class="ext-pill">🏪 Tienda externa</div>
+        <div class="ext-nombre" id="ext-nombre"></div>
+        <div id="ext-tipo" style="font-size:12px;color:#888;font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;"></div>
+        <div class="ext-ubicacion" id="ext-ubicacion"></div>
+        <div id="ext-actions-wrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="stores-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span id="modal-title">Tiendas cercanas</span>
+      <span class="modal-close" onclick="closeModal()">×</span>
+    </div>
+    <div class="modal-body" id="modal-stores-list"></div>
+  </div>
+</div>
+
+<div id="catalog-sheet-bg" onclick="if(event.target===this)closeCatalogSheet()">
+  <div id="catalog-sheet">
+    <span class="cs-drag"></span>
+    <div class="cs-header">
+      <div class="cs-store-row">
+        <div class="cs-store-logo" id="cs-store-logo"></div>
+        <div>
+          <div class="cs-store-name" id="cs-store-name"></div>
+          <div class="cs-store-dist" id="cs-store-dist"></div>
+        </div>
+      </div>
+      <button class="cs-close" onclick="closeCatalogSheet()">✕</button>
+    </div>
+    <div class="cs-body"><div class="cs-grid" id="cs-grid"></div></div>
+    <div class="cs-footer">
+      <a id="cs-visit-btn" href="#" target="_blank" class="cs-visit-btn">🏪 Ir a la tienda completa →</a>
+    </div>
+  </div>
+</div>
+
+<div id="prod-popup-bg" onclick="if(event.target===this)closeProdPopup()">
+  <div id="prod-popup" style="position:relative;">
+    <button class="pp-close" onclick="closeProdPopup()">✕</button>
+    <div id="pp-img-wrap"></div>
+    <div class="pp-body">
+      <div class="pp-badge" id="pp-badge">🔥 Promo</div>
+      <div class="pp-name" id="pp-name"></div>
+      <div class="pp-store" id="pp-store"></div>
+      <div class="pp-price" id="pp-price" style="display:none;"></div>
+      <div class="pp-desc" id="pp-desc"></div>
+      <div class="pp-actions">
+        <button class="pp-btn-visit" id="pp-btn-visit">Ver tienda →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="qr-modal" id="qr-modal">
+  <div class="qr-box">
+    <div class="qr-title">Directorio Easylink Querétaro</div>
+    <div class="qr-sub">Aquí Busca lo que necesitas, Préstamos, Farmacias, Ferreterías, Consultorios y Más...</div>
+    <div id="qr-canvas"></div>
+    <div class="qr-url" id="qr-url-text"></div>
+    <div class="qr-actions" style="flex-direction:column;gap:8px;">
+      <button class="qr-btn" onclick="shareQRWhatsApp()" style="background:#25D366;color:#fff;">💬 Compartir por WhatsApp</button>
+      <button class="qr-btn" onclick="shareQREmail()" style="background:#ea4335;color:#fff;">📧 Compartir por Correo</button>
+      <button class="qr-btn qr-btn-close" onclick="closeQRModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORMULARIO CONTACTO -->
+<div id="contacto-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:3000;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarFormularioContacto()">
+  <div style="background:#fff;border-radius:20px;padding:24px;max-width:420px;width:100%;max-height:90dvh;overflow-y:auto;font-family:Inter,sans-serif;">
+    <div style="text-align:center;margin-bottom:4px;">📩</div>
+    <div style="font-size:18px;font-weight:800;color:#111;text-align:center;">Ser parte del directorio</div>
+    <div style="font-size:12px;color:#888;text-align:center;margin-bottom:20px;">Completa tus datos y te contactamos</div>
+    <label style="font-size:11px;font-weight:600;color:#555;">Nombre del cliente *</label>
+    <input id="contacto-nombre" type="text" placeholder="Tu nombre completo" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    <label style="font-size:11px;font-weight:600;color:#555;">Nombre de la tienda *</label>
+    <input id="contacto-tienda" type="text" placeholder="Nombre de tu negocio" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    <label style="font-size:11px;font-weight:600;color:#555;">WhatsApp *</label>
+    <input id="contacto-telefono" type="tel" placeholder="4421234567" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    <label style="font-size:11px;font-weight:600;color:#555;">Giro del negocio *</label>
+    <input id="contacto-tipo" type="text" placeholder="Ej: Abarrotes, Farmacia, Ropa..." style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    <label style="font-size:11px;font-weight:600;color:#555;">Colonia</label>
+    <input id="contacto-colonia" type="text" placeholder="Colonia donde estás" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    <label style="font-size:11px;font-weight:600;color:#555;">Localidad / Ciudad *</label>
+    <input id="contacto-localidad" type="text" placeholder="Ej: Querétaro, San Juan del Río..." style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    <label style="font-size:11px;font-weight:600;color:#555;">Estado</label>
+    <input id="contacto-estado" type="text" placeholder="Querétaro" value="Querétaro" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:Inter,sans-serif;">
+    <label style="font-size:11px;font-weight:600;color:#555;">Link de tu negocio (opcional)</label>
+    <input id="contacto-link" type="text" placeholder="https://..." style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:16px;font-family:Inter,sans-serif;">
+    <label style="font-size:11px;font-weight:600;color:#555;">📍 Ubicación GPS</label>
+    <div style="display:flex;gap:8px;margin-bottom:4px;">
+      <input id="contacto-ubicacion" type="text" placeholder="Ej: 20.5881,-100.3899" style="flex:1;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;font-family:Inter,sans-serif;">
+      <button type="button" onclick="obtenerUbicacionGPS()" style="padding:12px 14px;background:#1a73e8;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:Inter,sans-serif;">📍 GPS</button>
+    </div>
+    <div id="contacto-gps-status" style="font-size:10px;color:#16a34a;margin-bottom:12px;display:none;"></div>
+    <label style="font-size:11px;font-weight:600;color:#555;">📸 Foto del negocio</label>
+    <input id="contacto-foto" type="text" placeholder="Pega el link de tu foto (Drive, WhatsApp, etc.)" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:16px;font-family:Inter,sans-serif;">
+    <button onclick="enviarSolicitudContacto()" style="width:100%;padding:14px;background:#1a73e8;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">📨 Enviar solicitud</button>
+    <button onclick="cerrarFormularioContacto()" style="width:100%;padding:10px;margin-top:8px;background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;">Cancelar</button>
+  </div>
+</div>
+
+<script>
+const BACKEND         = 'https://script.google.com/macros/s/AKfycbwUhTHQkBhLIvF9KgP2bHpVeufIEaPCXZWo9-azz7mYrEEA79BPFCQxE68YQQxE5iw/exec';
+const BACKEND_MAESTRO = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
+const STORE_BASE      = 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
+
+// ═══ RADIO KM — desde 100m hasta 10km ═══
+const KMS_PERMITIDOS = [0.1, 0.5, 1, 2, 5, 10];
+let RADIO_KM = 10;
+
+function cambiarRadioKm(dir) {
+  var idx = KMS_PERMITIDOS.indexOf(RADIO_KM);
+  var nuevo = idx + dir;
+  if (nuevo < 0 || nuevo >= KMS_PERMITIDOS.length) return;
+  RADIO_KM = KMS_PERMITIDOS[nuevo];
+  document.getElementById('kmRadio').innerHTML = RADIO_KM < 1
+    ? (RADIO_KM * 1000).toFixed(0) + '<br>m'
+    : RADIO_KM + '<br>km';
+  actualizarTiendasCercanas();
+}
+
+// ═══ VARIABLES GLOBALES ═══
+let ALL_STORES = [], map, userLat = null, userLng = null, nearbyStores = [];
+let qrInstance = null, isFsMode = false;
+let stats = {clicks:0, searches:0, qr:0};
+let PROMOS_LIST = [], tickerIndex = 0, tickerTimer = null, currentPromoStoreId = null;
+const catalogCache = {};
+const MAX_PROMO_FETCH = 8;
+
+// ═══ CACHÉ LOCAL ═══
+const STORES_CACHE_KEY = 'directorio_stores_cache';
+const STORES_CACHE_TIME = 5 * 60 * 1000;
+
+function guardarCacheTiendas(stores) {
+  try { localStorage.setItem(STORES_CACHE_KEY, JSON.stringify({stores:stores, ts:Date.now()})); } catch(e) {}
+}
+function cargarCacheTiendas() {
+  try {
+    var raw = localStorage.getItem(STORES_CACHE_KEY);
+    if (!raw) return null;
+    var data = JSON.parse(raw);
+    if (Date.now() - data.ts > STORES_CACHE_TIME) { localStorage.removeItem(STORES_CACHE_KEY); return null; }
+    return data.stores || [];
+  } catch(e) { return null; }
+}
+
+// ═══ UTILIDADES ═══
+function fixImgUrl(u){if(!u)return '';if(u.startsWith('data:'))return u;var m=u.match(/[?&]id=([\w-]+)/);if(m)return 'https://lh3.googleusercontent.com/d/'+m[1];var m2=u.match(/\/d\/([\w-]+)/);if(m2)return 'https://lh3.googleusercontent.com/d/'+m2[1];return u;}
+function haversineKm(la1,ln1,la2,ln2){var R=6371,dL=(la2-la1)*Math.PI/180,dN=(ln2-ln1)*Math.PI/180;var a=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dN/2)*Math.sin(dN/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+function buildStoreUrl(id){return STORE_BASE+'?backend='+encodeURIComponent(BACKEND)+'&store='+encodeURIComponent(id);}
+
+function mostrarOverlayCargando() {
+  var ov = document.getElementById('overlay-carga');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'overlay-carga';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:5000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Inter,sans-serif;';
+    ov.innerHTML = '<div style="font-size:32px;margin-bottom:12px;">📍</div><div style="font-size:16px;font-weight:600;" id="overlay-status">Buscando tiendas...</div>';
+    document.body.appendChild(ov);
+  }
+  ov.style.display = 'flex';
+}
+function ocultarOverlayCargando() {
+  var ov = document.getElementById('overlay-carga');
+  if (ov) ov.style.display = 'none';
+}
+
+// ═══ ACTUALIZAR TIENDAS CERCANAS (usa RADIO_KM actual) ═══
+function actualizarTiendasCercanas() {
+  if (!userLat || !userLng) return;
+  nearbyStores = ALL_STORES.filter(function(s) {
+    var cfg = s.config || {};
+    var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+    return !isNaN(lat) && !isNaN(lng) && haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
+  });
+  map.eachLayer(function(l) {
+    if (l instanceof L.Marker) map.removeLayer(l);
+  });
+  // Redibujar punto usuario
+  L.circleMarker([userLat, userLng], {radius:9, color:'#16a34a', fillColor:'#fff', weight:3, fillOpacity:1, zIndexOffset:1000})
+    .addTo(map).bindTooltip('Tu ubicación', {permanent:false, direction:'top'});
+  addMarkersToMap(nearbyStores);
+  buildPromosFromCatalogs(nearbyStores);
+}
+
+// ═══ CARGA INICIAL ═══
+window.addEventListener('load', async function() {
+  // 1. Mapa con coordenada por defecto
+  userLat = 20.5881;
+  userLng = -100.3899;
+  initMap();
+  mostrarOverlayCargando();
+
+  // 2. GPS real — PRIORIDAD MÁXIMA en móvil
+  // watchPosition se activa de inmediato para capturar posición real
+  iniciarGPSReal();
+
+  // 3. Caché local mientras llega GPS/backend
+  var cached = cargarCacheTiendas();
+  if (cached && cached.length > 0) {
+    ALL_STORES = cached.map(function(s) {
+      s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {});
+      return s;
+    });
+    var iniciales = ALL_STORES.filter(function(s) {
+      var cfg = s.config || {};
+      var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+      return !isNaN(lat) && !isNaN(lng) && haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
+    }).slice(0, 50);
+    nearbyStores = iniciales;
+    addMarkersToMap(nearbyStores);
+    ocultarOverlayCargando();
+  }
+
+  // 4. Backends en paralelo
+  var b1ok = false, b2ok = false;
+
+  function procesarStores(stores) {
+    if (!stores || !stores.length) return;
+    stores.forEach(function(s) {
+      s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {});
+    });
+    // Evitar duplicados
+    var ids = new Set(ALL_STORES.map(function(s){ return s.storeId; }));
+    stores.forEach(function(s){ if(!ids.has(s.storeId)) ALL_STORES.push(s); });
+
+    var cercanas = stores.filter(function(s) {
+      var cfg = s.config || {};
+      var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+      return !isNaN(lat) && !isNaN(lng) && haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
+    });
+    if (!cercanas.length) return;
+    var ids2 = new Set(nearbyStores.map(function(s){ return s.storeId; }));
+    cercanas.forEach(function(s){ if(!ids2.has(s.storeId)) nearbyStores.push(s); });
+    addMarkersToMap(cercanas);
+  }
+
+  function finalizarCarga() {
+    if (!b1ok || !b2ok) return;
+    ocultarOverlayCargando();
+    if (nearbyStores.length) {
+      fitToNearestStore();
+      buildPromosFromCatalogs(nearbyStores);
+      guardarCacheTiendas(ALL_STORES);
+    }
+  }
+
+  var ctrl1 = new AbortController();
+  setTimeout(function(){ ctrl1.abort(); }, 9000);
+  fetch(BACKEND + '?action=stores.directory&t=' + Date.now(), {signal: ctrl1.signal})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ procesarStores((d.stores||[]).filter(function(s){ return !s.isExternal; })); })
+    .catch(function(){})
+    .finally(function(){ b1ok = true; finalizarCarga(); });
+
+  var ctrl2 = new AbortController();
+  setTimeout(function(){ ctrl2.abort(); }, 12000);
+  fetch(BACKEND_MAESTRO + '?action=stores.directory&t=' + Date.now(), {signal: ctrl2.signal})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ procesarStores((d.stores||[]).filter(function(s){ return s.isExternal === true; })); })
+    .catch(function(){})
+    .finally(function(){ b2ok = true; finalizarCarga(); });
+});
+
+// ═══ GPS REAL — watchPosition PRIORIDAD MÓVIL ═══
+var _watchId = null;
+var _lastGPSLat = null;
+var _lastGPSLng = null;
+
+function iniciarGPSReal() {
+  if (!navigator.geolocation) return;
+  if (_watchId !== null) return;
+
+  _watchId = navigator.geolocation.watchPosition(
+    function(pos) {
+      var newLat = pos.coords.latitude;
+      var newLng = pos.coords.longitude;
+
+      // Ignorar si no se movió más de 5 metros
+      if (_lastGPSLat !== null && haversineKm(_lastGPSLat, _lastGPSLng, newLat, newLng) < 0.005) return;
+
+      _lastGPSLat = newLat;
+      _lastGPSLng = newLng;
+      userLat = newLat;
+      userLng = newLng;
+
+      // Actualizar punto azul en mapa
+      map.eachLayer(function(l) { if (l instanceof L.CircleMarker) map.removeLayer(l); });
+      L.circleMarker([userLat, userLng], {
+        radius:9, color:'#16a34a', fillColor:'#fff', weight:3, fillOpacity:1, zIndexOffset:1000
+      }).addTo(map).bindTooltip('Tu ubicación', {permanent:false, direction:'top'});
+
+      // Centrar mapa en posición real
+      map.setView([userLat, userLng], map.getZoom(), {animate:true});
+
+      // Recalcular tiendas con radio actual
+      actualizarTiendasCercanas();
+    },
+    function(err) {
+      // Si falla watchPosition, intentar getCurrentPosition como fallback
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          userLat = pos.coords.latitude;
+          userLng = pos.coords.longitude;
+          _lastGPSLat = userLat;
+          _lastGPSLng = userLng;
+          map.eachLayer(function(l) { if (l instanceof L.CircleMarker) map.removeLayer(l); });
+          L.circleMarker([userLat, userLng], {
+            radius:9, color:'#16a34a', fillColor:'#fff', weight:3, fillOpacity:1, zIndexOffset:1000
+          }).addTo(map).bindTooltip('Tu ubicación', {permanent:false, direction:'top'});
+          map.setView([userLat, userLng], map.getZoom(), {animate:true});
+          actualizarTiendasCercanas();
+        },
+        function(){},
+        {enableHighAccuracy:true, timeout:8000}
+      );
+    },
+    {enableHighAccuracy:true, maximumAge:0, timeout:10000}
+  );
+}
+
+// Botón 📍 — fuerza actualización manual
+function refreshGPS() {
+  if (!map) return;
+  if (!navigator.geolocation) { alert('GPS no disponible'); return; }
+  var btn = document.querySelector('button[onclick="refreshGPS()"]');
+  if (btn) { btn.style.transform = 'rotate(360deg)'; btn.style.transition = 'transform .6s'; }
+  setTimeout(function() { if (btn) btn.style.transform = 'rotate(0deg)'; }, 600);
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      _lastGPSLat = userLat;
+      _lastGPSLng = userLng;
+      map.eachLayer(function(l) { if (l instanceof L.CircleMarker) map.removeLayer(l); });
+      L.circleMarker([userLat, userLng], {
+        radius:9, color:'#16a34a', fillColor:'#fff', weight:3, fillOpacity:1, zIndexOffset:1000
+      }).addTo(map).bindTooltip('Tu ubicación', {permanent:false, direction:'top'});
+      map.setView([userLat, userLng], map.getZoom(), {animate:true});
+      actualizarTiendasCercanas();
+    },
+    function(){},
+    {enableHighAccuracy:true, timeout:8000}
+  );
+}
+
+// ═══ INIT MAPA ═══
+function initMap() {
+  map = L.map('map', {zoomControl:false}).setView([userLat, userLng], 13);
+  var calle = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19});
+  var satelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:19});
+  calle.addTo(map);
+  L.control.layers({"🗺️ Calle":calle, "🛰️ Satélite":satelite}, null, {position:'topright'}).addTo(map);
+
+  var promotorControl = L.control({position:'topright'});
+  promotorControl.onAdd = function() {
+    var btn = L.DomUtil.create('button','');
+    btn.style.cssText = 'background:#fbbf24;color:#000;border:none;border-radius:8px;padding:8px 12px;font-size:20px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);';
+    btn.innerHTML = '🛵';
+    btn.title = 'Panel Promotor';
+    btn.onclick = function(){ window.open('promotores.html','_blank'); };
+    L.DomEvent.disableClickPropagation(btn);
+    return btn;
+  };
+  promotorControl.addTo(map);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+
+  L.circleMarker([userLat, userLng], {radius:9, color:'#16a34a', fillColor:'#fff', weight:3, fillOpacity:1, zIndexOffset:1000})
+    .addTo(map).bindTooltip('Tu ubicación', {permanent:false, direction:'top'});
+
+  map.whenReady(function(){ setTimeout(fitToNearestStore, 250); });
+}
+
+function fitToNearestStore() {
+  if (!nearbyStores.length) { map.setView([userLat, userLng], 14); return; }
+  var sorted = nearbyStores.slice().sort(function(a,b) {
+    var ca=a.config||{}, cb=b.config||{};
+    return haversineKm(userLat,userLng,parseFloat(ca.locationLat||0),parseFloat(ca.locationLng||0))
+          -haversineKm(userLat,userLng,parseFloat(cb.locationLat||0),parseFloat(cb.locationLng||0));
+  });
+  var nc = sorted[0].config||{}, nLat = parseFloat(nc.locationLat), nLng = parseFloat(nc.locationLng);
+  var d = haversineKm(userLat,userLng,nLat,nLng);
+  var mz = d<0.05?18:d<0.2?17:d<0.5?16:d<1?15:d<3?14:d<7?13:d<12?12:11;
+  var bounds = L.latLngBounds([[userLat,userLng],[nLat,nLng]]);
+  sorted.forEach(function(s){ var c=s.config||{},la=parseFloat(c.locationLat),ln=parseFloat(c.locationLng);if(!isNaN(la)&&!isNaN(ln))bounds.extend([la,ln]); });
+  map.fitBounds(bounds, {padding:[55,55], maxZoom:mz, animate:true});
+}
+
+// ═══ MARCADORES ═══
+function addMarkersToMap(stores) {
+  stores.forEach(function(s) {
+    var cfg = s.config||{}, lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+    if (isNaN(lat)||isNaN(lng)) return;
+    if ((cfg.Movil===true||cfg.Movil==='TRUE') && !estaEnHorario(cfg.horariopromotor||'08:00-18:00')) return;
+
+    var logoUrl = fixImgUrl(cfg.logo||cfg.logoUrl||'');
+    var esMovil = cfg.Movil===true||cfg.Movil==='TRUE';
+    var pinColor = s.isExternal?'#f97316':'#fff';
+    var bgColor = s.isExternal?'#fff3e0':'#1a73e8';
+    var pinHTML = esMovil
+      ? '<div style="width:52px;height:52px;background:#fbbf24;color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;border:4px solid #f59e0b;box-shadow:0 3px 10px rgba(0,0,0,.3);">🛵</div>'
+      : (logoUrl
+          ? '<img src="'+logoUrl+'" style="width:52px;height:52px;border-radius:50%;border:4px solid '+pinColor+';object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,.3);">'
+          : '<div style="width:52px;height:52px;background:'+bgColor+';color:'+(s.isExternal?'#e65100':'#fff')+';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid '+pinColor+';box-shadow:0 3px 10px rgba(0,0,0,.3);">🏪</div>');
+
+    var icon = L.divIcon({html:pinHTML, className:'', iconSize:[56,56], iconAnchor:[28,28]});
+    var nombre = s.nombre_tienda||s.name||'Tienda';
+    var tipo = esMovil?'🛵 Servicio Móvil':(s.isExternal?(cfg.tipoNegocio||cfg.businessType||cfg.tipo||'Tienda externa'):'Tienda Easylink');
+
+    L.marker([lat,lng],{icon:icon})
+      .addTo(map)
+      .bindTooltip(function(){
+        stats.clicks++;
+        document.getElementById('stats-clicks').textContent = stats.clicks;
+        return '<div style="text-align:center;font-family:Inter,sans-serif;line-height:1.2;"><div style="font-weight:600;font-size:10px;color:#222;">'+nombre+'</div><div style="font-size:8px;color:#777;">'+tipo+'</div></div>';
+      },{direction:'bottom',offset:[0,-30],permanent:true,opacity:1,className:'pin-label'})
+      .bindPopup(function(){
+        try {
+          var dist = (userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
+          var fotoUrl = s.isExternal?fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||logoUrl||''):logoUrl;
+          var desc = cfg.description||[cfg.colonia,cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Sin descripción';
+          var html = '<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px;">';
+          if(fotoUrl) html+='<img src="'+fotoUrl+'" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:8px;" onerror="this.style.display=\'none\'">';
+          html+='<strong style="font-size:15px;color:#111;">'+nombre+'</strong>';
+          if(esMovil) html+='<span style="font-size:9px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:6px;">🛵 Móvil</span>';
+          else if(s.isExternal) html+='<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:6px;">🏪 Externa</span>';
+          html+='<p style="font-size:11px;color:#888;margin:4px 0;">'+tipo+'</p>';
+          html+='<p style="font-size:12px;color:#444;margin:4px 0;">'+desc+'</p>';
+          if(dist) html+='<p style="font-size:13px;color:#16a34a;font-weight:700;margin:4px 0;">📍 '+dist+'</p>';
+          if(!s.isExternal){
+            html+='<button onclick="event.stopPropagation();openPopup(\''+s.storeId+'\')" style="margin-top:8px;width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">Ver tienda completa →</button>';
+          }
+          if(s.isExternal){
+            var showW = String(cfg.whatsapp||'').toUpperCase()==='TRUE';
+            var tel = String(s.telefono||cfg.telefono||'').replace(/\D/g,'');
+            var showLlegar = String(cfg.llegar||'').toUpperCase()==='TRUE';
+            if(showLlegar&&!isNaN(lat)&&!isNaN(lng))
+              html+='<a href="https://www.google.com/maps/dir/?api=1&destination='+lat+','+lng+'" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#1a73e8;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🗺️ Cómo llegar</a>';
+            if(showW&&tel){
+              var msgW = encodeURIComponent('¡Hola! Vi tu negocio en el directorio y quiero más información 🛍️');
+              html+='<a href="https://wa.me/52'+tel+'?text='+msgW+'" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#25D366;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">💬 WhatsApp</a>';
+            }
+            var extLink = cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+            if(extLink) html+='<a href="'+extLink+'" target="_blank" onclick="event.stopPropagation();" style="display:block;margin-top:6px;width:100%;padding:10px;background:#6366f1;color:#fff;text-align:center;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;">🔗 Visitar tienda</a>';
+          }
+          html+='</div>';
+          return html;
+        } catch(e) { return '<div style="padding:20px;color:red;">Error: '+e.message+'</div>'; }
+      },{maxWidth:300,className:'custom-popup'});
+  });
+}
+
+function estaEnHorario(horario) {
+  try {
+    var ahora = new Date(), horaActual = ahora.getHours()*60+ahora.getMinutes();
+    var partes = horario.split('-');
+    var ini = partes[0].split(':').map(Number), fin = partes[1].split(':').map(Number);
+    return horaActual >= ini[0]*60+ini[1] && horaActual <= fin[0]*60+fin[1];
+  } catch(e) { return true; }
+}
+
+// ═══ PROMOS / TICKER ═══
+async function buildPromosFromCatalogs(stores) {
+  var soloPropias = stores.filter(function(s){ return !s.isExternal; });
+  var sorted = soloPropias.slice().sort(function(a,b){
+    var ca=a.config||{},cb=b.config||{};
+    return haversineKm(userLat,userLng,parseFloat(ca.locationLat||0),parseFloat(ca.locationLng||0))
+          -haversineKm(userLat,userLng,parseFloat(cb.locationLat||0),parseFloat(cb.locationLng||0));
+  }).slice(0, MAX_PROMO_FETCH);
+  var results = await Promise.allSettled(sorted.map(function(s){ return fetchStorePromos(s.storeId); }));
+  PROMOS_LIST = [];
+  results.forEach(function(res, i) {
+    var store = sorted[i], cfg = store.config||{};
+    var logoUrl = fixImgUrl(cfg.logo||cfg.logoUrl||'');
+    var dist = (userLat&&!isNaN(parseFloat(cfg.locationLat)))?haversineKm(userLat,userLng,parseFloat(cfg.locationLat),parseFloat(cfg.locationLng)).toFixed(1)+' km':'';
+    var promoProducts = res.status==='fulfilled'?res.value:[];
+    if (promoProducts.length > 0) {
+      promoProducts.forEach(function(p){
+        PROMOS_LIST.push({storeId:store.storeId,storeName:store.name||'Tienda',storeLogo:logoUrl,storeUrl:buildStoreUrl(store.storeId),title:p.name||p.nombre||p.title||store.name,desc:p.description||p.descripcion||cfg.description||'Visita nuestra tienda.',img:fixImgUrl(p.image||p.imagen||p.imageUrl||p.imgUrl||''),price:p.price||p.precio||'',isPromo:true,dist:dist});
+      });
+    } else if (cfg.promoTitle||cfg.promoImage) {
+      PROMOS_LIST.push({storeId:store.storeId,storeName:store.name||'Tienda',storeLogo:logoUrl,storeUrl:buildStoreUrl(store.storeId),title:cfg.promoTitle||store.name,desc:cfg.promoDesc||cfg.description||'Visita nuestra tienda.',img:fixImgUrl(cfg.promoImage||''),price:'',isPromo:true,dist:dist});
+    }
+  });
+  if (!PROMOS_LIST.length) { document.getElementById('promo-ticker').style.display='none'; return; }
+  renderTicker();
+  startTickerAuto();
+  document.getElementById('promo-ticker').classList.add('has-promos');
+  document.getElementById('header').classList.add('promo-active');
+}
+
+async function fetchStorePromos(storeId) {
+  if (catalogCache[storeId]) return catalogCache[storeId];
+  try {
+    var r = await fetch(BACKEND_MAESTRO+'?action=stores.catalog&store='+encodeURIComponent(storeId));
+    var d = await r.json();
+    var all = d.products||d.items||(Array.isArray(d)?d:[]);
+    var promos = all.filter(function(p){ return (p.category||p.categoria||'').toLowerCase().includes('promo'); });
+    catalogCache[storeId] = promos; return promos;
+  } catch(e) { catalogCache[storeId]=[]; return []; }
+}
+
+function renderTicker(){
+  var track=document.getElementById('pticker-track'),dotsEl=document.getElementById('pticker-dots');
+  if(!track||!dotsEl)return;
+  track.innerHTML=PROMOS_LIST.map(function(p,i){
+    var imgEl=p.img?'<img class="pticker-img" src="'+p.img+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">':'';
+    var phEl='<div class="pticker-img-ph" '+(p.img?'style="display:none"':'')+'>'+(p.storeLogo?'<img src="'+p.storeLogo+'" style="width:38px;height:38px;border-radius:8px;object-fit:cover;" onerror="this.parentNode.textContent=\'🛍️\'">':'🛍️')+'</div>';
+    return '<div class="pticker-card" onclick="openPromoDetail('+i+')">'+imgEl+phEl+'<div class="pticker-info"><div class="pticker-badge">🔥 PROMO <span class="pticker-badge-pill">'+(p.dist||'')+'</span></div><div class="pticker-name">'+p.title+'</div><div class="pticker-store">🏪 '+p.storeName+'</div></div><div class="pticker-arrow">›</div></div>';
+  }).join('');
+  dotsEl.innerHTML=PROMOS_LIST.map(function(_,i){ return '<div class="pticker-dot'+(i===0?' active':'')+'" id="dot-'+i+'"></div>'; }).join('');
+  moveTicker(0);
+}
+function moveTicker(idx){tickerIndex=idx;var t=document.getElementById('pticker-track');if(t)t.style.transform='translateY(-'+(idx*70)+'px)';document.querySelectorAll('.pticker-dot').forEach(function(d,i){d.classList.toggle('active',i===idx);});}
+function startTickerAuto(){stopTickerAuto();if(PROMOS_LIST.length<2)return;tickerTimer=setInterval(function(){moveTicker((tickerIndex+1)%PROMOS_LIST.length);},3000);}
+function stopTickerAuto(){if(tickerTimer){clearInterval(tickerTimer);tickerTimer=null;}}
+
+function openPromoDetail(idx){
+  stopTickerAuto(); var p=PROMOS_LIST[idx]; if(!p)return;
+  currentPromoStoreId=p.storeId;
+  document.getElementById('pp-img-wrap').innerHTML=p.img?'<img class="pp-img" src="'+p.img+'" onerror="this.parentNode.innerHTML=\'<div class=pp-img-ph>🛍️</div>\'">':'<div class="pp-img-ph">🛍️</div>';
+  document.getElementById('pp-badge').textContent='🔥 Promoción';
+  document.getElementById('pp-name').textContent=p.title;
+  var logoHtml=p.storeLogo?'<div class="pp-store-logo"><img src="'+p.storeLogo+'" onerror="this.parentNode.textContent=\'🏪\'"></div>':'<div class="pp-store-logo">🏪</div>';
+  document.getElementById('pp-store').innerHTML=logoHtml+p.storeName+(p.dist?' · '+p.dist:'');
+  var pe=document.getElementById('pp-price');if(p.price){pe.textContent='$'+p.price;pe.style.display='';}else pe.style.display='none';
+  document.getElementById('pp-desc').textContent=p.desc;
+  document.getElementById('pp-btn-visit').onclick=function(){window.open(p.storeUrl,'_blank');};
+  document.getElementById('prod-popup-bg').classList.add('open');
+}
+function closeProdPopup(){document.getElementById('prod-popup-bg').classList.remove('open');startTickerAuto();}
+
+async function openCatalogSheet(store){
+  var cfg=store.config||{},logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+  var dist=(userLat&&!isNaN(parseFloat(cfg.locationLat)))?haversineKm(userLat,userLng,parseFloat(cfg.locationLat),parseFloat(cfg.locationLng)).toFixed(1)+' km':'';
+  document.getElementById('cs-store-logo').innerHTML=logoUrl?'<img src="'+logoUrl+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.textContent=\'🏪\'">':'🏪';
+  document.getElementById('cs-store-name').textContent=store.name||'Tienda';
+  document.getElementById('cs-store-dist').textContent=dist?'📍 '+dist:'';
+  document.getElementById('cs-visit-btn').href=buildStoreUrl(store.storeId);
+  var body=document.querySelector('.cs-body');body.innerHTML='';
+  var sk=document.createElement('div');sk.className='cs-skel';sk.innerHTML=[1,2,3].map(function(){return '<div class="cs-skel-card"></div>';}).join('');body.appendChild(sk);
+  document.getElementById('catalog-sheet-bg').classList.add('open');
+  var promos=await fetchStorePromos(store.storeId);
+  body.innerHTML='';
+  var ng=document.createElement('div');ng.className='cs-grid';ng.id='cs-grid';body.appendChild(ng);
+  if(promos.length>0){promos.forEach(function(p,idx){ng.appendChild(buildCsProdCard({img:fixImgUrl(p.image||p.imagen||p.imageUrl||p.imgUrl||''),name:p.name||p.nombre||p.title||'Producto',desc:p.description||p.descripcion||'',price:p.price||p.precio||'',badge:'🔥 Promo',storeId:store.storeId},idx));});}
+  else if(cfg.promoTitle||cfg.promoImage){ng.appendChild(buildCsProdCard({img:fixImgUrl(cfg.promoImage||''),name:cfg.promoTitle||store.name,desc:cfg.promoDesc||cfg.description||'',price:'',badge:'🔥 Promo',storeId:store.storeId},0));}
+  var dc=document.createElement('div');dc.className='cs-prod';dc.style.cursor='default';dc.innerHTML='<div class="cs-prod-img-ph">🏪</div><div class="cs-prod-body"><div class="cs-prod-name" style="font-size:12px;-webkit-line-clamp:4;">'+(cfg.description||'Visita nuestra tienda.')+'</div></div>';ng.appendChild(dc);
+  var cc=document.createElement('div');cc.className='cs-prod';cc.onclick=function(){window.open(buildStoreUrl(store.storeId),'_blank');};cc.innerHTML='<div class="cs-prod-img-ph" style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));">🛒</div><div class="cs-prod-body"><div class="cs-prod-badge" style="background:var(--primary);">Ver más</div><div class="cs-prod-name">Catálogo completo</div></div>';ng.appendChild(cc);
+}
+function buildCsProdCard(prod,idx){var c=document.createElement('div');c.className='cs-prod';c.onclick=function(){openCsProdDetail(prod);};c.innerHTML=(prod.img?'<img class="cs-prod-img" src="'+prod.img+'" onerror="this.parentNode.innerHTML=\'<div class=cs-prod-img-ph>🛍️</div>\'">':'<div class="cs-prod-img-ph">🛍️</div>')+'<div class="cs-prod-body"><div class="cs-prod-badge">'+(prod.badge||'🔥 Promo')+'</div><div class="cs-prod-name">'+prod.name+'</div>'+(prod.price?'<div class="cs-prod-price">$'+prod.price+'</div>':'')+'</div>';return c;}
+function openCsProdDetail(prod){currentPromoStoreId=prod.storeId;document.getElementById('pp-img-wrap').innerHTML=prod.img?'<img class="pp-img" src="'+prod.img+'" onerror="this.parentNode.innerHTML=\'<div class=pp-img-ph>🛍️</div>\'">':'<div class="pp-img-ph">🛍️</div>';document.getElementById('pp-badge').textContent=prod.badge||'🔥 Promo';document.getElementById('pp-name').textContent=prod.name||'';document.getElementById('pp-store').innerHTML='';var pe=document.getElementById('pp-price');if(prod.price){pe.textContent='$'+prod.price;pe.style.display='';}else pe.style.display='none';document.getElementById('pp-desc').textContent=prod.desc||'';document.getElementById('pp-btn-visit').onclick=function(){window.open(buildStoreUrl(prod.storeId),'_blank');};document.getElementById('prod-popup-bg').classList.add('open');}
+function closeCatalogSheet(){document.getElementById('catalog-sheet-bg').classList.remove('open');}
+
+// ═══ POPUPS ═══
+function openPopup(id){
+  window._clicksTienda=(window._clicksTienda||0)+1; incrementarClickTienda();
+  var s=ALL_STORES.find(function(x){return x.storeId===id;});if(!s)return;
+  if(s.isExternal){openExtPopup(s);return;}
+  var cfg=s.config||{};
+  var logo=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+  var banner=fixImgUrl(cfg.bannerUrl||'');
+  document.getElementById('popup-banner').style.background=banner?'url('+banner+') center/cover':'linear-gradient(135deg,#1a73e8,#0d47a1)';
+  document.getElementById('popup-logo').innerHTML=logo?'<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover">':'🏪';
+  document.getElementById('popup-name').textContent=s.name||'Tienda';
+  document.getElementById('popup-desc').textContent=cfg.description||'Visita nuestra tienda Easylink';
+  document.getElementById('popup-visit-btn').href=buildStoreUrl(id);
+  document.getElementById('popup-bg').classList.add('open');
+}
+function closePopup(){document.getElementById('popup-bg').classList.remove('open');}
+
+function openExtPopup(s){
+  window._clicksTienda=(window._clicksTienda||0)+1; incrementarClickTienda();
+  var cfg=s.config||{};
+  var nombre=s.nombre_tienda||s.name||'Tienda';
+  var tipo=cfg.tipoNegocio||cfg.businessType||cfg.tipo||'Tienda externa';
+  var lat=parseFloat(cfg.locationLat), lng=parseFloat(cfg.locationLng);
+  var dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
+  var fotoUrl=fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
+  var tel=String(s.telefono||cfg.telefono||'').replace(/\D/g,'');
+  var showWpp=String(cfg.whatsapp||'').toUpperCase()==='TRUE';
+  var showLlegar=String(cfg.llegar||'').toUpperCase()==='TRUE';
+  var extLink=cfg.linkNegocio||cfg.link_negocio||cfg.link||cfg.url||s.link_negocio||'';
+  var fotoWrap=document.getElementById('ext-foto-wrap');
+  var fotoHtml=fotoUrl?'<img class="ext-foto" src="'+fotoUrl+'" onerror="this.style.display=\'none\'">':'<div class="ext-foto-ph">🏪</div>';
+  fotoWrap.innerHTML=fotoHtml+fotoWrap.innerHTML.replace(/<img class="ext-foto"[^>]*>|<div class="ext-foto-ph">[^<]*<\/div>/,'');
+  document.getElementById('ext-nombre').textContent=nombre;
+  document.getElementById('ext-tipo').textContent=tipo;
+  document.getElementById('ext-ubicacion').innerHTML='📍 '+([cfg.colonia,cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Querétaro')+(dist?' · '+dist:'');
+  var btns='<div class="ext-actions">';
+  if(showLlegar&&!isNaN(lat)&&!isNaN(lng)) btns+='<a class="ext-btn ext-btn-llegar" href="https://www.google.com/maps/dir/?api=1&destination='+lat+','+lng+'" target="_blank"><span class="ext-btn-icon">🗺️</span>Cómo llegar</a>';
+  if(showWpp&&tel){var msg=encodeURIComponent('¡Hola! Vi tu negocio en el directorio y quiero más información 🛍️');btns+='<a class="ext-btn ext-btn-wpp" href="https://wa.me/52'+tel+'?text='+msg+'" target="_blank"><span class="ext-btn-icon">💬</span>WhatsApp</a>';}
+  btns+='</div>';
+  if(extLink) btns+='<a class="ext-btn-link" href="'+extLink+'" target="_blank">🔗 Visitar tienda completa</a>';
+  document.getElementById('ext-actions-wrap').innerHTML=btns;
+  document.getElementById('ext-popup-bg').classList.add('open');
+}
+function closeExtPopup(){document.getElementById('ext-popup-bg').classList.remove('open');}
+
+// ═══ MODAL LISTA ═══
+function showStoresModal(){
+  var list=document.getElementById('modal-stores-list');list.innerHTML='';
+  if(!nearbyStores.length){list.innerHTML='<div class="no-stores">No hay tiendas en este radio.</div>';document.getElementById('stores-modal').classList.add('open');return;}
+  var sorted=nearbyStores.slice().sort(function(a,b){var ca=a.config||{},cb=b.config||{};return haversineKm(userLat,userLng,parseFloat(ca.locationLat||0),parseFloat(ca.locationLng||0))-haversineKm(userLat,userLng,parseFloat(cb.locationLat||0),parseFloat(cb.locationLng||0));});
+  document.getElementById('modal-title').textContent='Easylink cerca — '+sorted.length+' tiendas';
+  sorted.forEach(function(s){
+    var cfg=s.config||{};
+    var dist=haversineKm(userLat,userLng,parseFloat(cfg.locationLat||0),parseFloat(cfg.locationLng||0)).toFixed(1);
+    var item=document.createElement('div');item.className='store-item';
+    if(s.isExternal){
+      var fotoUrl=fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||cfg.logo||cfg.logoUrl||'');
+      item.innerHTML='<div class="store-logo" style="background:#fff3e0;">'+(fotoUrl?'<img src="'+fotoUrl+'" alt="'+(s.nombre_tienda||s.name)+'">':'🏪')+'</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><h3 style="font-size:15px;font-weight:600;color:#111;">'+(s.nombre_tienda||s.name||'Tienda')+'</h3><span style="font-size:9px;background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:20px;font-weight:700;flex-shrink:0;">🏪 Externa</span></div><p style="color:#16a34a;font-weight:600;font-size:13px;">📍 '+dist+' km</p><p style="font-size:12px;color:#666;margin-top:2px;">'+([cfg.colonia,cfg.localidad||cfg.city].filter(Boolean).join(', ')||'—')+'</p></div>';
+      item.onclick=function(){closeModal();openExtPopup(s);};
+    } else {
+      var logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+      var hasPromo=!!(cfg.promoTitle||cfg.promoImage);
+      item.innerHTML='<div class="store-logo">'+(logoUrl?'<img src="'+logoUrl+'" alt="'+s.name+'">':'🏪')+'</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><h3 style="font-size:15px;font-weight:600;color:#111;">'+s.name+'</h3>'+(hasPromo?'<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:20px;font-weight:700;flex-shrink:0;">🔥 Promo</span>':'')+'</div><p style="color:#16a34a;font-weight:600;font-size:13px;">📍 '+dist+' km</p><p style="font-size:12px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(cfg.description||'Tienda Easylink')+'</p></div>';
+      item.onclick=function(){closeModal();if(hasPromo)openCatalogSheet(s);else openPopup(s.storeId);};
+    }
+    list.appendChild(item);
+  });
+  document.getElementById('stores-modal').classList.add('open');
+}
+function closeModal(){document.getElementById('stores-modal').classList.remove('open');}
+
+// ═══ BÚSQUEDA ═══
+var searchInput=document.getElementById('searchInput');
+var searchInput2=document.getElementById('searchInput2');
+var clearBtn=document.getElementById('clearBtn');
+function syncSearch(v){searchInput.value=v;searchInput2.value=v;}
+searchInput.addEventListener('input',function(e){handleSearch(e.target.value);});
+searchInput2.addEventListener('input',function(e){syncSearch(e.target.value);renderSearchResults(e.target.value);});
+function handleSearch(val){
+  syncSearch(val);clearBtn.style.display=val?'block':'none';
+  if(val.trim()){stats.searches++;document.getElementById('stats-searches').textContent=stats.searches;document.getElementById('searchPanel').classList.add('active');renderSearchResults(val);}
+  else{clearSearch();}
+}
+function clearSearch(){syncSearch('');clearBtn.style.display='none';document.getElementById('searchPanel').classList.remove('active');}
+function renderSearchResults(query){
+  var q=query.trim().toLowerCase();
+  function matchesQuery(s){var cfg=s.config||{};var nombre=(s.nombre_tienda||s.name||'').toLowerCase();var kwString=(cfg.keywords||'').toLowerCase();var ciudad=(cfg.directoryCity||cfg.city||cfg.localidad||'').toLowerCase();if(nombre.includes(q)||ciudad.includes(q))return true;return kwString.split(',').map(function(k){return k.trim();}).filter(Boolean).some(function(k){return k.includes(q)||q.includes(k);});}
+  var results=ALL_STORES.filter(matchesQuery);
+  var container=document.getElementById('searchResults');
+  if(!results.length){container.innerHTML='<div class="sp-empty"><div style="font-size:36px;margin-bottom:12px;">🔍</div><div>Sin resultados para "<strong>'+query+'</strong>"</div></div>';return;}
+  container.innerHTML='';
+  results.forEach(function(s){
+    var cfg=s.config||{};
+    var logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+    var fotoUrl=s.isExternal?fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||logoUrl||''):logoUrl;
+    var lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
+    var dist=userLat&&!isNaN(lat)?haversineKm(userLat,userLng,lat,lng).toFixed(1):null;
+    var nearby=dist&&parseFloat(dist)<=RADIO_KM;
+    var item=document.createElement('div');item.className='sp-item';
+    item.innerHTML='<div class="sp-logo">'+(fotoUrl?'<img src="'+fotoUrl+'" alt="'+(s.nombre_tienda||s.name)+'">':'🏪')+'</div><div class="sp-info"><h3>'+(s.nombre_tienda||s.name||'Tienda')+(s.isExternal?'<span style="font-size:10px;background:#fff3e0;color:#e65100;padding:1px 7px;border-radius:20px;font-weight:700;margin-left:4px;">🏪 Externa</span>':'')+'</h3>'+(dist?'<div class="sp-dist">📍 '+dist+' km'+(nearby?'<span class="sp-badge">Cercana</span>':'')+'</div>':'')+'<div class="sp-desc">'+(cfg.description||[cfg.colonia,cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Tienda')+'</div></div>';
+    item.onclick=function(){clearSearch();if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],16,{animate:true});setTimeout(function(){openPopup(s.storeId);},350);};
+    container.appendChild(item);
+  });
+}
+
+// ═══ FULLSCREEN ═══
+function toggleFullscreen(){isFsMode=!isFsMode;document.body.classList.toggle('fs-mode',isFsMode);document.getElementById('fs-expand').style.display=isFsMode?'none':'block';document.getElementById('fs-compress').style.display=isFsMode?'block':'none';setTimeout(function(){map.invalidateSize();if(isFsMode)fitToNearestStore();},160);try{if(isFsMode&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();else if(!isFsMode&&document.exitFullscreen)document.exitFullscreen();}catch(e){}}
+document.addEventListener('fullscreenchange',function(){if(!document.fullscreenElement&&isFsMode){isFsMode=false;document.body.classList.remove('fs-mode');document.getElementById('fs-expand').style.display='block';document.getElementById('fs-compress').style.display='none';setTimeout(function(){map.invalidateSize();},160);}});
+
+// ═══ QR ═══
+function showQRModal(){var url=window.location.href;document.getElementById('qr-url-text').textContent=url;var canvas=document.getElementById('qr-canvas');canvas.innerHTML='';if(qrInstance){try{qrInstance.clear();}catch(e){}}qrInstance=new QRCode(canvas,{text:url,width:200,height:200,colorDark:'#1a1a1a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});document.getElementById('qr-modal').classList.add('open');}
+function closeQRModal(){document.getElementById('qr-modal').classList.remove('open');}
+function shareQRWhatsApp(){var url=window.location.href;window.open('https://wa.me/?text='+encodeURIComponent('Directorio Easylink Querétaro - Busca tiendas cerca de ti: '+url),'_blank');}
+function shareQREmail(){var url=window.location.href;window.location.href='mailto:?subject='+encodeURIComponent('Directorio Easylink Querétaro')+'&body='+encodeURIComponent('Busca tiendas cerca de ti:\n\n'+url);}
+
+// ═══ TRIPLE TAP LOGO ═══
+var tapCount=0,lastTapTime=0;
+document.getElementById('header-logo').addEventListener('click',function(){var now=Date.now();tapCount=(now-lastTapTime<400)?tapCount+1:1;lastTapTime=now;if(tapCount===3){tapCount=0;if(navigator.vibrate)navigator.vibrate([60,40,60,40,100]);var el=document.getElementById('header-logo');el.style.transition='transform .4s ease';el.style.transform='scale(1.3) rotate(10deg)';setTimeout(function(){el.style.transform='scale(1) rotate(0deg)';},400);window.location.href='https://proyectosolaronline-ops.github.io/SuperOnline-Stores/';}});
+document.getElementById('header-logo').addEventListener('dblclick',function(){var p=document.getElementById('stats-panel');p.style.display=(p.style.display==='none'||p.style.display==='')?'block':'none';});
+
+// ═══ GOOGLE PLACES (desactivado) ═══
+const GOOGLE_PLACES_ACTIVADO=false;
+
+// ═══ POLLING DE DATOS cada 15s ═══
+var dataPollingInterval=null;
+async function refreshData(){
+  try{
+    var [r1,r2]=await Promise.allSettled([fetch(BACKEND+'?action=stores.directory&t='+Date.now()),fetch(BACKEND_MAESTRO+'?action=stores.directory&t='+Date.now())]);
+    var sl=[],se=[];
+    if(r1.status==='fulfilled'){var d1=await r1.value.json();sl=(d1.stores||[]).filter(function(s){return !s.isExternal;});}
+    if(r2.status==='fulfilled'){var d2=await r2.value.json();se=(d2.stores||[]).filter(function(s){return s.isExternal===true;});}
+    ALL_STORES=[...sl,...se].map(function(s){s.config=typeof s.config==='string'?JSON.parse(s.config):(s.config||{});return s;});
+    if(userLat&&userLng){
+      nearbyStores=ALL_STORES.filter(function(s){var cfg=s.config||{};var lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;});
+    }
+    map.closePopup();
+    map.eachLayer(function(l){if(l instanceof L.Marker)map.removeLayer(l);});
+    L.circleMarker([userLat,userLng],{radius:9,color:'#16a34a',fillColor:'#fff',weight:3,fillOpacity:1,zIndexOffset:1000}).addTo(map).bindTooltip('Tu ubicación',{permanent:false,direction:'top'});
+    addMarkersToMap(nearbyStores);
+    buildPromosFromCatalogs(nearbyStores);
+  }catch(e){}
+}
+function startDataPolling(){if(dataPollingInterval)return;dataPollingInterval=setInterval(refreshData,15000);}
+window.addEventListener('load',function(){setTimeout(startDataPolling,3000);});
+
+// ═══ ESTADÍSTICAS ═══
+setInterval(function(){
+  if(stats.clicks>0||stats.searches>0||stats.qr>0){
+    fetch(BACKEND_MAESTRO,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'estadisticas.save',clicks:stats.clicks,busquedas:stats.searches,qr:stats.qr})}).catch(function(){});
+    stats.clicks=0;stats.searches=0;stats.qr=0;
+  }
+},30000);
+
+// ═══ SCHEMA DINÁMICO ═══
+function actualizarSchemaNearbyStores(){try{var el=document.getElementById('schema-nearby-stores');if(!el||!nearbyStores.length)return;var items=nearbyStores.map(function(s,i){var cfg=s.config||{};return{"@type":"ListItem","position":i+1,"item":{"@type":s.isExternal?"LocalBusiness":"Store","name":s.nombre_tienda||s.name||'Tienda',"address":{"@type":"PostalAddress","addressLocality":cfg.localidad||cfg.city||'Querétaro',"addressRegion":"Querétaro","addressCountry":"MX"}}};});el.textContent=JSON.stringify({"@context":"https://schema.org","@type":"ItemList","name":"Tiendas y Negocios Cercanos en Querétaro","numberOfItems":items.length,"itemListElement":items});}catch(e){}}
+window.addEventListener('load',function(){setTimeout(function(){actualizarSchemaNearbyStores();},3000);});
+
+// ═══ CONTACTO ═══
+function abrirFormularioContacto(){document.getElementById('contacto-bg').style.display='flex';}
+function cerrarFormularioContacto(){
+  document.getElementById('contacto-bg').style.display='none';
+  ['contacto-nombre','contacto-tienda','contacto-telefono','contacto-tipo','contacto-colonia','contacto-localidad','contacto-estado','contacto-link'].forEach(function(id){document.getElementById(id).value='';});
+}
+function obtenerUbicacionGPS(){
+  var statusEl=document.getElementById('contacto-gps-status'),inputEl=document.getElementById('contacto-ubicacion');
+  if(!navigator.geolocation){statusEl.style.display='block';statusEl.style.color='red';statusEl.textContent='❌ GPS no disponible';return;}
+  statusEl.style.display='block';statusEl.style.color='#1a73e8';statusEl.textContent='⏳ Obteniendo ubicación...';
+  navigator.geolocation.getCurrentPosition(function(pos){var lat=pos.coords.latitude.toFixed(6),lng=pos.coords.longitude.toFixed(6);inputEl.value=lat+','+lng;statusEl.style.color='#16a34a';statusEl.textContent='✅ Ubicación obtenida: '+lat+', '+lng;setTimeout(function(){statusEl.style.display='none';},3000);},function(){statusEl.style.color='red';statusEl.textContent='❌ No se pudo obtener.';},{enableHighAccuracy:true,timeout:10000});
+}
+async function enviarSolicitudContacto(){
+  var nombre=document.getElementById('contacto-nombre').value.trim();
+  var tienda=document.getElementById('contacto-tienda').value.trim();
+  var telefono=document.getElementById('contacto-telefono').value.trim().replace(/\D/g,'');
+  var tipo=document.getElementById('contacto-tipo').value.trim();
+  var localidad=document.getElementById('contacto-localidad').value.trim();
+  if(!nombre||!tienda||!telefono||!tipo||!localidad){alert('Completa todos los campos requeridos (*)');return;}
+  if(telefono.length<10){alert('Ingresa un WhatsApp válido de 10 dígitos');return;}
+  try{
+    var resp=await fetch(BACKEND_MAESTRO,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'solicitud.contacto',nombre_cliente:nombre,nombre_tienda:tienda,telefono:telefono,tipo_negocio:tipo,colonia:document.getElementById('contacto-colonia').value.trim(),localidad:localidad,estado:document.getElementById('contacto-estado').value.trim()||'Querétaro',link_negocio:document.getElementById('contacto-link').value.trim(),ubicacion:document.getElementById('contacto-ubicacion').value.trim(),foto:document.getElementById('contacto-foto').value.trim()})});
+    var data=await resp.json();
+    if(data.ok){alert('✅ Solicitud enviada correctamente. Te contactaremos pronto.');cerrarFormularioContacto();}
+    else{alert('❌ Error: '+(data.error||'Intenta de nuevo'));}
+  }catch(e){alert('❌ Error de conexión. Intenta de nuevo.');}
+}
+
+// ═══ BOTÓN CONTACTO CON CONTADOR ═══
+window._timeStart=Date.now();
+window._clicksTienda=0;
+function incrementarClickTienda(){
+  window._clicksTienda++;
+  var contador=document.getElementById('fab-contador-clicks');
+  var icono=document.getElementById('fab-icon-contacto');
+  var btn=document.getElementById('fab-contacto');
+  if(contador)contador.textContent=window._clicksTienda;
+  if(window._clicksTienda>=3){if(icono)icono.textContent='📩';btn.style.background='#25D366';btn.onclick=abrirFormularioContacto;btn.title='Ser parte del directorio';}
+}
+
+// ═══ FLYER QR ═══
+var codigoFlyerActual='',tiendaFlyerEncontrada=null;
+function abrirLoginFlyer(){stats.qr++;document.getElementById('stats-qr').textContent=stats.qr;document.getElementById('login-flyer-bg').style.display='flex';document.getElementById('step-phone').style.display='';document.getElementById('step-code').style.display='none';document.getElementById('login-phone').value='';document.getElementById('login-code').value='';}
+function cerrarLoginFlyer(){document.getElementById('login-flyer-bg').style.display='none';}
+async function enviarCodigoFlyer(){var tel=document.getElementById('login-phone').value.replace(/\D/g,'');if(!tel||tel.length<10){alert('Ingresa un número válido de 10 dígitos');return;}var tienda=ALL_STORES.find(function(s){if(!s.isExternal)return false;var cfg=s.config||{};return String(cfg.telefono||'').replace(/\D/g,'')=== tel;});if(!tienda){cerrarLoginFlyer();return;}tiendaFlyerEncontrada=tienda;codigoFlyerActual=Math.floor(100000+Math.random()*900000).toString();window.open('https://wa.me/52'+tel+'?text='+encodeURIComponent('🔐 Tu código Flyer QR: *'+codigoFlyerActual+'*'),'_blank');document.getElementById('step-phone').style.display='none';document.getElementById('step-code').style.display='';}
+function verificarCodigoFlyer(){var code=document.getElementById('login-code').value.trim();if(code!==codigoFlyerActual){alert('Código incorrecto');return;}var s=tiendaFlyerEncontrada,cfg=s.config||{};window.open('flayerFormatos.html?nombre='+encodeURIComponent(s.nombre_tienda||s.name||'Tienda')+'&url='+encodeURIComponent(cfg.linkNegocio||cfg.link||window.location.href)+'&tag='+encodeURIComponent(cfg.tipoNegocio||cfg.description||''),'_blank');cerrarLoginFlyer();}
+
+var _tapExtCount=0,_tapExtTimer=null;
+function contarTapExt(e){e.stopPropagation();_tapExtCount++;clearTimeout(_tapExtTimer);_tapExtTimer=setTimeout(function(){_tapExtCount=0;},800);if(_tapExtCount>=3){_tapExtCount=0;window.open('promotores.html','_blank');}}
+
+var gpsBtnStyle=document.createElement('style');
+gpsBtnStyle.textContent='button[onclick="refreshGPS()"]{transition:transform .6s ease;}';
+document.head.appendChild(gpsBtnStyle);
+</script>
+</body>
+</html>
