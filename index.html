@@ -1,4 +1,4 @@
-//-- version 6.3
+//-- version 7
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1055,12 +1055,13 @@ function haversineKm(la1,ln1,la2,ln2){var R=6371,dL=(la2-la1)*Math.PI/180,dN=(ln
 function buildStoreUrl(id){return STORE_BASE+'?backend='+encodeURIComponent(BACKEND)+'&store='+encodeURIComponent(id);}
 
 window.addEventListener('load',async()=>{
-  // PASO 1: mapa inmediato con coords por defecto
+  // PASO 1: mapa inmediato + mensaje ANTES de cargar
   userLat=20.5881;
   userLng=-100.3899;
+  mostrarMensajeBuscando();
   initMap();
 
-  // PASO 2: cargar tiendas en paralelo (no bloquea el mapa)
+  // PASO 2: cargar tiendas
   try{
     const [r1,r2]=await Promise.allSettled([
       fetch(BACKEND+'?action=stores.directory&t='+Date.now()),
@@ -1322,12 +1323,11 @@ promotorControl.addTo(map);
  L.control.zoom({position:'bottomright'}).addTo(map);
 
   L.circleMarker([userLat,userLng],{radius:9,color:'#16a34a',fillColor:'#fff',weight:3,fillOpacity:1,zIndexOffset:1000}).addTo(map).bindTooltip('Tu ubicación',{permanent:false,direction:'top'});
-
-  mostrarMensajeBuscando();
-  nearbyStores=ALL_STORES.slice(0,20);
+nearbyStores=ALL_STORES.slice(0,20);
   addMarkersToMap(nearbyStores);
   map.whenReady(()=>setTimeout(fitToNearestStore,250));
-  buildPromosFromCatalogs(nearbyStores);  // ← ESTA LÍNEA DEBE EXISTIR
+  buildPromosFromCatalogs(nearbyStores);
+  mostrarMensajeBuscando(); // ← ESTA LÍNEA DEBE EXISTIR
 
 }
 
