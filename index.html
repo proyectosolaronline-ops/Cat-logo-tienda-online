@@ -1,4 +1,4 @@
-//-- version 6
+//-- version 6.1
 <!DOCTYPE html>
 
 <html lang="es">
@@ -2849,7 +2849,7 @@ window._timeStart = Date.now();
     window._timerInterval = setInterval(actualizarTimer, 1000);
   });
 })();
-})();var _tapExtCount=0,_tapExtTimer=null;
+var _tapExtCount=0,_tapExtTimer=null;
 
 function contarTapExt(e){e.stopPropagation();_tapExtCount++;clearTimeout(_tapExtTimer);_tapExtTimer=setTimeout(function(){_tapExtCount=0;},800);if(_tapExtCount>=3){_tapExtCount=0;window.open('promotores.html','_blank');}}
 
