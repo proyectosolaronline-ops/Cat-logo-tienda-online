@@ -1,4 +1,4 @@
-//-- version 6.1
+//-- version 6.3
 <!DOCTYPE html>
 
 <html lang="es">
@@ -594,10 +594,11 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 @keyframes pulse-contacto {
   0%, 100% { box-shadow: 0 5px 18px rgba(37,211,102,.4); }
   50% { box-shadow: 0 5px 30px rgba(37,211,102,.8), 0 0 20px rgba(37,211,102,.4); }
-}#timer-permanencia{
+}
+ #timer-permanencia{
   position:fixed;
-  bottom:92px;
-  right:14px;
+  bottom:36px;
+  left:14px;
   z-index:1201;
   background:rgba(0,0,0,.55);
   color:#fff;
@@ -623,7 +624,6 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
   display:none;
   align-items:center;
   gap:9px;
-  background:#f59e0b;
   color:#000;
   border:none;
   border-radius:50px;
@@ -632,16 +632,18 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
   font-size:13px;
   font-weight:700;
   cursor:pointer;
+  white-space:nowrap;
+  background:#f59e0b;
   box-shadow:0 5px 18px rgba(245,158,11,.45);
   animation:pulso-amber 1.4s ease-in-out infinite;
-  white-space:nowrap;
+  animation-play-state:running;
 }
 @keyframes pulso-amber{
-  0%  {background:#f59e0b;box-shadow:0 5px 18px rgba(245,158,11,.45);}
-  25% {background:#d97706;box-shadow:0 5px 26px rgba(217,119,6,.7);}
-  50% {background:#b45309;box-shadow:0 5px 32px rgba(180,83,9,.85),0 0 18px rgba(180,83,9,.4);}
-  75% {background:#d97706;box-shadow:0 5px 26px rgba(217,119,6,.7);}
-  100%{background:#f59e0b;box-shadow:0 5px 18px rgba(245,158,11,.45);}
+  0%  {background:#f59e0b;box-shadow:0 5px 18px rgba(245,158,11,.45);color:#7c2d00;}
+  25% {background:#d97706;box-shadow:0 5px 26px rgba(217,119,6,.75);color:#000;}
+  50% {background:#92400e;box-shadow:0 5px 36px rgba(146,64,14,.9),0 0 22px rgba(180,83,9,.5);color:#fef3c7;}
+  75% {background:#d97706;box-shadow:0 5px 26px rgba(217,119,6,.75);color:#000;}
+  100%{background:#f59e0b;box-shadow:0 5px 18px rgba(245,158,11,.45);color:#7c2d00;}
 }
 #fab-contacto-left svg{flex-shrink:0;}
 </style>
@@ -777,7 +779,6 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 </button> -->
 
 <div class="fab-group">
-<div id="timer-permanencia">0:00</div>
 <button class="fab fab-contacto" id="fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;color:#fff;display:none;">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -819,6 +820,7 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
   </button>
 
 </div>
+<div id="timer-permanencia">0:00</div>
 
 <button id="fab-contacto-left" onclick="abrirFormularioContacto()">
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
