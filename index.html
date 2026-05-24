@@ -1,4 +1,4 @@
-//////---- version filtro gps real v6
+//////---- version filtro gps real v7
 <!DOCTYPE html>
 
 <html lang="es">
@@ -2258,99 +2258,6 @@ function refreshGPS(){
 }
   
 
-  // Mostrar indicador visual
-
-  var btn=document.querySelector('button[onclick="refreshGPS()"]');
-
-  if(btn){btn.style.transform='rotate(360deg)';btn.style.transition='transform .6s';}
-
-  setTimeout(function(){if(btn)btn.style.transform='rotate(0deg)';},600);
-
-  
-
-  navigator.geolocation.getCurrentPosition(
-
-    function(pos){
-
-      var newLat=pos.coords.latitude;
-
-      var newLng=pos.coords.longitude;
-
-      
-
-      // Si cambió la ubicación por más de 10 metros
-
-      if(lastLat===null||haversineKm(lastLat,lastLng,newLat,newLng)>0.01){
-
-        userLat=newLat;
-
-        userLng=newLng;
-
-        
-
-        // Actualizar círculo de ubicación
-
-        map.eachLayer(function(l){
-
-          if(l instanceof L.CircleMarker&&l.getTooltip()&&l.getTooltip().getContent()==='Tu ubicación'){
-
-            l.setLatLng([userLat,userLng]);
-
-          }
-
-        });
-
-        
-
-        // Filtrar tiendas cercanas
-
-        nearbyStores=ALL_STORES.filter(function(s){
-
-          var cfg=s.config||{};
-
-          var lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-
-          return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;
-
-        });
-
-        
-
-        // Actualizar marcadores
-
-        map.eachLayer(function(l){
-
-          if(l instanceof L.Marker&&l.getTooltip){
-
-            var tt=l.getTooltip();
-
-            if(tt&&tt.getContent()!=='Tu ubicación')map.removeLayer(l);
-
-          }
-
-        });
-
-        addMarkersToMap(nearbyStores);
-
-        
-
-                // GPS actualizado silenciosamente
-
-      }
-
-      lastLat=newLat;
-
-      lastLng=newLng;
-
-    },
-
-    function(){},
-
-    {enableHighAccuracy:true,timeout:5000}
-
-  );
-
-}
 
 let _watchId = null;
 
