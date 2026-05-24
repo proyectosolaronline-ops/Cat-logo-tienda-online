@@ -1,4 +1,4 @@
-//////---- version filtro gps real v5
+//////---- version filtro gps real v6
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1018,7 +1018,7 @@ const BACKEND_MAESTRO = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83
 
 const STORE_BASE      = 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
 // ═══ SELECTOR DE RADIO KM ═══
-const KMS_PERMITIDOS = [5, 10, 15, 20, 25, 30, 35, 40];
+const KMS_PERMITIDOS = [0.1, 0.5, 1, 2, 5, 10];
 let RADIO_KM = 10;
 
 function mostrarOverlayCargando() {
@@ -1044,8 +1044,9 @@ function cambiarRadioKm(direccion) {
     
     if (nuevoIndice >= 0 && nuevoIndice < KMS_PERMITIDOS.length) {
         RADIO_KM = KMS_PERMITIDOS[nuevoIndice];
-        document.getElementById('kmRadio').textContent = RADIO_KM + ' km';
-        actualizarTiendasCercanas();
+document.getElementById('kmRadio').innerHTML = RADIO_KM < 1
+          ? (RADIO_KM * 1000).toFixed(0) + '<br>m'
+          : RADIO_KM + '<br>km';        actualizarTiendasCercanas();
     }
 }
 
@@ -2233,11 +2234,28 @@ let gpsPollingInterval=null;
 let lastLat=null,lastLng=null;
 
 function refreshGPS(){
-
-  if(!map)return;
-
-  if(!navigator.geolocation){alert('GPS no disponible');return;}
-
+  if(!map) return;
+  if(!navigator.geolocation){ alert('GPS no disponible'); return; }
+  var btn = document.querySelector('button[onclick="refreshGPS()"]');
+  if(btn){ btn.style.transform='rotate(360deg)'; btn.style.transition='transform .6s'; }
+  setTimeout(function(){ if(btn) btn.style.transform='rotate(0deg)'; }, 600);
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      lastLat = userLat;
+      lastLng = userLng;
+      map.eachLayer(function(l){ if(l instanceof L.CircleMarker) map.removeLayer(l); });
+      L.circleMarker([userLat, userLng],{
+        radius:9, color:'#16a34a', fillColor:'#fff', weight:3, fillOpacity:1, zIndexOffset:1000
+      }).addTo(map).bindTooltip('Tu ubicación',{permanent:false, direction:'top'});
+      map.setView([userLat, userLng], map.getZoom(), {animate:true});
+      actualizarTiendasCercanas();
+    },
+    function(){},
+    {enableHighAccuracy:true, timeout:8000}
+  );
+}
   
 
   // Mostrar indicador visual
@@ -2334,28 +2352,38 @@ function refreshGPS(){
 
 }
 
+let _watchId = null;
+
 function startGPSPolling(){
-
-  if(gpsPollingInterval)return;
-
-  refreshGPS();
-
-  gpsPollingInterval=setInterval(refreshGPS,3000);
-
+  if(_watchId !== null) return;
+  if(!navigator.geolocation) return;
+  _watchId = navigator.geolocation.watchPosition(
+    function(pos){
+      var newLat = pos.coords.latitude;
+      var newLng = pos.coords.longitude;
+      if(lastLat !== null && haversineKm(lastLat, lastLng, newLat, newLng) < 0.005) return;
+      lastLat = newLat;
+      lastLng = newLng;
+      userLat = newLat;
+      userLng = newLng;
+      map.eachLayer(function(l){ if(l instanceof L.CircleMarker) map.removeLayer(l); });
+      L.circleMarker([userLat, userLng],{
+        radius:9, color:'#16a34a', fillColor:'#fff', weight:3, fillOpacity:1, zIndexOffset:1000
+      }).addTo(map).bindTooltip('Tu ubicación',{permanent:false, direction:'top'});
+      map.setView([userLat, userLng], map.getZoom(), {animate:true});
+      actualizarTiendasCercanas();
+    },
+    function(){},
+    {enableHighAccuracy:true, maximumAge:0, timeout:10000}
+  );
 }
 
 function stopGPSPolling(){
-
-  if(gpsPollingInterval){
-
-    clearInterval(gpsPollingInterval);
-
-    gpsPollingInterval=null;
-
+  if(_watchId !== null){
+    navigator.geolocation.clearWatch(_watchId);
+    _watchId = null;
   }
-
 }
-
 // Iniciar polling al cargar
 
 // Iniciar polling al cargar
