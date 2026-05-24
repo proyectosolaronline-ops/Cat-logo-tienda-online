@@ -1,4 +1,4 @@
-//////---- version 20s tiendas v4
+//////---- version 20s tiendas v5
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1120,24 +1120,45 @@ function procesarStores(stores) {
     var baseCount = nearbyStores.length;
     nearbyStores = nearbyStores.concat(cercanas);
     var totalFinal = nearbyStores.length;
-// 1. Mostrar TODAS las tiendas de inmediato
-addMarkersToMap(cercanas);
+// 1. Mostrar TODAS las tiendas de inmediato (máx 50) con pines numerados
+var todas = cercanas.slice(0, 50);
+todas.forEach(function(s, i) {
+  var cfg = s.config || {};
+  var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+  if (isNaN(lat) || isNaN(lng)) return;
+  
+  var num = i + 1;
+  var color = s.isExternal ? '#f97316' : '#1a73e8';
+  var pinHTML = '<div style="width:36px;height:36px;background:' + color + ';color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.35);">' + num + '</div>';
+  var icon = L.divIcon({ html: pinHTML, className: '', iconSize: [36,36], iconAnchor: [18,18] });
+  
+  L.marker([lat,lng], {icon: icon})
+    .addTo(map)
+    .bindTooltip(s.nombre_tienda || s.name || 'Tienda', {direction:'top', offset:[0,-20], permanent:false});
+});
 
-// 2. Después de 3 segundos, dejar solo las del rango del selector
+// 2. Después de 2 segundos, desaparecer en oleadas desde 30km → 5km
 setTimeout(function() {
-  map.eachLayer(function(l) {
-    if (l instanceof L.Marker && l.getTooltip && l.getTooltip().getContent() !== 'Tu ubicación') {
-      map.removeLayer(l);
-    }
+  var etapasDesaparicion = [30, 25, 20, 15, 10, 5];
+  etapasDesaparicion.forEach(function(km, idx) {
+    setTimeout(function() {
+      // Limpiar todos los marcadores
+      map.eachLayer(function(l) {
+        if (l instanceof L.Marker && l.getTooltip && l.getTooltip().getContent() !== 'Tu ubicación') {
+          map.removeLayer(l);
+        }
+      });
+      // Volver a poner solo los que están dentro de este radio
+      var visibles = cercanas.filter(function(s) {
+        var cfg = s.config || {};
+        var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+        if (isNaN(lat) || isNaN(lng)) return false;
+        return haversineKm(userLat, userLng, lat, lng) <= km;
+      });
+      addMarkersToMap(visibles);
+    }, idx * 800); // 0ms, 800ms, 1600ms, 2400ms, 3200ms, 4000ms
   });
-  var filtradas = cercanas.filter(function(s) {
-    var cfg = s.config || {};
-    var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
-    if (isNaN(lat) || isNaN(lng)) return false;
-    return haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
-  });
-  addMarkersToMap(filtradas);
-}, 3000);
+}, 2000);
 
 // Contador animado
 var contador = baseCount;
@@ -1147,7 +1168,7 @@ var timer = setInterval(function() {
   if (st) st.textContent = '📍 ' + contador + ' tiendas encontradas...';
   if (contador >= totalFinal) clearInterval(timer);
 }, 120);
-  }
+}
 
   function finalizarCarga() {
     if (!b1ok || !b2ok) return;
