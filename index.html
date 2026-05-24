@@ -1211,6 +1211,18 @@ function fitToNearestStore(){
 
 }
 
+ function mostrarMensajeBuscando(){
+  var msg=document.createElement('div');
+  msg.id='msg-buscando';
+  msg.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:rgba(26,115,232,.92);color:#fff;padding:18px 28px;border-radius:16px;font-family:Inter,sans-serif;font-size:15px;font-weight:600;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3);pointer-events:none;';
+  msg.innerHTML='🗺️ Gracias por tu visita<br><span style="font-size:12px;opacity:.85;font-weight:400;">Buscando tiendas cerca de ti...</span>';
+  document.body.appendChild(msg);
+  setTimeout(function(){
+    var el=document.getElementById('msg-buscando');
+    if(el){el.style.transition='opacity .6s';el.style.opacity='0';setTimeout(function(){if(el)el.remove();},700);}
+  },3000);
+}
+
 function initMap(){
 
   map=L.map('map',{zoomControl:false}).setView([userLat,userLng],13);
