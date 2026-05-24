@@ -1137,26 +1137,28 @@ window.addEventListener('load', async () => {
     addMarkersToMap(todas.slice(0, 50));
     ocultarOverlayCargando();
     
+    // Solo filtrar cuando GPS esté listo, sin borrar antes
     var esperarGPS = setInterval(function() {
-      var gpsReal = (userLat !== 20.5881 || userLng !== -100.3899);
-      if (gpsReal) {
+      if (userLat !== 20.5881 || userLng !== -100.3899) {
         clearInterval(esperarGPS);
         var filtradas = todas.filter(function(s) {
           var cfg = s.config || {};
           var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
           if (isNaN(lat) || isNaN(lng)) return false;
-          return haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
+          return haversineKm(userLat, userLng, lat, lng) <= 10;
         });
-        map.eachLayer(function(l) {
-          if (l instanceof L.Marker && l.getTooltip && l.getTooltip().getContent() !== 'Tu ubicación') {
-            map.removeLayer(l);
-          }
-        });
-        nearbyStores = filtradas;
-        addMarkersToMap(filtradas);
-        buildPromosFromCatalogs(filtradas);
+        if (filtradas.length > 0) {
+          map.eachLayer(function(l) {
+            if (l instanceof L.Marker && l.getTooltip && l.getTooltip().getContent() !== 'Tu ubicación') {
+              map.removeLayer(l);
+            }
+          });
+          nearbyStores = filtradas;
+          addMarkersToMap(filtradas);
+          buildPromosFromCatalogs(filtradas);
+        }
       }
-    }, 300);
+    }, 500);
   }
 
   // PASO 2 — GPS en paralelo, no bloquea
