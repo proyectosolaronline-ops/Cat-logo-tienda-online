@@ -1,4 +1,4 @@
-//////---- version filtro gps real v4
+//////---- version filtro gps real v5
 <!DOCTYPE html>
 
 <html lang="es">
@@ -687,7 +687,7 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
     font-weight: 700; color: #007bff;
     text-align: center; writing-mode: horizontal-tb;
     font-size: 13px;
-  ">30<br>km</span>
+  ">10<br>km</span>
   
   <button onclick="cambiarRadioKm(-1)" style="
     width: 30px; height: 30px; border-radius: 50%;
@@ -1122,7 +1122,7 @@ window.addEventListener('load', async () => {
   mostrarOverlayCargando();
 
   // ═══ PRECARGA DESDE CACHÉ ═══
-  // ═══ PRECARGA DESDE CACHÉ (SIEMPRE VISIBLE) ═══
+    // ═══ PRECARGA DESDE CACHÉ ═══
   var cached = cargarCacheTiendas();
   if (cached && cached.length > 0) {
     ALL_STORES = cached.map(function(s) {
@@ -1134,11 +1134,40 @@ window.addEventListener('load', async () => {
       var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
       return !isNaN(lat) && !isNaN(lng);
     });
-    nearbyStores = todas.slice(0, 50);
+    
+    // Mostrar las de 10km desde el inicio
+    var iniciales = todas.filter(function(s) {
+      var cfg = s.config || {};
+      var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+      return haversineKm(userLat, userLng, lat, lng) <= 10;
+    });
+    
+    nearbyStores = iniciales.slice(0, 50);
     addMarkersToMap(nearbyStores);
     ocultarOverlayCargando();
+    
+    // Cuando GPS responda, re-filtrar desde ubicación real
+    var esperarGPS = setInterval(function() {
+      if (userLat !== 20.5881 || userLng !== -100.3899) {
+        clearInterval(esperarGPS);
+        var filtradas = todas.filter(function(s) {
+          var cfg = s.config || {};
+          var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+          if (isNaN(lat) || isNaN(lng)) return false;
+          return haversineKm(userLat, userLng, lat, lng) <= 10;
+        });
+        if (filtradas.length > 0) {
+          map.eachLayer(function(l) {
+            if (l instanceof L.Marker && l.getTooltip && l.getTooltip().getContent() !== 'Tu ubicación') {
+              map.removeLayer(l);
+            }
+          });
+          nearbyStores = filtradas;
+          addMarkersToMap(filtradas);
+        }
+      }
+    }, 500);
   }
-
   // PASO 2 — GPS en paralelo, no bloquea
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
