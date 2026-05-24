@@ -1,4 +1,4 @@
-//-- version 7
+//-- version 7.1
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1074,7 +1074,8 @@ window.addEventListener('load',async()=>{
   }catch(e){console.warn('Error:',e);}
 
   // PASO 3: GPS real — actualiza encima del mapa ya visible
-  function cargarTiendasConUbicacion(){
+function cargarTiendasConUbicacion(){
+    if(window._quitarMensajeBuscando){window._quitarMensajeBuscando();window._quitarMensajeBuscando=null;}
     nearbyStores=ALL_STORES.filter(s=>{
       const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
       return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;
@@ -1255,17 +1256,22 @@ function fitToNearestStore(){
   map.fitBounds(bounds,{padding:[55,55],maxZoom:mz,animate:true});
 
 }
-
- function mostrarMensajeBuscando(){
+function mostrarMensajeBuscando(){
+  var existing=document.getElementById('msg-buscando');
+  if(existing)existing.remove();
   var msg=document.createElement('div');
   msg.id='msg-buscando';
-  msg.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:rgba(26,115,232,.92);color:#fff;padding:18px 28px;border-radius:16px;font-family:Inter,sans-serif;font-size:15px;font-weight:600;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3);pointer-events:none;';
+  msg.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:rgba(26,115,232,.92);color:#fff;padding:18px 28px;border-radius:16px;font-family:Inter,sans-serif;font-size:15px;font-weight:600;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3);pointer-events:none;opacity:1;transition:opacity .6s;';
   msg.innerHTML='🗺️ Gracias por tu visita<br><span style="font-size:12px;opacity:.85;font-weight:400;">Buscando tiendas cerca de ti...</span>';
   document.body.appendChild(msg);
-  setTimeout(function(){
+  function quitarMsg(){
     var el=document.getElementById('msg-buscando');
-    if(el){el.style.transition='opacity .6s';el.style.opacity='0';setTimeout(function(){if(el)el.remove();},700);}
-  },3000);
+    if(!el)return;
+    el.style.opacity='0';
+    setTimeout(function(){var el2=document.getElementById('msg-buscando');if(el2)el2.remove();},700);
+  }
+  window._quitarMensajeBuscando=quitarMsg;
+  setTimeout(quitarMsg,6000);
 }
 
 function initMap(){
