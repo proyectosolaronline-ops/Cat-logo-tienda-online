@@ -1,4 +1,4 @@
-//////---- version 20s tiendas v5
+//////---- version 20s tiendas v6
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1075,6 +1075,29 @@ let qrInstance=null,isFsMode=false;
 let PROMOS_LIST=[],tickerIndex=0,tickerTimer=null,currentPromoStoreId=null;
 
 const catalogCache={};
+ // ═══ CACHÉ DE TIENDAS ═══
+const STORES_CACHE_KEY = 'directorio_stores_cache';
+const STORES_CACHE_TIME = 5 * 60 * 1000; // 5 minutos
+
+function guardarCacheTiendas(stores) {
+  try {
+    var data = { stores: stores, ts: Date.now() };
+    localStorage.setItem(STORES_CACHE_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+function cargarCacheTiendas() {
+  try {
+    var raw = localStorage.getItem(STORES_CACHE_KEY);
+    if (!raw) return null;
+    var data = JSON.parse(raw);
+    if (Date.now() - data.ts > STORES_CACHE_TIME) {
+      localStorage.removeItem(STORES_CACHE_KEY);
+      return null;
+    }
+    return data.stores || [];
+  } catch(e) { return null; }
+}
 
 function fixImgUrl(u){if(!u)return '';if(u.startsWith('data:'))return u;var m=u.match(/[?&]id=([\w-]+)/);if(m)return 'https://lh3.googleusercontent.com/d/'+m[1];var m2=u.match(/\/d\/([\w-]+)/);if(m2)return 'https://lh3.googleusercontent.com/d/'+m2[1];return u;}
 
@@ -1089,6 +1112,23 @@ window.addEventListener('load', async () => {
   initMap();
   mostrarOverlayCargando();
 
+  // ═══ PRECARGA DESDE CACHÉ ═══
+  var cached = cargarCacheTiendas();
+  if (cached && cached.length > 0) {
+    ALL_STORES = cached.map(function(s) {
+      s.config = typeof s.config === 'string' ? JSON.parse(s.config) : (s.config || {});
+      return s;
+    });
+    var cercanasCache = ALL_STORES.filter(function(s) {
+      var cfg = s.config || {};
+      var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+      return !isNaN(lat) && !isNaN(lng) && haversineKm(userLat, userLng, lat, lng) <= RADIO_KM;
+    });
+    nearbyStores = cercanasCache;
+    addMarkersToMap(cercanasCache.slice(0, 50));
+    ocultarOverlayCargando();
+  }
+
   // PASO 2 — GPS en paralelo, no bloquea
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -1102,7 +1142,7 @@ window.addEventListener('load', async () => {
   }
 
   // PASO 3 — Cada backend pinta sus tiendas en cuanto responde
-  // Sin esperar al otro
+ // Sin esperar al otro
   var b1ok = false, b2ok = false;
 
 function procesarStores(stores) {
@@ -1176,6 +1216,7 @@ var timer = setInterval(function() {
     if (nearbyStores.length) {
       fitToNearestStore();
       buildPromosFromCatalogs(nearbyStores);
+         guardarCacheTiendas(ALL_STORES);
     }
   }
 
