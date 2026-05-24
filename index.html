@@ -1,4 +1,4 @@
-//-- version 1
+//-- version 2
 <!DOCTYPE html>
 
 <html lang="es">
@@ -2163,20 +2163,14 @@ async function refreshData(){
 
     // Refiltrar cercanas
 
-    if(userLat&&userLng){
-
-      nearbyStores=ALL_STORES.filter(s=>{
-
+if(userLat&&userLng){
+      var todas=ALL_STORES.filter(s=>{
         var cfg=s.config||{};
-
         var lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-
         return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;
-
       });
-
+      nearbyStores=todas.length>30?todas.slice(0,20):todas;
     }
-
     
 
     // Cerrar popups abiertos
