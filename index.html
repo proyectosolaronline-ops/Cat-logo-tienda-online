@@ -1122,6 +1122,7 @@ window.addEventListener('load', async () => {
   mostrarOverlayCargando();
 
   // ═══ PRECARGA DESDE CACHÉ ═══
+  // ═══ PRECARGA DESDE CACHÉ (SIEMPRE VISIBLE) ═══
   var cached = cargarCacheTiendas();
   if (cached && cached.length > 0) {
     ALL_STORES = cached.map(function(s) {
@@ -1133,32 +1134,9 @@ window.addEventListener('load', async () => {
       var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
       return !isNaN(lat) && !isNaN(lng);
     });
-    nearbyStores = todas;
-    addMarkersToMap(todas.slice(0, 50));
+    nearbyStores = todas.slice(0, 50);
+    addMarkersToMap(nearbyStores);
     ocultarOverlayCargando();
-    
-    // Solo filtrar cuando GPS esté listo, sin borrar antes
-    var esperarGPS = setInterval(function() {
-      if (userLat !== 20.5881 || userLng !== -100.3899) {
-        clearInterval(esperarGPS);
-        var filtradas = todas.filter(function(s) {
-          var cfg = s.config || {};
-          var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
-          if (isNaN(lat) || isNaN(lng)) return false;
-          return haversineKm(userLat, userLng, lat, lng) <= 10;
-        });
-        if (filtradas.length > 0) {
-          map.eachLayer(function(l) {
-            if (l instanceof L.Marker && l.getTooltip && l.getTooltip().getContent() !== 'Tu ubicación') {
-              map.removeLayer(l);
-            }
-          });
-          nearbyStores = filtradas;
-          addMarkersToMap(filtradas);
-          buildPromosFromCatalogs(filtradas);
-        }
-      }
-    }, 500);
   }
 
   // PASO 2 — GPS en paralelo, no bloquea
