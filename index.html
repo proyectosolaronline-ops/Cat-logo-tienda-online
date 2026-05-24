@@ -1,4 +1,4 @@
-//////---- version 20s tiendas v9
+//////---- version 20s tiendas v10
 <!DOCTYPE html>
 
 <html lang="es">
@@ -772,18 +772,10 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 
 <div class="fab-group">
 
-<button class="fab fab-contacto" id="fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;color:#fff;display:none;"> 
-
- <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-
-      <polyline points="22,6 12,13 2,6"/>
-
-    </svg>
-
-  </button>
-
+<button class="fab" id="fab-contacto" title="Ser parte del directorio" style="background:#f59e0b;color:#fff;display:flex;position:relative;">
+  <span id="fab-icon-contacto" style="font-size:20px;">🔔</span>
+  <span id="fab-contador-clicks" style="position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:50%;width:20px;height:20px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;">0</span>
+</button>
  
 
   <button class="fab fab-fs" id="btn-fs" onclick="toggleFullscreen()" title="Pantalla completa">
@@ -1847,6 +1839,8 @@ function closeCatalogSheet(){document.getElementById('catalog-sheet-bg').classLi
 /* ══ POPUP — despacha Easylink o Externo ══ */
 
 function openPopup(id){
+ window._clicksTienda = (window._clicksTienda || 0) + 1;
+ incrementarClickTienda();
 
  window._clicksTienda = (window._clicksTienda || 0) + 1;
 
@@ -1883,7 +1877,8 @@ function closePopup(){document.getElementById('popup-bg').classList.remove('open
    ══════════════════════════════════════════════════════ */
 
 function openExtPopup(s){
-
+  window._clicksTienda = (window._clicksTienda || 0) + 1;
+  incrementarClickTienda();
   const cfg = s.config || {};
 
   const nombre = s.nombre_tienda || s.name || 'Tienda';
@@ -2992,29 +2987,34 @@ async function enviarSolicitudContacto() {
 
 }  
 
-// Mostrar botón de contacto solo si: clic en tienda + 10 min navegando
-
+// ═══ BOTÓN CONTACTO CON CONTADOR ═══
 window._timeStart = Date.now();
+window._clicksTienda = 0;
 
- window._clicksTienda = 0;
+function incrementarClickTienda() {
+  window._clicksTienda++;
+  var contador = document.getElementById('fab-contador-clicks');
+  var icono = document.getElementById('fab-icon-contacto');
+  var btn = document.getElementById('fab-contacto');
+  
+  if (contador) contador.textContent = window._clicksTienda;
+  
+  // Al llegar a 3, cambiar a botón de contacto
+  if (window._clicksTienda >= 3) {
+    if (icono) icono.textContent = '📩';
+    btn.style.background = '#25D366';
+    btn.onclick = abrirFormularioContacto;
+    btn.title = 'Ser parte del directorio';
+  }
+}
 
-window._timeStart = Date.now();
-
-setInterval(function(){
-
+// Verificar cada 15 segundos si ya pasaron 3 minutos
+setInterval(function() {
+  if (window._clicksTienda >= 3 && (Date.now() - window._timeStart) >= 180000) {
     var btn = document.getElementById('fab-contacto');
-
-    if(!btn) return;
-
-    var visible = btn.style.display !== 'none';
-
-    if(!visible && window._clicksTienda >= 3 && (Date.now() - window._timeStart) >= 600000){
-
-        btn.style.display = 'flex';
-
-    }
-
-}, 10000);
+    if (btn) btn.style.display = 'flex';
+  }
+}, 15000);
 
 var _tapExtCount=0,_tapExtTimer=null;
 
