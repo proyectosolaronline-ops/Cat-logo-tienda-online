@@ -1029,6 +1029,23 @@ const STORE_BASE      = 'https://proyectosolaronline-ops.github.io/superOnline-T
 const KMS_PERMITIDOS = [5, 10, 15, 20, 25, 30, 35, 40];
 let RADIO_KM = 30;
 
+function mostrarOverlayCargando() {
+  var ov = document.getElementById('overlay-carga');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'overlay-carga';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:5000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Inter,sans-serif;';
+    ov.innerHTML = '<div style="font-size:32px;margin-bottom:12px;">📍</div><div style="font-size:16px;font-weight:600;" id="overlay-status">Buscando tiendas...</div>';
+    document.body.appendChild(ov);
+  }
+  ov.style.display = 'flex';
+}
+
+function ocultarOverlayCargando() {
+  var ov = document.getElementById('overlay-carga');
+  if (ov) ov.style.display = 'none';
+}
+ 
 function cambiarRadioKm(direccion) {
     let indiceActual = KMS_PERMITIDOS.indexOf(RADIO_KM);
     let nuevoIndice = indiceActual + direccion;
