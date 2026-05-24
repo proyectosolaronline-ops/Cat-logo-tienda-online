@@ -1,4 +1,4 @@
-//-- version 5
+//-- version 6
 <!DOCTYPE html>
 
 <html lang="es">
@@ -778,25 +778,11 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 
 <div class="fab-group">
 <div id="timer-permanencia">0:00</div>
-<button class="fab fab-contacto" id="fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;
- color:#fff;display:none;">
- <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-
-      <polyline points="22,6 12,13 2,6"/>
-
-    </svg>
-
-  </button>
-
- </button>
-<button id="fab-contacto-left" onclick="abrirFormularioContacto()">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-    <path d="M12 8v4m0 4h.01"/>
+<button class="fab fab-contacto" id="fab-contacto" onclick="abrirFormularioContacto()" title="Ser parte del directorio" style="background:#25D366;color:#fff;display:none;">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+    <polyline points="22,6 12,13 2,6"/>
   </svg>
-  📋 Ser parte del directorio
 </button>
 
   <button class="fab fab-fs" id="btn-fs" onclick="toggleFullscreen()" title="Pantalla completa">
@@ -834,8 +820,15 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 
 </div>
 
-<div id="searchPanel">
+<button id="fab-contacto-left" onclick="abrirFormularioContacto()">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+    <path d="M12 8v4m0 4h.01"/>
+  </svg>
+  📋 Ser parte del directorio
+</button>
 
+<div id="searchPanel">
   <div class="sp-header">
 
     <div class="sp-search-inner">
@@ -2855,6 +2848,7 @@ window._timeStart = Date.now();
     actualizarTimer();
     window._timerInterval = setInterval(actualizarTimer, 1000);
   });
+})();
 })();var _tapExtCount=0,_tapExtTimer=null;
 
 function contarTapExt(e){e.stopPropagation();_tapExtCount++;clearTimeout(_tapExtTimer);_tapExtTimer=setTimeout(function(){_tapExtCount=0;},800);if(_tapExtCount>=3){_tapExtCount=0;window.open('promotores.html','_blank');}}
