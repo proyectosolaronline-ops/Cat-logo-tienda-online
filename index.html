@@ -1,4 +1,4 @@
-//////---- version 20s tiendas v10
+//////---- version filtro gps real v1
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1137,30 +1137,40 @@ window.addEventListener('load', async () => {
     ocultarOverlayCargando();
     
     // Después de 3 segundos, filtrar a 10 km
-    setTimeout(function() {
-      var filtradas10 = todas.filter(function(s) {
-        var cfg = s.config || {};
-        var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
-        if (isNaN(lat) || isNaN(lng)) return false;
-        return haversineKm(userLat, userLng, lat, lng) <= 10;
-      });
-      map.eachLayer(function(l) {
-        if (l instanceof L.Marker && l.getTooltip && l.getTooltip().getContent() !== 'Tu ubicación') {
-          map.removeLayer(l);
-        }
-      });
-      nearbyStores = filtradas10;
-      addMarkersToMap(filtradas10);
-      buildPromosFromCatalogs(filtradas10);
-        // Actualizar selector visual a 10 km
-    RADIO_KM = 10;
-    document.getElementById('kmRadio').textContent = '10 km';
+// Esperar a que el GPS responda o máximo 5 segundos
+var intentos = 0;
+var esperarGPS = setInterval(function() {
+  intentos++;
+  // Si ya tenemos ubicación real (diferente a la default) o pasaron 5 segundos
+  if ((userLat !== 20.5881 && userLng !== -100.3899) || intentos >= 50) {
+    clearInterval(esperarGPS);
+    
+    var radio = (userLat !== 20.5881) ? 10 : RADIO_KM;
+    var filtradas = todas.filter(function(s) {
+      var cfg = s.config || {};
+      var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
+      if (isNaN(lat) || isNaN(lng)) return false;
+      return haversineKm(userLat, userLng, lat, lng) <= radio;
+    });
+    
+    map.eachLayer(function(l) {
+      if (l instanceof L.Marker && l.getTooltip && l.getTooltip().getContent() !== 'Tu ubicación') {
+        map.removeLayer(l);
+      }
+    });
+    
+    nearbyStores = filtradas;
+    addMarkersToMap(filtradas);
+    buildPromosFromCatalogs(filtradas);
+    
+    RADIO_KM = radio;
+    document.getElementById('kmRadio').textContent = radio + ' km';
     var selector = document.getElementById('kmradio-selector');
     if (selector) {
-      selector.style.background = 'rgba(16,185,129,0.92)'; // Verde = filtro aplicado
-      selector.style.transition = 'background 0.5s ease';
+      selector.style.background = 'rgba(16,185,129,0.92)';
     }
-    }, 3000);
+  }
+}, 100);
   }
 
   // PASO 2 — GPS en paralelo, no bloquea
