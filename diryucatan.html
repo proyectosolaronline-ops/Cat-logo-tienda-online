@@ -17,8 +17,8 @@ version googleeo
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-<title>Busco tiendas y negocios cerca de mí — Directorio Easylink México</title>
-<meta name="description" content="Busco préstamos, busco farmacias, busco ferreterías, busco abarrotes, busco restaurantes, busco consultorios, busco electrónica cerca de mí. Directorio de negocios en México." />
+<title>Busco tiendas y negocios en Yucatán — Directorio Easylink Yucatán</title>
+ <meta name="description" content="Busco préstamos, busco farmacias, busco ferreterías, busco abarrotes, busco restaurantes, busco consultorios, busco electrónica cerca de mí. Directorio de negocios en México." />
 <meta name="keywords" content="busco préstamos, busco préstamos cerca, busco préstamos en México, necesito préstamos, necesito préstamos cerca, busco farmacia, busco farmacia cerca, busco farmacia en México, necesito farmacia, necesito farmacia cerca, busco ferretería, busco ferretería cerca, busco ferretería en México, necesito ferretería, necesito ferretería cerca, busco abarrotes, busco abarrotes cerca, necesito abarrotes cerca, busco restaurante cerca, necesito restaurante cerca, busco consultorio cerca, necesito consultorio cerca, busco electrónica cerca, necesito electrónica cerca, busco cargador cerca, busco fundas cerca, busco cables cerca, busco bocina cerca, busco carne cerca, busco mariscos cerca, busco zapatos cerca, busco ropa cerca, necesito ropa cerca, busco tiendas cerca de mí, necesito tiendas cerca de mí, directorio negocios México" />
 <meta name="robots" content="index, follow" />
 <meta name="google-site-verification" content="googleea029779e98c8167" />
@@ -651,10 +651,8 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 
     <div>
 
-      <div class="header-title">Directorio tienda Easylink </div>
-
-      <div class="header-sub">cercanas a tu ubicación</div>
-
+   <div class="header-title">Directorio Easylink Yucatán</div>
+<div class="header-sub">tiendas cerca de ti en Yucatán</div>
     </div>
 
   </div>
@@ -680,6 +678,40 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 </div>
 
 <div id="map"></div>
+<div id="banner-redireccion" style="display:none;position:fixed;top:0;left:0;right:0;z-index:1500;background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:10px 16px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.3);">
+  📍 Detectamos que estás en <span id="banner-region">otra región</span> —
+  <a id="banner-link" href="#" style="color:#fbbf24;text-decoration:underline;font-weight:700;">Ver directorio de tu zona →</a>
+  <button onclick="document.getElementById('banner-redireccion').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;margin-left:8px;line-height:1">✕</button>
+</div>
+
+<script>
+(function(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var lat=pos.coords.latitude, lng=pos.coords.longitude;
+    // Yucatán: lat 19.5-21.6, lng -91.0 a -87.5
+    var enYucatan = lat>=19.5&&lat<=21.6&&lng>=-91.0&&lng<=-87.5;
+    // Querétaro: lat 20.0-21.5, lng -100.6 a -99.0
+    var enQueretaro = lat>=20.0&&lat<=21.5&&lng>=-100.6&&lng<=-99.0;
+    var banner=document.getElementById('banner-redireccion');
+    var region=document.getElementById('banner-region');
+    var link=document.getElementById('banner-link');
+    if(enQueretaro){
+      region.textContent='Querétaro';
+      link.href='https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/index.html';
+      link.textContent='Ver directorio Querétaro →';
+      banner.style.display='block';
+    } else if(!enYucatan){
+      region.textContent='tu zona';
+      link.href='https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/index.html';
+      link.textContent='Ver directorio Querétaro →';
+      banner.style.display='block';
+    }
+  },function(){},{enableHighAccuracy:true,timeout:6000});
+})();
+</script>
+
+ 
 
 <div id="promo-ticker">
 
@@ -1037,9 +1069,9 @@ function buildStoreUrl(id){return STORE_BASE+'?backend='+encodeURIComponent(BACK
 
 window.addEventListener('load',async()=>{
   // PASO 1: mapa inmediato + mensaje ANTES de cargar
-  userLat=20.5881;
-  userLng=-100.3899;
-  mostrarMensajeBuscando();
+  userLat=20.9674;
+  userLng=-89.5926; 
+ mostrarMensajeBuscando();
   initMap();
 
   // PASO 2: cargar tiendas
