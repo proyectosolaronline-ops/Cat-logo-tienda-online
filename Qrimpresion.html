@@ -2,383 +2,333 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flyer QR — Directorio Negocios Easylik</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<title>QR Easylink — 4 QR por hoja carta</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: #ede9fe;
-  min-height: 100vh;
-  padding: 32px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
-}
+  *{margin:0;padding:0;box-sizing:border-box;}
 
-/* ── CONTROLES ── */
-.screen-controls {
-  background: #fff;
-  border-radius: 20px;
-  padding: 24px;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 8px 32px rgba(109,40,217,.15);
-}
-.screen-controls h2 {
-  font-family: 'Syne', sans-serif;
-  font-size: 18px; font-weight: 800;
-  color: #5b21b6;
-  margin-bottom: 16px;
-}
-.ctrl-field { margin-bottom: 12px; }
-.ctrl-field label {
-  display: block;
-  font-size: 11px; font-weight: 600;
-  color: #7c3aed;
-  text-transform: uppercase; letter-spacing: .07em;
-  margin-bottom: 4px;
-}
-.ctrl-field input, .ctrl-field textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid #ddd6fe;
-  border-radius: 10px;
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  color: #1a1a2e;
-  background: #faf5ff;
-}
-.ctrl-field input:focus, .ctrl-field textarea:focus { outline: none; border-color: #7c3aed; }
-.ctrl-field textarea { resize: none; min-height: 60px; }
-.btn-gen {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #7c3aed, #5b21b6);
-  color: #fff; border: none; border-radius: 12px;
-  font-size: 15px; font-weight: 700; cursor: pointer;
-  font-family: 'Syne', sans-serif;
-  box-shadow: 0 4px 20px rgba(124,58,237,.3);
-  transition: all .2s;
-  margin-bottom: 8px;
-}
-.btn-gen:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,58,237,.4); }
-.btn-print {
-  width: 100%; padding: 12px;
-  background: #fff; color: #7c3aed;
-  border: 2px solid #7c3aed; border-radius: 12px;
-  font-size: 14px; font-weight: 700; cursor: pointer;
-  font-family: 'Syne', sans-serif;
-  transition: all .2s;
-}
-.btn-print:hover { background: #faf5ff; }
-
-/* ── HOJA CARTA PREVIEW ── */
-.letter-wrap {
-  background: #fff;
-  width: 100%;
-  max-width: 700px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 8px 40px rgba(109,40,217,.18);
-}
-.letter-topbar {
-  background: #7c3aed;
-  color: #fff;
-  font-size: 11px; font-weight: 700;
-  letter-spacing: .1em; text-transform: uppercase;
-  padding: 9px 18px;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.letter-page {
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* ── FLYER BASE ── */
-.flyer {
-  background: linear-gradient(145deg, #f5f0ff 0%, #ede9fe 50%, #e4d9fd 100%);
-  border: 1.5px solid #c4b5fd;
-  border-radius: 14px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-}
-.flyer-bg {
-  position: absolute; inset: 0;
-  background-image: radial-gradient(circle, #c4b5fd 1px, transparent 1px);
-  background-size: 14px 14px;
-  opacity: .2;
-}
-.flyer-orb1 {
-  position: absolute; top: -40px; right: -40px;
-  width: 140px; height: 140px;
-  background: radial-gradient(circle, rgba(167,139,250,.25) 0%, transparent 70%);
-  border-radius: 50%;
-}
-.flyer-orb2 {
-  position: absolute; bottom: -30px; left: -30px;
-  width: 100px; height: 100px;
-  background: radial-gradient(circle, rgba(196,181,253,.3) 0%, transparent 70%);
-  border-radius: 50%;
-}
-.cut-line {
-  border: none;
-  border-top: 1.5px dashed #a78bfa;
-  margin: 10px 0;
-  position: relative;
-}
-.cut-line::before {
-  content: '✂';
-  position: absolute; top: -9px; left: 0;
-  font-size: 13px; color: #a78bfa;
-  background: #fff; padding: 0 4px;
-}
-
-/* ── CONTENIDO FLYER ── */
-.f-inner { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
-.f-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: #7c3aed; color: #fff;
-  font-size: 9px; font-weight: 700;
-  letter-spacing: .1em; text-transform: uppercase;
-  padding: 4px 12px; border-radius: 99px;
-  margin-bottom: 8px;
-}
-.f-name {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800; color: #3b0764;
-  letter-spacing: -.02em; line-height: 1.1;
-  margin-bottom: 5px;
-}
-.f-tag { color: #6d28d9; font-weight: 500; line-height: 1.4; }
-.f-qr {
-  background: #fff;
-  border-radius: 12px;
-  padding: 10px;
-  box-shadow: 0 4px 16px rgba(109,40,217,.12);
-}
-.f-hint { font-weight: 600; color: #7c3aed; text-transform: uppercase; letter-spacing: .06em; }
-.f-url {
-  font-family: 'DM Mono', monospace;
-  color: #8b5cf6;
-  background: rgba(255,255,255,.6);
-  border: 1px solid #ddd6fe;
-  border-radius: 6px;
-  padding: 3px 8px;
-  word-break: break-all;
-}
-.f-foot { color: #a78bfa; letter-spacing: .05em; }
-
-/* ── TAMAÑO 1: 3/4 página — VERTICAL ── */
-.flyer-grande {
-  height: 260px;
-  flex-direction: row;
-  gap: 20px;
-  padding: 22px 24px;
-}
-.flyer-grande .f-inner { flex-direction: row; text-align: left; gap: 20px; }
-.flyer-grande .f-left { display: flex; flex-direction: column; justify-content: center; flex: 1; gap: 8px; }
-.flyer-grande .f-right { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
-.flyer-grande .f-name { font-size: 26px; }
-.flyer-grande .f-tag  { font-size: 13px; }
-.flyer-grande .f-hint { font-size: 10px; }
-.flyer-grande .f-url  { font-size: 9px; margin-top: 2px; }
-.flyer-grande .f-foot { font-size: 8px; margin-top: 6px; }
-
-/* ── TAMAÑO 2: 1/2 página — HORIZONTAL ── */
-.flyer-medio {
-  height: 180px;
-  gap: 16px;
-}
-.flyer-medio .f-inner { flex-direction: row; text-align: left; gap: 16px; }
-.flyer-medio .f-left  { display: flex; flex-direction: column; justify-content: center; flex: 1; gap: 6px; }
-.flyer-medio .f-right { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
-.flyer-medio .f-name  { font-size: 20px; }
-.flyer-medio .f-tag   { font-size: 11px; }
-.flyer-medio .f-hint  { font-size: 9px; }
-.flyer-medio .f-url   { font-size: 8px; }
-.flyer-medio .f-foot  { font-size: 7px; margin-top: 4px; }
-
-/* ── TAMAÑO 3: Tarjetas pequeñas — 2 por fila ── */
-.flyers-mini {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.flyer-mini {
-  height: 130px;
-  padding: 12px 10px;
-}
-.flyer-mini .f-inner { gap: 5px; }
-.flyer-mini .f-badge { font-size: 8px; padding: 3px 8px; margin-bottom: 4px; }
-.flyer-mini .f-name  { font-size: 13px; }
-.flyer-mini .f-tag   { font-size: 9px; display: none; }
-.flyer-mini .f-qr    { padding: 6px; border-radius: 8px; }
-.flyer-mini .f-hint  { font-size: 8px; }
-.flyer-mini .f-url   { font-size: 7px; }
-.flyer-mini .f-foot  { font-size: 7px; }
-
-/* ── PRINT ── */
-@media print {
-  @page { size: letter portrait; margin: 1cm; }
-  body { background: #fff !important; padding: 0 !important; gap: 0 !important; }
-  .screen-controls { display: none !important; }
-  .letter-wrap { max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
-  .letter-topbar { display: none !important; }
-  .letter-page { padding: 0 !important; }
-  .flyer, .flyer-mini {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  body{
+    background:#ccc;
+    font-family:Arial,sans-serif;
   }
-}
+
+  #controles{
+    background:#1a73e8;
+    color:#fff;
+    padding:12px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  #controles h2{font-size:14px;font-weight:700;}
+  .btn-print{
+    background:#fff;
+    color:#1a73e8;
+    border:none;
+    border-radius:8px;
+    padding:8px 18px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  /* ── HOJA CARTA VERTICAL ── */
+  #hoja{
+    width:216mm;
+    height:279mm;
+    margin:10px auto;
+    background:#fff;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
+    gap:0;
+    box-shadow:0 4px 20px rgba(0,0,0,.3);
+    overflow:hidden;
+  }
+
+  /* ── CELDA ── */
+  .celda{
+    border:1px solid #e0e0e0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    padding-top:3mm;
+    position:relative;
+  }
+
+  /* ── MARCO EXTERIOR ── */
+  .qr-marco-outer{
+    position:relative;
+    width:82mm;
+    height:82mm;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+
+  /* Esquinas estilo QR */
+  .qr-corner{position:absolute;width:10mm;height:10mm;}
+  .qr-corner::before,.qr-corner::after{content:'';position:absolute;background:#1a73e8;}
+  .qr-corner.tl{top:0;left:0;}
+  .qr-corner.tl::before{top:0;left:0;width:10mm;height:2.5mm;}
+  .qr-corner.tl::after{top:0;left:0;width:2.5mm;height:10mm;}
+  .qr-corner.tr{top:0;right:0;}
+  .qr-corner.tr::before{top:0;right:0;width:10mm;height:2.5mm;}
+  .qr-corner.tr::after{top:0;right:0;width:2.5mm;height:10mm;}
+  .qr-corner.bl{bottom:0;left:0;}
+  .qr-corner.bl::before{bottom:0;left:0;width:10mm;height:2.5mm;}
+  .qr-corner.bl::after{bottom:0;left:0;width:2.5mm;height:10mm;}
+  .qr-corner.br{bottom:0;right:0;}
+  .qr-corner.br::before{bottom:0;right:0;width:10mm;height:2.5mm;}
+  .qr-corner.br::after{bottom:0;right:0;width:2.5mm;height:10mm;}
+
+  /* Textos alrededor */
+  .qr-texto-arriba{
+    position:absolute;top:0;left:0;right:0;
+    display:flex;justify-content:center;align-items:center;gap:2mm;height:8mm;
+  }
+  .qr-texto-abajo{
+    position:absolute;bottom:0;left:0;right:0;
+    display:flex;justify-content:center;align-items:center;gap:2mm;height:8mm;
+  }
+  .qr-texto-izq{
+    position:absolute;left:0;top:0;bottom:0;width:8mm;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2mm;
+  }
+  .qr-texto-der{
+    position:absolute;right:0;top:0;bottom:0;width:8mm;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2mm;
+  }
+
+  .txt-cat{
+    font-size:5pt;font-weight:800;color:#1a73e8;
+    text-transform:uppercase;letter-spacing:.03em;
+    background:#e8f0fe;padding:0.6mm 1.5mm;border-radius:3px;white-space:nowrap;
+  }
+  .txt-cat.nar{background:#fff3e0;color:#e65100;}
+  .txt-cat.ver{background:#e8f5e9;color:#2e7d32;}
+  .qr-texto-izq .txt-cat,.qr-texto-der .txt-cat{writing-mode:vertical-rl;text-orientation:mixed;}
+  .qr-texto-izq .txt-cat{transform:rotate(180deg);}
+
+  /* QR central */
+  .qr-center{display:flex;flex-direction:column;align-items:center;}
+  .qr-box{
+    width:58mm;height:58mm;
+    display:flex;align-items:center;justify-content:center;
+    background:#fff;overflow:hidden;
+  }
+  .qr-box canvas,.qr-box img{width:58mm!important;height:58mm!important;}
+
+  /* ── BARRA BLANCA CON TEXTO ── */
+  .qr-barra{
+    width:100%;
+    flex:1;
+    background:#fff;
+    border:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:2mm 4mm;
+    margin-top:2mm;
+  }
+  .qr-barra p{
+    font-size:16pt;
+    font-weight:900;
+    color:#1a73e8;
+    line-height:1.35;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    text-align:center;
+    width:100%;
+  }
+
+  @media print{
+    body{background:#fff;}
+    #controles{display:none!important;}
+    #hoja{margin:0;box-shadow:none;width:216mm;height:279mm;}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
 </style>
 </head>
 <body>
 
-<!-- CONTROLES -->
-<div class="screen-controls">
-  <h2>🖨️ Flyer QR — Invitación a tu tienda</h2>
-  <div class="ctrl-field">
-    <label>Nombre de la tienda</label>
-    <input id="inp-nombre" type="text" placeholder="Ej: Carnicería Yazmín" value="Mi Tienda">
-  </div>
-  <div class="ctrl-field">
-  <input id="inp-url" type="hidden" value="">
-  <div class="ctrl-field">
-    <label>Slogan o descripción corta</label>
-    <textarea id="inp-tag" placeholder="Ej: Carne fresca del día • Servicio a domicilio">Escanea y visita Directorio Easylink !!! 🛍️</textarea>
-  </div>
-  <button class="btn-gen" onclick="generarFlyers()">✨ Generar flyers</button>
-  <button class="btn-print" onclick="window.print()">🖨️ Imprimir hoja carta</button>
+<div id="controles">
+  <h2>🖨️ QR Easylink — 4 QR por hoja carta</h2>
+  <button class="btn-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
 </div>
 
-<!-- HOJA CARTA -->
-<div class="letter-wrap" id="letter-wrap" style="display:none">
-  <div class="letter-topbar">
-    <span>📄 Hoja carta — Cortar por líneas punteadas ✂</span>
-    <span>LandingKit</span>
+<div id="hoja">
+
+  <!-- CELDA 1 -->
+  <div class="celda">
+    <div class="qr-marco-outer">
+      <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+      <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+      <div class="qr-texto-arriba">
+        <span class="txt-cat">💰 Préstamos</span>
+        <span class="txt-cat nar">🍔 Comida</span>
+      </div>
+      <div class="qr-texto-abajo">
+        <span class="txt-cat ver">🌿 Frutería</span>
+        <span class="txt-cat">🏨 Hoteles</span>
+      </div>
+      <div class="qr-texto-izq">
+        <span class="txt-cat nar">💊 Farmacia</span>
+        <span class="txt-cat">🔧 Ferretería</span>
+      </div>
+      <div class="qr-texto-der">
+        <span class="txt-cat ver">📱 Accesorios</span>
+        <span class="txt-cat nar">🥩 Carnicería</span>
+      </div>
+      <div class="qr-center">
+        <div class="qr-box" id="qr1"></div>
+      </div>
+    </div>
+    <div class="qr-barra">
+      <p>Escanea El QR Directorio<br>Busca Lo Que Necesitas<br>Negocios Cerca De Ti !!!</p>
+    </div>
   </div>
-  <div class="letter-page">
 
-    <!-- FLYER 1: 3/4 página -->
-    <div class="flyer flyer-grande">
-      <div class="flyer-bg"></div><div class="flyer-orb1"></div><div class="flyer-orb2"></div>
-      <div class="f-inner">
-        <div class="f-left">
-          <div class="f-badge">🌐 Directorio de Tiendas Cerca de ti !!!</div>
-          <div class="f-name" id="fn-a"></div>
-          <div class="f-tag" id="ft-a"></div>
-          <div class="f-url" id="fu-a"></div>
-          <div class="f-foot">Powered by Easylink</div>
-        </div>
-        <div class="f-right">
-          <div class="f-qr"><div id="qr-a"></div></div>
-          <div class="f-hint">📱 Escanea para visitar</div>
-        </div>
+  <!-- CELDA 2 -->
+  <div class="celda">
+    <div class="qr-marco-outer">
+      <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+      <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+      <div class="qr-texto-arriba">
+        <span class="txt-cat">💰 Préstamos</span>
+        <span class="txt-cat nar">🍔 Comida</span>
+      </div>
+      <div class="qr-texto-abajo">
+        <span class="txt-cat ver">🌿 Frutería</span>
+        <span class="txt-cat">🏨 Hoteles</span>
+      </div>
+      <div class="qr-texto-izq">
+        <span class="txt-cat nar">💊 Farmacia</span>
+        <span class="txt-cat">🔧 Ferretería</span>
+      </div>
+      <div class="qr-texto-der">
+        <span class="txt-cat ver">📱 Accesorios</span>
+        <span class="txt-cat nar">🥩 Carnicería</span>
+      </div>
+      <div class="qr-center">
+        <div class="qr-box" id="qr2"></div>
       </div>
     </div>
-
-    <hr class="cut-line">
-
-    <!-- FLYER 2: 1/2 página -->
-    <div class="flyer flyer-medio">
-      <div class="flyer-bg"></div><div class="flyer-orb1"></div><div class="flyer-orb2"></div>
-      <div class="f-inner">
-        <div class="f-left">
-          <div class="f-badge">🌐 Directorio Tiendas Cerca de ti !!!</div>
-          <div class="f-name" id="fn-b"></div>
-          <div class="f-tag" id="ft-b"></div>
-          <div class="f-url" id="fu-b"></div>
-          <div class="f-foot">Powered by Easylink</div>
-        </div>
-        <div class="f-right">
-          <div class="f-qr"><div id="qr-b"></div></div>
-          <div class="f-hint">📱 Escanea</div>
-        </div>
-      </div>
+    <div class="qr-barra">
+      <p>Escanea El QR Directorio<br>Busca Lo Que Necesitas<br>Negocios Cerca De Ti !!!</p>
     </div>
-
-    <hr class="cut-line">
-
-    <!-- FLYER 3: Tarjetas mini (2 x fila) -->
-    <div class="flyers-mini">
-      <div class="flyer flyer-mini">
-        <div class="flyer-bg"></div><div class="flyer-orb1"></div>
-        <div class="f-inner">
-          <div class="f-badge">🌐 En línea</div>
-          <div class="f-name" id="fn-c1"></div>
-          <div class="f-qr"><div id="qr-c1"></div></div>
-          <div class="f-hint">📱 Escanea</div>
-          <div class="f-url" id="fu-c1"></div>
-        </div>
-      </div>
-      <div class="flyer flyer-mini">
-        <div class="flyer-bg"></div><div class="flyer-orb1"></div>
-        <div class="f-inner">
-          <div class="f-badge">🌐 En línea</div>
-          <div class="f-name" id="fn-c2"></div>
-          <div class="f-qr"><div id="qr-c2"></div></div>
-          <div class="f-hint">📱 Escanea</div>
-          <div class="f-url" id="fu-c2"></div>
-        </div>
-      </div>
-    </div>
-
   </div>
+
+  <!-- CELDA 3 -->
+  <div class="celda">
+    <div class="qr-marco-outer">
+      <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+      <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+      <div class="qr-texto-arriba">
+        <span class="txt-cat">💰 Préstamos</span>
+        <span class="txt-cat nar">🍔 Comida</span>
+      </div>
+      <div class="qr-texto-abajo">
+        <span class="txt-cat ver">🌿 Frutería</span>
+        <span class="txt-cat">🏨 Hoteles</span>
+      </div>
+      <div class="qr-texto-izq">
+        <span class="txt-cat nar">💊 Farmacia</span>
+        <span class="txt-cat">🔧 Ferretería</span>
+      </div>
+      <div class="qr-texto-der">
+        <span class="txt-cat ver">📱 Accesorios</span>
+        <span class="txt-cat nar">🥩 Carnicería</span>
+      </div>
+      <div class="qr-center">
+        <div class="qr-box" id="qr3"></div>
+      </div>
+    </div>
+    <div class="qr-barra">
+      <p>Escanea El QR Directorio<br>Busca Lo Que Necesitas<br>Negocios Cerca De Ti !!!</p>
+    </div>
+  </div>
+
+  <!-- CELDA 4 -->
+  <div class="celda">
+    <div class="qr-marco-outer">
+      <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+      <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+      <div class="qr-texto-arriba">
+        <span class="txt-cat">💰 Préstamos</span>
+        <span class="txt-cat nar">🍔 Comida</span>
+      </div>
+      <div class="qr-texto-abajo">
+        <span class="txt-cat ver">🌿 Frutería</span>
+        <span class="txt-cat">🏨 Hoteles</span>
+      </div>
+      <div class="qr-texto-izq">
+        <span class="txt-cat nar">💊 Farmacia</span>
+        <span class="txt-cat">🔧 Ferretería</span>
+      </div>
+      <div class="qr-texto-der">
+        <span class="txt-cat ver">📱 Accesorios</span>
+        <span class="txt-cat nar">🥩 Carnicería</span>
+      </div>
+      <div class="qr-center">
+        <div class="qr-box" id="qr4"></div>
+      </div>
+    </div>
+    <div class="qr-barra">
+      <p>Escanea El QR Directorio<br>Busca Lo Que Necesitas<br>Negocios Cerca De Ti !!!</p>
+    </div>
+  </div>
+
 </div>
 
 <script>
-function generarFlyers() {
-  var nombre = document.getElementById('inp-nombre').value.trim() || 'Directorio tiendas cercas de ti !!!';
-  var url    = document.getElementById('inp-url').value.trim()    || window.location.href;
-  var tag    = document.getElementById('inp-tag').value.trim()    || 'Visita tiendas cerca y en línea';
-  var urlCorta = url.replace('https://','').replace('http://','');
+var URL_BASE = 'https://proyectosolaronline-ops.github.io/Cat-logo-tienda-online/';
 
-  var textos = { a:[nombre,tag,urlCorta], b:[nombre,tag,urlCorta], c1:[nombre,'',urlCorta], c2:[nombre,'',urlCorta] };
-  Object.keys(textos).forEach(function(id) {
-    var fn = document.getElementById('fn-'+id);
-    var ft = document.getElementById('ft-'+id);
-    var fu = document.getElementById('fu-'+id);
-    if (fn) fn.textContent = textos[id][0];
-    if (ft) ft.textContent = textos[id][1];
-    if (fu) fu.textContent = textos[id][2];
-  });
+function determinarZona(lat, lng) {
+  if (lat >= 19.5 && lat <= 21.6 && lng >= -91.0 && lng <= -87.5) {
+    return 'diryucatan.html';
+  } else if (lat >= 23.1201 && lat <= 25.1201 && lng >= -112.3239 && lng <= -108.3239) {
+    return 'dirbcs.html';
+  } else {
+    return 'index.html';
+  }
+}
 
-  var sizes = { a:110, b:90, c1:64, c2:64 };
-  Object.keys(sizes).forEach(function(id) {
-    var el = document.getElementById('qr-'+id);
+function generarQRs(url) {
+  [1, 2, 3, 4].forEach(function(n) {
+    var el = document.getElementById('qr' + n);
     el.innerHTML = '';
     new QRCode(el, {
-      text: url, width: sizes[id], height: sizes[id],
-      colorDark: '#3b0764', colorLight: '#ffffff',
+      text: url,
+      width: 219,
+      height: 219,
+      colorDark: '#0d47a1',
+      colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.M
     });
   });
-
-  document.getElementById('letter-wrap').style.display = '';
-  document.getElementById('letter-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
+  console.log('✅ QR generado para: ' + url);
 }
 
-// Auto-generar si vienen parámetros en la URL
-window.addEventListener('load', function() {
-  var p = new URLSearchParams(location.search);
-  var n = p.get('nombre') || p.get('name') || '';
-  var u = p.get('url')    || p.get('store') || '';
-  var t = p.get('tag')    || '';
-  if (n) document.getElementById('inp-nombre').value = n;
-  if (u) document.getElementById('inp-url').value    = u;
-  if (t) document.getElementById('inp-tag').value    = t;
-  if (n || u) generarFlyers();
-});
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var lat = pos.coords.latitude;
+    var lng = pos.coords.longitude;
+    var archivo = determinarZona(lat, lng);
+    var urlFinal = URL_BASE + archivo;
+    console.log('📍 GPS: Lat=' + lat + ' Lng=' + lng + ' → ' + archivo);
+    generarQRs(urlFinal);
+  }, function() {
+    console.log('⚠️ GPS falló, usando general');
+    generarQRs(URL_BASE + 'index.html');
+  });
+} else {
+  console.log('⚠️ Sin GPS, usando general');
+  generarQRs(URL_BASE + 'index.html');
+}
 </script>
 </body>
 </html>
