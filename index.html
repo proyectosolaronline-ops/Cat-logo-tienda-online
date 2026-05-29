@@ -1,4 +1,4 @@
-version busqueda ia v4
+version busqueda ia v5
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1903,7 +1903,6 @@ function showStoresModal(){
 
 function closeModal(){document.getElementById('stores-modal').classList.remove('open');}
 
-
 /* ══ BÚSQUEDA ══ */
 const SINONIMOS={
   'préstamos':['préstamo','prestamo','dinero','efectivo','crédito','credito','financiamiento','empeño'],
@@ -1945,23 +1944,17 @@ function _buscarTiendas(q){
   return ALL_STORES.filter(s=>{
     const cfg=s.config||{};
     const texto=_norm([s.nombre_tienda||s.name,cfg.tipoNegocio||cfg.businessType||cfg.tipo,cfg.keywords,cfg.description,cfg.directoryCity||cfg.city||cfg.localidad,cfg.colonia].join(' '));
-    return terms.some(t=>texto.includes(t));
+    return terms.some(t=>t&&texto.includes(t));
   });
 }
 
-/* ── Franja IA ── */
 function _mostrarFranja(q,results){
   let el=document.getElementById('ia-franja');
-  if(!el){
-    el=document.createElement('div');
-    el.id='ia-franja';
-    document.body.appendChild(el);
-  }
+  if(!el){el=document.createElement('div');el.id='ia-franja';document.body.appendChild(el);}
 
   if(!results.length){
-    el.innerHTML=`<div style="font-size:11px;color:rgba(255,255,255,.7);">🔍 Sin resultados para "${q}" — intenta: farmacia · préstamos · mecánico · ropa</div>`;
-    el.style.maxHeight='36px';
-    el.style.padding='6px 14px';
+    el.innerHTML=`<div style="font-size:11px;color:rgba(255,255,255,.75);">🔍 Sin resultados para "${q}" — intenta: farmacia · préstamos · mecánico · ropa</div>`;
+    el.style.maxHeight='36px';el.style.padding='6px 14px';
     return;
   }
 
@@ -1975,10 +1968,8 @@ function _mostrarFranja(q,results){
     }).length;
   }
 
-  // Línea 1: resumen
   const resumen=`🤖 ${results.length} resultado${results.length>1?'s':''} de ${cat||q}${cercanas?' · '+cercanas+' cerca de ti':''}`;
 
-  // Línea 2: lista nombre · tipo · localidad · km (máx 4)
   const lista=results.slice(0,4).map(s=>{
     const cfg=s.config||{};
     const nombre=s.nombre_tienda||s.name||'Tienda';
@@ -1989,148 +1980,21 @@ function _mostrarFranja(q,results){
     const dist=(userLat&&!isNaN(lat))?' · '+haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
     const lugar=[colonia,localidad].filter(Boolean).join(', ');
     return `${nombre}${tipo?' · '+tipo:''}${lugar?' · '+lugar:''}${dist}`;
-  }).join('   |   ');
+  }).join('  |  ');
 
   const extra=results.length>4?`  +${results.length-4} más`:'';
 
-  el.innerHTML=`
-    <div style="display:flex;flex-direction:column;gap:3px;width:100%;">
-      <div style="font-size:11px;color:rgba(255,255,255,.95);font-weight:600;">${resumen}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lista}${extra}</div>
-    </div>`;
-  el.style.maxHeight='52px';
-  el.style.padding='6px 14px';
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:3px;width:100%;">
+    <div style="font-size:11px;color:rgba(255,255,255,.95);font-weight:600;">${resumen}</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lista}${extra}</div>
+  </div>`;
+  el.style.maxHeight='52px';el.style.padding='6px 14px';
 }
-  // Construir lista: nombre · localidad · km
-  const lineas=results.slice(0,6).map(s=>{
-    const cfg=s.config||{};
-    const nombre=s.nombre_tienda||s.name||'Tienda';
-    const localidad=cfg.localidad||cfg.city||cfg.colonia||'';
-    const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-    const dist=(userLat&&!isNaN(lat))?` · ${haversineKm(userLat,userLng,lat,lng).toFixed(1)} km`:'';
-    const loc=localidad?` · ${localidad}`:'';
-    return `<span style="white-space:nowrap;margin-right:18px;color:rgba(255,255,255,.85);font-size:11px;">${nombre}${loc}${dist}</span>`;
-  }).join('');
 
-  const total=results.length>6?`<span style="color:rgba(255,255,255,.45);font-size:11px;">+${results.length-6} más</span>`:'';
-
-  el.innerHTML=`<div style="overflow:hidden;white-space:nowrap;flex:1;">${lineas}${total}</div>`;
-  el.style.maxHeight='36px';
-  el.style.padding='6px 14px';
-}
 function _ocultarFranja(){
   const el=document.getElementById('ia-franja');
   if(!el)return;
-  el.style.maxHeight='0';
-  el.style.padding='0 14px';
-}
-
-/* ── Capa de pins de búsqueda ── */
-let _searchLayer=null;
-
-function _limpiarSearchLayer(){
-  if(_searchLayer)_searchLayer.clearLayers();
-}
-
-function _mostrarPinsBusqueda(stores){
-  if(!_searchLayer){_searchLayer=L.layerGroup().addTo(map);}
-  _searchLayer.clearLayers();
-  const bounds=[];
-  stores.forEach(s=>{
-    const cfg=s.config||{};
-    const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-    if(isNaN(lat)||isNaN(lng))return;
-    bounds.push([lat,lng]);
-    const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
-    const color=s.isExternal?'#f97316':'#1a73e8';
-    const nombre=s.nombre_tienda||s.name||'Tienda';
-    const tipo=cfg.tipoNegocio||cfg.businessType||cfg.tipo||'';
-    const colonia=cfg.colonia||'';
-    const localidad=cfg.localidad||cfg.city||'';
-    const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
-
-    const pinHTML=`<div style="position:relative;">
-      <div style="position:absolute;top:-6px;left:-6px;width:68px;height:68px;border-radius:50%;background:rgba(255,220,0,.3);border:2px solid rgba(255,200,0,.8);animation:pulsePin .9s ease-in-out infinite alternate;"></div>
-      ${logoUrl
-        ?`<img src="${logoUrl}" style="width:52px;height:52px;border-radius:50%;border:4px solid ${color};object-fit:cover;box-shadow:0 3px 12px rgba(0,0,0,.4);position:relative;" onerror="this.style.display='none'">`
-        :`<div style="width:52px;height:52px;background:${color};color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.4);position:relative;">🏪</div>`
-      }</div>`;
-
-    const icon=L.divIcon({html:pinHTML,className:'pin-marker',iconSize:[56,56],iconAnchor:[28,56]});
-
-    const tooltipHtml=`<div style="font-family:Inter,sans-serif;text-align:center;line-height:1.4;">
-      <div style="font-weight:700;font-size:11px;color:#111;">${nombre}</div>
-      ${tipo?`<div style="font-size:9px;color:#555;">${tipo}</div>`:''}
-      ${(colonia||localidad)?`<div style="font-size:8px;color:#888;">📍 ${[colonia,localidad].filter(Boolean).join(', ')}</div>`:''}
-      ${dist?`<div style="font-size:9px;color:#16a34a;font-weight:600;">${dist}</div>`:''}
-    </div>`;
-
-    L.marker([lat,lng],{icon,zIndexOffset:600})
-      .addTo(_searchLayer)
-      .bindTooltip(tooltipHtml,{direction:'top',offset:[0,-36],permanent:true,opacity:1,className:'pin-label'})
-      .on('click',()=>openPopup(s.storeId));
-  });
-
-  if(bounds.length){
-    if(userLat&&userLng)bounds.push([userLat,userLng]);
-    map.fitBounds(L.latLngBounds(bounds),{padding:[60,60],maxZoom:15,animate:true});
-  }
-}
-
-/* ── Ocultar/mostrar pins normales ── */
-function _togglePinsNormales(visible){
-  map.eachLayer(l=>{
-    // Solo tocar Markers, nunca TileLayers ni LayerGroups
-    if(!(l instanceof L.Marker))return;
-    // Nunca tocar el marcador de ubicación del usuario
-    const tt=l.getTooltip?l.getTooltip():null;
-    const esUbi=tt&&tt.getContent&&tt.getContent()==='Tu ubicación';
-    if(esUbi)return;
-    // Nunca tocar los pins del searchLayer
-    if(_searchLayer&&_searchLayer.hasLayer(l))return;
-    // Ocultar/mostrar
-    if(visible){if(!l._map)l.addTo(map);}
-    else{if(l._map)map.removeLayer(l);}
-  });
-}
-/* ── handleSearch y clearSearch ── */
-const searchInput=document.getElementById('searchInput');
-const searchInput2=document.getElementById('searchInput2');
-const clearBtn=document.getElementById('clearBtn');
-
-function syncSearch(v){searchInput.value=v;searchInput2.value=v;}
-
-searchInput.addEventListener('input',e=>handleSearch(e.target.value));
-searchInput2.addEventListener('input',e=>{syncSearch(e.target.value);handleSearch(e.target.value);});
-
-function handleSearch(val){
-  syncSearch(val);
-  clearBtn.style.display=val?'block':'none';
-  document.getElementById('searchPanel').classList.remove('active');
-
-  // Menos de 3 caracteres → restaurar pines normales, ocultar franja
-  if(val.trim().length < 3){
-    _ocultarFranja();
-    _limpiarSearchLayer();
-    _togglePinsNormales(true);
-    return;
-  }
-
-  stats.searches++;
-  document.getElementById('stats-searches').textContent=stats.searches;
-  const results=_buscarTiendas(val);
-  _togglePinsNormales(false);
-  _mostrarPinsBusqueda(results);
-  _mostrarFranja(val,results);
-}
-function clearSearch(){
-  syncSearch('');
-  clearBtn.style.display='none';
-  document.getElementById('searchPanel').classList.remove('active');
-  _ocultarFranja();
-  _limpiarSearchLayer();
-  _togglePinsNormales(true);
-}
+  el.st
 /* ══ FULLSCREEN ══ */
 
 function toggleFullscreen(){isFsMode=!isFsMode;document.body.classList.toggle('fs-mode',isFsMode);document.getElementById('fs-expand').style.display=isFsMode?'none':'block';document.getElementById('fs-compress').style.display=isFsMode?'block':'none';setTimeout(()=>{map.invalidateSize();if(isFsMode)fitToNearestStore();},160);try{if(isFsMode&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();else if(!isFsMode&&document.exitFullscreen)document.exitFullscreen();}catch(e){}}
