@@ -1,4 +1,4 @@
-version busqueda ia
+version busqueda ia v1
 <!DOCTYPE html>
 
 <html lang="es">
@@ -628,28 +628,23 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 }
 
 /* ── FRANJA IA ── */
-#ia-franja {
+#ia-franja{
   position:absolute;
   left:0;right:0;
-  top:56px; /* justo debajo del search-wrap */
+  top:56px;
   z-index:1060;
-  background:rgba(13,71,161,.82);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
+  background:rgba(13,71,161,.75);
   color:#fff;
   font-family:'Inter',sans-serif;
-  font-size:12px;
-  line-height:1.4;
   padding:0 14px;
   max-height:0;
   overflow:hidden;
-  transition:max-height .25s ease,padding .25s ease;
+  transition:max-height .2s ease,padding .2s ease;
   display:flex;
   align-items:center;
-  gap:8px;
   pointer-events:none;
 }
-#ia-franja strong { font-weight:700; color:#ffd54f; }
+ #ia-franja strong { font-weight:700; color:#ffd54f; }
 @keyframes pulsePin {
   from{transform:scale(1);opacity:.6;}
   to{transform:scale(1.15);opacity:1;}
@@ -1962,26 +1957,31 @@ function _mostrarFranja(q,results){
     el.id='ia-franja';
     document.body.appendChild(el);
   }
-  const qn=_norm(q);
-  let icono,txt;
-  if(/^(hola|buenos|buenas|saludos|hey)/.test(qn)){
-    icono='👋';txt='¡Hola! Escribe lo que necesitas y te muestro en el mapa.';
-  } else if(!results.length){
-    icono='🔍';txt=`Sin resultados para "<strong>${q}</strong>". Intenta: farmacia · préstamos · mecánico`;
-  } else {
-    const cat=_detectarCategoria(q);
-    let cercanas=0;
-    if(userLat&&userLng){
-      cercanas=results.filter(s=>{const cfg=s.config||{};const la=parseFloat(cfg.locationLat),ln=parseFloat(cfg.locationLng);return!isNaN(la)&&!isNaN(ln)&&haversineKm(userLat,userLng,la,ln)<=RADIO_KM;}).length;
-    }
-    icono='🤖';
-    txt=`${results.length} resultado${results.length>1?'s':''} de <strong>${cat||q}</strong>${cercanas?` · <strong>${cercanas}</strong> cerca de ti`:''}`;
+
+  if(!results.length){
+    el.innerHTML=`<span style="color:rgba(255,255,255,.7);font-size:12px;">Sin resultados para "${q}"</span>`;
+    el.style.maxHeight='36px';
+    el.style.padding='6px 14px';
+    return;
   }
-  el.innerHTML=`<span style="font-size:14px;flex-shrink:0;">${icono}</span><span>${txt}</span>`;
-  el.style.maxHeight='40px';
+
+  // Construir lista: nombre · localidad · km
+  const lineas=results.slice(0,6).map(s=>{
+    const cfg=s.config||{};
+    const nombre=s.nombre_tienda||s.name||'Tienda';
+    const localidad=cfg.localidad||cfg.city||cfg.colonia||'';
+    const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
+    const dist=(userLat&&!isNaN(lat))?` · ${haversineKm(userLat,userLng,lat,lng).toFixed(1)} km`:'';
+    const loc=localidad?` · ${localidad}`:'';
+    return `<span style="white-space:nowrap;margin-right:18px;color:rgba(255,255,255,.85);font-size:11px;">${nombre}${loc}${dist}</span>`;
+  }).join('');
+
+  const total=results.length>6?`<span style="color:rgba(255,255,255,.45);font-size:11px;">+${results.length-6} más</span>`:'';
+
+  el.innerHTML=`<div style="overflow:hidden;white-space:nowrap;flex:1;">${lineas}${total}</div>`;
+  el.style.maxHeight='36px';
   el.style.padding='6px 14px';
 }
-
 function _ocultarFranja(){
   const el=document.getElementById('ia-franja');
   if(!el)return;
@@ -2050,12 +2050,15 @@ function handleSearch(val){
   syncSearch(val);
   clearBtn.style.display=val?'block':'none';
   document.getElementById('searchPanel').classList.remove('active');
-  if(!val.trim()){
+
+  // Menos de 3 caracteres → restaurar pines normales, ocultar franja
+  if(val.trim().length < 3){
     _ocultarFranja();
     _limpiarSearchLayer();
     _togglePinsNormales(true);
     return;
   }
+
   stats.searches++;
   document.getElementById('stats-searches').textContent=stats.searches;
   const results=_buscarTiendas(val);
@@ -2063,7 +2066,6 @@ function handleSearch(val){
   _mostrarPinsBusqueda(results);
   _mostrarFranja(val,results);
 }
-
 function clearSearch(){
   syncSearch('');
   clearBtn.style.display='none';
