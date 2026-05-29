@@ -1,4 +1,4 @@
-version busqueda ia v3
+version busqueda ia v4
 <!DOCTYPE html>
 
 <html lang="es">
@@ -2080,17 +2080,19 @@ function _mostrarPinsBusqueda(stores){
 /* ── Ocultar/mostrar pins normales ── */
 function _togglePinsNormales(visible){
   map.eachLayer(l=>{
+    // Solo tocar Markers, nunca TileLayers ni LayerGroups
     if(!(l instanceof L.Marker))return;
+    // Nunca tocar el marcador de ubicación del usuario
     const tt=l.getTooltip?l.getTooltip():null;
     const esUbi=tt&&tt.getContent&&tt.getContent()==='Tu ubicación';
     if(esUbi)return;
-    if(l===_searchLayer)return;
+    // Nunca tocar los pins del searchLayer
     if(_searchLayer&&_searchLayer.hasLayer(l))return;
+    // Ocultar/mostrar
     if(visible){if(!l._map)l.addTo(map);}
     else{if(l._map)map.removeLayer(l);}
   });
 }
-
 /* ── handleSearch y clearSearch ── */
 const searchInput=document.getElementById('searchInput');
 const searchInput2=document.getElementById('searchInput2');
