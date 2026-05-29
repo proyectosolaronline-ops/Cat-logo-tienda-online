@@ -1,204 +1,306 @@
 // ═══════════════════════════════════════════════════════════════════
-// PARCHE IA — Búsqueda inteligente (3 chars) + Resumen discreto
-// Directorio Easylink
-//
-// INSTRUCCIÓN: Agrega <script src="parche_ia_busqueda.js"></script>
-// justo antes del </body> en tu index.html
+// PARCHE IA v2 — Búsqueda inteligente + Chips scroll + Pines reactivos
+// USO: <script src="parche_ia_busqueda.js"></script> antes de </body>
 // ═══════════════════════════════════════════════════════════════════
 
-/* ══ 1. PANEL RESUMEN DISCRETO ══
-   Se inserta debajo del buscador (.search-wrap)
-   Muestra chips: nombre · tipo · localidad · km
-*/
-(function insertSummaryPanel(){
-  function tryInsert(){
-    var wrap = document.querySelector('.search-wrap');
-    if(!wrap){ setTimeout(tryInsert, 200); return; }
+(function(){
 
-    var panel = document.createElement('div');
-    panel.id = 'ai-summary-panel';
-    panel.style.cssText = 'display:none;padding:0 16px 8px;z-index:1040;';
-    panel.innerHTML = '<div id="ai-summary-inner" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-height:22px;"></div>';
-    wrap.insertAdjacentElement('afterend', panel);
+/* ── ESTILOS ── */
+var css = document.createElement('style');
+css.textContent = [
+  '@keyframes fadeInSum{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}',
+  '@keyframes sdot{0%,100%{opacity:.2}50%{opacity:.8}}',
 
-    var style = document.createElement('style');
-    style.textContent = [
-      '@keyframes fadeInSum{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}',
-      '#ai-summary-panel{animation:fadeInSum .3s ease;}',
-      '#ai-summary-inner .sum-chip{',
-        'display:inline-flex;align-items:center;gap:3px;',
-        'border-radius:20px;padding:3px 9px;',
-        'font-size:10px;font-weight:600;white-space:nowrap;',
-        'font-family:Inter,sans-serif;line-height:1.4;',
-      '}',
-      '#ai-summary-inner .sum-chip.s-blue{background:rgba(26,115,232,.15);border:1px solid rgba(26,115,232,.3);color:#93c5fd;}',
-      '#ai-summary-inner .sum-chip.s-green{background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.3);color:#4ade80;}',
-      '#ai-summary-inner .sum-chip.s-orange{background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);color:#fdba74;}',
-      '#ai-summary-inner .sum-chip .sum-sub{opacity:.6;font-weight:400;}',
-      '.sum-loading{font-size:10px;color:rgba(255,255,255,.45);font-family:Inter,sans-serif;display:flex;align-items:center;gap:4px;}',
-      '.sum-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.5);animation:sdot 1s ease-in-out infinite;}',
-      '.sum-dot:nth-child(2){animation-delay:.18s}.sum-dot:nth-child(3){animation-delay:.36s}',
-      '@keyframes sdot{0%,100%{opacity:.25}50%{opacity:1}}'
-    ].join('');
-    document.head.appendChild(style);
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', tryInsert);
-  } else {
-    tryInsert();
-  }
-})();
+  /* panel contenedor — pegado debajo del buscador, oculto por defecto */
+  '#ai-strip{',
+    'display:none;',
+    'padding:0 16px 8px;',
+    'animation:fadeInSum .25s ease;',
+  '}',
 
-/* ══ 2. OVERRIDE HANDLERS DE BÚSQUEDA ══ */
+  /* scroll horizontal sin scrollbar visible */
+  '#ai-strip-inner{',
+    'display:flex;',
+    'gap:6px;',
+    'overflow-x:auto;',
+    'overflow-y:hidden;',
+    '-webkit-overflow-scrolling:touch;',
+    'scrollbar-width:none;',      /* Firefox */
+    'padding-bottom:2px;',
+  '}',
+  '#ai-strip-inner::-webkit-scrollbar{display:none;}',
 
-var _aiDebounce  = null;
-var _aiCache     = {};
-var _lastAiQuery = '';
+  /* chip base */
+  '.ai-chip{',
+    'display:inline-flex;',
+    'align-items:center;',
+    'gap:4px;',
+    'flex-shrink:0;',
+    'border-radius:20px;',
+    'padding:3px 10px;',
+    'font-size:10px;',
+    'font-weight:600;',
+    'font-family:Inter,sans-serif;',
+    'white-space:nowrap;',
+    'cursor:pointer;',
+    'transition:opacity .2s;',
+    'border:1px solid transparent;',
+  '}',
+  '.ai-chip:active{opacity:.7;}',
 
-// Esperar a que handleSearch original esté definido, luego envolver
-(function wrapHandlers(){
-  function doWrap(){
-    var origHandle = window.handleSearch;
-    var origClear  = window.clearSearch;
+  /* variantes */
+  '.ai-chip.c-label{',
+    'background:rgba(26,115,232,.12);',
+    'border-color:rgba(26,115,232,.25);',
+    'color:#93c5fd;',
+    'cursor:default;',
+  '}',
+  '.ai-chip.c-near{',
+    'background:rgba(22,163,74,.12);',
+    'border-color:rgba(22,163,74,.3);',
+    'color:#4ade80;',
+  '}',
+  '.ai-chip.c-far{',
+    'background:rgba(249,115,22,.12);',
+    'border-color:rgba(249,115,22,.25);',
+    'color:#fdba74;',
+  '}',
 
-    window.handleSearch = function(val){
-      if(origHandle) origHandle(val);        // ← lógica original intacta
-      clearTimeout(_aiDebounce);
-      var panel = document.getElementById('ai-summary-panel');
-      if(!val || val.trim().length < 3){
-        if(panel) panel.style.display = 'none';
-        return;
-      }
-      _aiDebounce = setTimeout(function(){ runAISearch(val.trim()); }, 480);
-    };
+  /* sub-texto dentro del chip */
+  '.ai-chip .csub{opacity:.55;font-weight:400;margin-left:2px;}',
 
-    window.clearSearch = function(){
-      if(origClear) origClear();
-      _lastAiQuery = '';
-      var panel = document.getElementById('ai-summary-panel');
-      if(panel) panel.style.display = 'none';
-    };
-  }
+  /* loading dots */
+  '.ai-dots{display:flex;align-items:center;gap:4px;padding:4px 16px;}',
+  '.ai-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.4);animation:sdot 1s ease-in-out infinite;}',
+  '.ai-dot:nth-child(2){animation-delay:.18s}',
+  '.ai-dot:nth-child(3){animation-delay:.36s}',
 
-  // El script principal puede cargarse después; esperamos
-  if(typeof window.handleSearch === 'function'){
-    doWrap();
-  } else {
-    window.addEventListener('load', doWrap);
-  }
-})();
+  /* pin apagado cuando hay filtro activo */
+  '.pin-dimmed{opacity:.22!important;filter:grayscale(80%);transition:opacity .3s,filter .3s;}',
 
-/* ══ 3. MOTOR IA ══ */
+].join('');
+document.head.appendChild(css);
 
-async function runAISearch(query){
-  if(query === _lastAiQuery) return;
-  _lastAiQuery = query;
+/* ── INYECTAR PANEL DEBAJO DE .search-wrap ── */
+function insertPanel(){
+  var wrap = document.querySelector('.search-wrap');
+  if(!wrap){ setTimeout(insertPanel, 200); return; }
+  var panel = document.createElement('div');
+  panel.id = 'ai-strip';
+  panel.innerHTML = '<div id="ai-strip-inner"></div>';
+  wrap.insertAdjacentElement('afterend', panel);
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', insertPanel);
+else insertPanel();
 
-  var panel = document.getElementById('ai-summary-panel');
-  var inner = document.getElementById('ai-summary-inner');
-  if(!panel || !inner) return;
+/* ── CACHE Y ESTADO ── */
+var _cache   = {};
+var _lastQ   = '';
+var _timer   = null;
+var _dimmed  = [];   // markers actualmente apagados
 
-  // Loading
-  panel.style.display = '';
-  inner.innerHTML = '<span class="sum-loading">'
-    + '<span class="sum-dot"></span><span class="sum-dot"></span><span class="sum-dot"></span>'
-    + '<span style="margin-left:3px;">Buscando con IA…</span></span>';
+/* ── WRAP DE handleSearch ── */
+function wrapHandlers(){
+  var origHandle = window.handleSearch;
+  var origClear  = window.clearSearch;
 
-  // Cache hit
-  if(_aiCache[query]){
-    renderSummary(_aiCache[query]);
-    return;
-  }
+  window.handleSearch = function(val){
+    if(origHandle) origHandle(val);
+    clearTimeout(_timer);
+    var strip = document.getElementById('ai-strip');
+    if(!val || val.trim().length < 3){
+      hideStrip();
+      undimAll();
+      return;
+    }
+    // loading inmediato
+    showLoading();
+    _timer = setTimeout(function(){ runAI(val.trim()); }, 460);
+  };
 
-  // Construir contexto con tiendas disponibles
+  window.clearSearch = function(){
+    if(origClear) origClear();
+    _lastQ = '';
+    hideStrip();
+    undimAll();
+  };
+}
+if(typeof window.handleSearch === 'function') wrapHandlers();
+else window.addEventListener('load', wrapHandlers);
+
+/* ── LOADING ── */
+function showLoading(){
+  var strip = document.getElementById('ai-strip');
+  var inner = document.getElementById('ai-strip-inner');
+  if(!strip||!inner) return;
+  inner.innerHTML = '<div class="ai-dots">'
+    +'<div class="ai-dot"></div>'
+    +'<div class="ai-dot"></div>'
+    +'<div class="ai-dot"></div>'
+    +'</div>';
+  strip.style.display = '';
+}
+
+function hideStrip(){
+  var strip = document.getElementById('ai-strip');
+  if(strip) strip.style.display = 'none';
+}
+
+/* ── HAVERSINE LOCAL ── */
+function hv(la1,ln1,la2,ln2){
+  var R=6371,dL=(la2-la1)*Math.PI/180,dN=(ln2-ln1)*Math.PI/180;
+  var a=Math.sin(dL/2)*Math.sin(dL/2)
+      +Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dN/2)*Math.sin(dN/2);
+  return (R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+}
+
+/* ── MAIN IA ── */
+async function runAI(query){
+  if(query === _lastQ && _cache[query]){ render(_cache[query]); return; }
+  _lastQ = query;
+  if(_cache[query]){ render(_cache[query]); return; }
+
   var stores = (window.nearbyStores && window.nearbyStores.length)
-    ? window.nearbyStores
-    : (window.ALL_STORES || []);
+    ? window.nearbyStores : (window.ALL_STORES || []);
 
-  function hvKm(la1,ln1,la2,ln2){
-    var R=6371,dL=(la2-la1)*Math.PI/180,dN=(ln2-ln1)*Math.PI/180;
-    var a=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dN/2)*Math.sin(dN/2);
-    return (R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
-  }
-
-  var ctx = stores.slice(0, 50).map(function(s){
-    var cfg = s.config || {};
+  var ctx = stores.slice(0,50).map(function(s){
+    var cfg = s.config||{};
     var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
-    var dist = (window.userLat && !isNaN(lat))
-      ? hvKm(window.userLat, window.userLng, lat, lng) + ' km'
-      : '';
+    var dist = (window.userLat&&!isNaN(lat))? hv(window.userLat,window.userLng,lat,lng)+' km' : '';
     return {
-      nombre    : s.nombre_tienda || s.name || '',
-      tipo      : cfg.tipoNegocio || cfg.businessType || cfg.tipo || '',
-      localidad : cfg.localidad || cfg.city || '',
-      colonia   : cfg.colonia || '',
-      keywords  : cfg.keywords || '',
-      descripcion: cfg.description || '',
-      dist      : dist
+      id       : s.storeId || s.id || '',
+      nombre   : s.nombre_tienda||s.name||'',
+      tipo     : cfg.tipoNegocio||cfg.businessType||cfg.tipo||'',
+      localidad: cfg.localidad||cfg.city||'',
+      keywords : cfg.keywords||'',
+      dist     : dist,
+      lat      : isNaN(lat)?'':lat,
+      lng      : isNaN(lng)?'':lng
     };
   });
 
   var prompt =
-    'Eres el asistente de un directorio de negocios en Querétaro, México.\n' +
-    'El usuario busca: "' + query + '".\n\n' +
-    'Tiendas disponibles:\n' + JSON.stringify(ctx) + '\n\n' +
-    'Responde ÚNICAMENTE con JSON válido (sin markdown):\n' +
-    '{"encontrados":N,"top":[{"nombre":"","tipo":"","localidad":"","dist":""}],"mensaje":""}\n' +
-    'Reglas: top máximo 3 tiendas más relevantes. ' +
-    'Si no hay coincidencias top=[]. ' +
-    'mensaje: frase muy corta ≤6 palabras, ej: "2 zapaterías a menos de 3 km".';
+    'Directorio de negocios Querétaro México. El usuario busca: "'+query+'".\n\n'+
+    'Tiendas disponibles:\n'+JSON.stringify(ctx)+'\n\n'+
+    'Responde SOLO con JSON válido sin markdown:\n'+
+    '{"mensaje":"máx 5 palabras","top":[{"id":"","nombre":"","tipo":"","localidad":"","dist":"","lat":"","lng":""}]}\n'+
+    'top: máx 4 tiendas más relevantes. Si no hay coincidencias top=[].';
 
-  try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify({
-        model     : 'claude-sonnet-4-20250514',
-        max_tokens: 400,
-        messages  : [{ role: 'user', content: prompt }]
+  try{
+    var resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:500,
+        messages:[{role:'user',content:prompt}]
       })
     });
     var data = await resp.json();
-    var text = (data.content || []).map(function(b){ return b.text||''; }).join('');
+    var text = (data.content||[]).map(function(b){return b.text||'';}).join('');
     text = text.replace(/```json|```/g,'').trim();
     var result = JSON.parse(text);
-    _aiCache[query] = result;
-    renderSummary(result);
-  } catch(e){
-    if(panel) panel.style.display = 'none';
+    _cache[query] = result;
+    render(result);
+  }catch(e){
+    hideStrip();
+    undimAll();
   }
 }
 
-/* ══ 4. RENDER DEL RESUMEN ══ */
+/* ── RENDER CHIPS + PINES ── */
+function render(result){
+  var strip = document.getElementById('ai-strip');
+  var inner = document.getElementById('ai-strip-inner');
+  if(!strip||!inner) return;
 
-function renderSummary(result){
-  var panel = document.getElementById('ai-summary-panel');
-  var inner = document.getElementById('ai-summary-inner');
-  if(!panel || !inner) return;
+  var top = result.top||[];
 
-  if(!result || (!result.encontrados && !(result.top && result.top.length))){
-    panel.style.display = 'none';
+  if(!top.length){
+    hideStrip();
+    undimAll();
     return;
   }
 
   var html = '';
 
-  // Chip de resumen general
+  // chip resumen (sin cursor)
   if(result.mensaje){
-    html += '<span class="sum-chip s-blue">🤖 ' + result.mensaje + '</span>';
+    html += '<span class="ai-chip c-label">🤖 '+result.mensaje+'</span>';
   }
 
-  // Chips por tienda
-  (result.top || []).forEach(function(t){
-    var nombre = t.nombre || 'Tienda';
-    var info   = [t.tipo, t.localidad, t.dist].filter(Boolean).join(' · ');
-    var cls    = (t.dist && parseFloat(t.dist) < 2) ? 's-green' : 's-orange';
-    html += '<span class="sum-chip ' + cls + '">'
-         + nombre
-         + (info ? ' <span class="sum-sub">' + info + '</span>' : '')
-         + '</span>';
+  // chip por tienda
+  top.forEach(function(t, i){
+    var cls = (t.dist && parseFloat(t.dist)<2) ? 'c-near' : 'c-far';
+    var sub = [t.tipo, t.localidad, t.dist].filter(Boolean).join(' · ');
+    html += '<span class="ai-chip '+cls+'" '
+          + 'onclick="window._aiChipClick(\''+t.lat+'\',\''+t.lng+'\',\''+t.id+'\')" '
+          + 'title="Ver en mapa">'
+          + (t.nombre||'Tienda')
+          + (sub ? '<span class="csub">'+sub+'</span>' : '')
+          + '</span>';
   });
 
-  inner.innerHTML = html || '';
-  panel.style.display = html ? '' : 'none';
+  inner.innerHTML = html;
+  strip.style.display = '';
+
+  // Actualizar pines del mapa
+  dimMarkersExcept(top);
 }
+
+/* ── DIMMING DE PINES ── */
+function dimMarkersExcept(top){
+  undimAll();
+  if(!window.map) return;
+
+  // Coordenadas de las tiendas encontradas
+  var found = top.filter(function(t){ return t.lat && t.lng; }).map(function(t){
+    return { lat: parseFloat(t.lat), lng: parseFloat(t.lng) };
+  });
+  if(!found.length) return;
+
+  var L = window.L;
+  if(!L) return;
+
+  window.map.eachLayer(function(layer){
+    if(!(layer instanceof L.Marker)) return;
+    // Nunca apagar el marcador "Tu ubicación"
+    try{
+      var tt = layer.getTooltip ? layer.getTooltip() : null;
+      if(tt && tt.getContent && tt.getContent()==='Tu ubicación') return;
+    }catch(e){}
+
+    var pos = layer.getLatLng();
+    var isMatch = found.some(function(f){
+      return Math.abs(pos.lat - f.lat) < 0.0002 && Math.abs(pos.lng - f.lng) < 0.0002;
+    });
+
+    if(!isMatch){
+      var el = layer.getElement ? layer.getElement() : null;
+      if(el){
+        el.classList.add('pin-dimmed');
+        _dimmed.push(el);
+      }
+    }
+  });
+}
+
+function undimAll(){
+  _dimmed.forEach(function(el){ if(el) el.classList.remove('pin-dimmed'); });
+  _dimmed = [];
+}
+
+/* ── CLICK EN CHIP → volar al mapa ── */
+window._aiChipClick = function(lat, lng, id){
+  if(!window.map || !lat || !lng) return;
+  var L = window.L;
+  var la = parseFloat(lat), ln = parseFloat(lng);
+  if(isNaN(la)||isNaN(ln)) return;
+  window.map.setView([la, ln], 16, {animate:true});
+  // abrir popup si existe openPopup
+  if(id && typeof window.openPopup === 'function'){
+    setTimeout(function(){ window.openPopup(id); }, 400);
+  }
+};
+
+})();
