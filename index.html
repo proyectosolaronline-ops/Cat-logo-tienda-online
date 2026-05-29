@@ -1,4 +1,4 @@
-version googleeo
+version busqueda ia
 <!DOCTYPE html>
 
 <html lang="es">
@@ -626,6 +626,35 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
   background:transparent!important;
   border:none!important;
 }
+
+/* ── FRANJA IA ── */
+#ia-franja {
+  position:absolute;
+  left:0;right:0;
+  top:56px; /* justo debajo del search-wrap */
+  z-index:1060;
+  background:rgba(13,71,161,.82);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  color:#fff;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  line-height:1.4;
+  padding:0 14px;
+  max-height:0;
+  overflow:hidden;
+  transition:max-height .25s ease,padding .25s ease;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  pointer-events:none;
+}
+#ia-franja strong { font-weight:700; color:#ffd54f; }
+@keyframes pulsePin {
+  from{transform:scale(1);opacity:.6;}
+  to{transform:scale(1.15);opacity:1;}
+}
+
  
 </style>
 
@@ -1879,100 +1908,170 @@ function showStoresModal(){
 
 function closeModal(){document.getElementById('stores-modal').classList.remove('open');}
 
+
 /* ══ BÚSQUEDA ══ */
+const SINONIMOS={
+  'préstamos':['préstamo','prestamo','dinero','efectivo','crédito','credito','financiamiento','empeño'],
+  'farmacias':['farmacia','medicina','medicamento','pastilla','remedio','vitamina','jarabe'],
+  'ferreterías':['ferretería','ferreteria','herramienta','tornillo','pintura','cemento','clavo','varilla'],
+  'abarrotes':['abarrotes','despensa','supermercado','tiendita','tienda','carne','leche','huevo','verdura','fruta'],
+  'restaurantes':['restaurante','comida','tacos','pizza','cenar','mariscos','torta','sushi','hamburguesa','taquería','birria','desayuno','café'],
+  'ropa':['ropa','vestido','pantalón','pantalon','playera','moda','boutique','zapatos','tenis','calzado','chamarra'],
+  'médico':['médico','medico','doctor','consultorio','clínica','clinica','dentista','pediatra','consulta'],
+  'electrónica':['electrónica','electronica','celular','cargador','audífonos','bocina','funda','cable','usb','tablet'],
+  'mascotas':['mascotas','perro','gato','veterinaria','veterinario','collar','correa'],
+  'muebles':['muebles','silla','mesa','cama','sofá','sofa','closet','colchón'],
+  'pastelería':['pastel','pastelería','panadería','pan','repostería','dulces'],
+  'gimnasio':['gimnasio','gym','ejercicio','fitness','pesas','yoga','crossfit'],
+  'belleza':['salón','salon','belleza','estética','estetica','spa','uñas','barbería','peluquería','manicure'],
+  'florería':['florería','floreria','flores','ramos','arreglos florales','plantas'],
+  'mecánico':['mecánico','mecanico','taller','reparación','motor','frenos','afinación','autopartes','refacciones'],
+  'llantera':['llantas','llantera','neumáticos','vulcanizadora','alineación','balanceo','rines'],
+  'quiropráctico':['quiropráctico','quiropractico','columna','espalda','fisioterapia','rehabilitación','masaje'],
+  'hoteles':['hotel','motel','hostal','hospedaje','alojamiento','habitación'],
+  'motos':['moto','motocicleta','italika','honda','yamaha','refacciones moto'],
+  'viajes':['viajes','agencia','turismo','vuelos','vacaciones','crucero'],
+};
 
+function _norm(s){return(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+
+function _detectarCategoria(q){
+  const qn=_norm(q);
+  for(const[cat,sins]of Object.entries(SINONIMOS)){
+    for(const s of sins){if(qn.includes(_norm(s))||_norm(s).includes(qn))return cat;}
+  }
+  return null;
+}
+
+function _buscarTiendas(q){
+  const qn=_norm(q);
+  const cat=_detectarCategoria(q);
+  const terms=cat?SINONIMOS[cat].map(_norm).concat([qn]):[qn];
+  return ALL_STORES.filter(s=>{
+    const cfg=s.config||{};
+    const texto=_norm([s.nombre_tienda||s.name,cfg.tipoNegocio||cfg.businessType||cfg.tipo,cfg.keywords,cfg.description,cfg.directoryCity||cfg.city||cfg.localidad,cfg.colonia].join(' '));
+    return terms.some(t=>texto.includes(t));
+  });
+}
+
+/* ── Franja IA ── */
+function _mostrarFranja(q,results){
+  let el=document.getElementById('ia-franja');
+  if(!el){
+    el=document.createElement('div');
+    el.id='ia-franja';
+    document.body.appendChild(el);
+  }
+  const qn=_norm(q);
+  let icono,txt;
+  if(/^(hola|buenos|buenas|saludos|hey)/.test(qn)){
+    icono='👋';txt='¡Hola! Escribe lo que necesitas y te muestro en el mapa.';
+  } else if(!results.length){
+    icono='🔍';txt=`Sin resultados para "<strong>${q}</strong>". Intenta: farmacia · préstamos · mecánico`;
+  } else {
+    const cat=_detectarCategoria(q);
+    let cercanas=0;
+    if(userLat&&userLng){
+      cercanas=results.filter(s=>{const cfg=s.config||{};const la=parseFloat(cfg.locationLat),ln=parseFloat(cfg.locationLng);return!isNaN(la)&&!isNaN(ln)&&haversineKm(userLat,userLng,la,ln)<=RADIO_KM;}).length;
+    }
+    icono='🤖';
+    txt=`${results.length} resultado${results.length>1?'s':''} de <strong>${cat||q}</strong>${cercanas?` · <strong>${cercanas}</strong> cerca de ti`:''}`;
+  }
+  el.innerHTML=`<span style="font-size:14px;flex-shrink:0;">${icono}</span><span>${txt}</span>`;
+  el.style.maxHeight='40px';
+  el.style.padding='6px 14px';
+}
+
+function _ocultarFranja(){
+  const el=document.getElementById('ia-franja');
+  if(!el)return;
+  el.style.maxHeight='0';
+  el.style.padding='0 14px';
+}
+
+/* ── Capa de pins de búsqueda ── */
+let _searchLayer=null;
+
+function _limpiarSearchLayer(){
+  if(_searchLayer)_searchLayer.clearLayers();
+}
+
+function _mostrarPinsBusqueda(stores){
+  if(!_searchLayer){_searchLayer=L.layerGroup().addTo(map);}
+  _searchLayer.clearLayers();
+  const bounds=[];
+  stores.forEach(s=>{
+    const cfg=s.config||{};
+    const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
+    if(isNaN(lat)||isNaN(lng))return;
+    bounds.push([lat,lng]);
+    const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+    const color=s.isExternal?'#f97316':'#1a73e8';
+    const pinHTML=`<div style="position:relative;">
+      <div style="position:absolute;top:-6px;left:-6px;width:68px;height:68px;border-radius:50%;background:rgba(255,220,0,.3);border:2px solid rgba(255,200,0,.8);animation:pulsePin .9s ease-in-out infinite alternate;"></div>
+      ${logoUrl
+        ?`<img src="${logoUrl}" style="width:52px;height:52px;border-radius:50%;border:4px solid ${color};object-fit:cover;box-shadow:0 3px 12px rgba(0,0,0,.4);position:relative;" onerror="this.style.display='none'">`
+        :`<div style="width:52px;height:52px;background:${color};color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.4);position:relative;">🏪</div>`
+      }</div>`;
+    const icon=L.divIcon({html:pinHTML,className:'pin-marker',iconSize:[56,56],iconAnchor:[28,56]});
+    L.marker([lat,lng],{icon,zIndexOffset:600}).addTo(_searchLayer).on('click',()=>openPopup(s.storeId));
+  });
+  if(bounds.length){
+    if(userLat&&userLng)bounds.push([userLat,userLng]);
+    map.fitBounds(L.latLngBounds(bounds),{padding:[60,60],maxZoom:15,animate:true});
+  }
+}
+
+/* ── Ocultar/mostrar pins normales ── */
+function _togglePinsNormales(visible){
+  map.eachLayer(l=>{
+    if(!(l instanceof L.Marker))return;
+    const tt=l.getTooltip?l.getTooltip():null;
+    const esUbi=tt&&tt.getContent&&tt.getContent()==='Tu ubicación';
+    if(esUbi)return;
+    if(l===_searchLayer)return;
+    if(_searchLayer&&_searchLayer.hasLayer(l))return;
+    if(visible){if(!l._map)l.addTo(map);}
+    else{if(l._map)map.removeLayer(l);}
+  });
+}
+
+/* ── handleSearch y clearSearch ── */
 const searchInput=document.getElementById('searchInput');
-
 const searchInput2=document.getElementById('searchInput2');
-
 const clearBtn=document.getElementById('clearBtn');
 
 function syncSearch(v){searchInput.value=v;searchInput2.value=v;}
 
 searchInput.addEventListener('input',e=>handleSearch(e.target.value));
-
-searchInput2.addEventListener('input',e=>{syncSearch(e.target.value);renderSearchResults(e.target.value);});
+searchInput2.addEventListener('input',e=>{syncSearch(e.target.value);handleSearch(e.target.value);});
 
 function handleSearch(val){
-
   syncSearch(val);
-
   clearBtn.style.display=val?'block':'none';
-
-  if(val.trim()){
-
-    stats.searches++;
-
-    document.getElementById('stats-searches').textContent=stats.searches;
-
-        document.getElementById('searchPanel').classList.add('active');
-
-    renderSearchResults(val);
-
-  } else {
-
-    clearSearch();
-
+  document.getElementById('searchPanel').classList.remove('active');
+  if(!val.trim()){
+    _ocultarFranja();
+    _limpiarSearchLayer();
+    _togglePinsNormales(true);
+    return;
   }
-
+  stats.searches++;
+  document.getElementById('stats-searches').textContent=stats.searches;
+  const results=_buscarTiendas(val);
+  _togglePinsNormales(false);
+  _mostrarPinsBusqueda(results);
+  _mostrarFranja(val,results);
 }
 
-function clearSearch(){syncSearch('');clearBtn.style.display='none';document.getElementById('searchPanel').classList.remove('active');}
-
-  
-
-function renderSearchResults(query){
-
-  const q=query.trim().toLowerCase();
-
-  function matchesQuery(s){const cfg=s.config||{};const nombre=(s.nombre_tienda||s.name||'').toLowerCase();const kwString=(cfg.keywords||'').toLowerCase();const ciudad=(cfg.directoryCity||cfg.city||cfg.localidad||'').toLowerCase();if(nombre.includes(q)||ciudad.includes(q))return true;return kwString.split(',').map(k=>k.trim()).filter(Boolean).some(k=>k.includes(q)||q.includes(k));}
-
-  const results=ALL_STORES.filter(matchesQuery);
-
-  const container=document.getElementById('searchResults');
-
-  if(!results.length){container.innerHTML=`<div class="sp-empty"><div style="font-size:36px;margin-bottom:12px;">🔍</div><div>Sin resultados para "<strong>${query}</strong>"</div></div>`;return;}
-
-  container.innerHTML='';
-
-  results.forEach(s=>{
-
-    const cfg=s.config||{};
-
-    const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
-
-    const fotoUrl=s.isExternal?fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||logoUrl||''):logoUrl;
-
-    const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-
-    const dist=userLat&&!isNaN(lat)?haversineKm(userLat,userLng,lat,lng).toFixed(1):null;
-
-    const nearby=dist&&parseFloat(dist)<=RADIO_KM;
-
-    const item=document.createElement('div');item.className='sp-item';
-
-    item.innerHTML=`
-
-      <div class="sp-logo">${fotoUrl?`<img src="${fotoUrl}" alt="${s.nombre_tienda||s.name}">`:'🏪'}</div>
-
-      <div class="sp-info">
-
-        <h3>${s.nombre_tienda||s.name||'Tienda'}${s.isExternal?'<span style="font-size:10px;background:#fff3e0;color:#e65100;padding:1px 7px;border-radius:20px;font-weight:700;margin-left:4px;">🏪 Externa</span>':''}</h3>
-
-        ${dist?`<div class="sp-dist">📍 ${dist} km${nearby?'<span class="sp-badge">Cercana</span>':''}</div>`:''}
-
-        <div class="sp-desc">${cfg.description||[cfg.colonia,cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Tienda externa'}</div>
-
-      </div>`;
-
-    item.onclick=()=>{clearSearch();if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],16,{animate:true});setTimeout(()=>openPopup(s.storeId),350);};
-
-    container.appendChild(item);
-
-  });
-
+function clearSearch(){
+  syncSearch('');
+  clearBtn.style.display='none';
+  document.getElementById('searchPanel').classList.remove('active');
+  _ocultarFranja();
+  _limpiarSearchLayer();
+  _togglePinsNormales(true);
 }
-
 /* ══ FULLSCREEN ══ */
 
 function toggleFullscreen(){isFsMode=!isFsMode;document.body.classList.toggle('fs-mode',isFsMode);document.getElementById('fs-expand').style.display=isFsMode?'none':'block';document.getElementById('fs-compress').style.display=isFsMode?'block':'none';setTimeout(()=>{map.invalidateSize();if(isFsMode)fitToNearestStore();},160);try{if(isFsMode&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();else if(!isFsMode&&document.exitFullscreen)document.exitFullscreen();}catch(e){}}
