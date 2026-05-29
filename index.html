@@ -1,4 +1,4 @@
-version busqueda ia v1
+version busqueda ia v3
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1959,12 +1959,48 @@ function _mostrarFranja(q,results){
   }
 
   if(!results.length){
-    el.innerHTML=`<span style="color:rgba(255,255,255,.7);font-size:12px;">Sin resultados para "${q}"</span>`;
+    el.innerHTML=`<div style="font-size:11px;color:rgba(255,255,255,.7);">🔍 Sin resultados para "${q}" — intenta: farmacia · préstamos · mecánico · ropa</div>`;
     el.style.maxHeight='36px';
     el.style.padding='6px 14px';
     return;
   }
 
+  const cat=_detectarCategoria(q);
+  let cercanas=0;
+  if(userLat&&userLng){
+    cercanas=results.filter(s=>{
+      const cfg=s.config||{};
+      const la=parseFloat(cfg.locationLat),ln=parseFloat(cfg.locationLng);
+      return !isNaN(la)&&!isNaN(ln)&&haversineKm(userLat,userLng,la,ln)<=RADIO_KM;
+    }).length;
+  }
+
+  // Línea 1: resumen
+  const resumen=`🤖 ${results.length} resultado${results.length>1?'s':''} de ${cat||q}${cercanas?' · '+cercanas+' cerca de ti':''}`;
+
+  // Línea 2: lista nombre · tipo · localidad · km (máx 4)
+  const lista=results.slice(0,4).map(s=>{
+    const cfg=s.config||{};
+    const nombre=s.nombre_tienda||s.name||'Tienda';
+    const tipo=cfg.tipoNegocio||cfg.businessType||cfg.tipo||'';
+    const colonia=cfg.colonia||'';
+    const localidad=cfg.localidad||cfg.city||'';
+    const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
+    const dist=(userLat&&!isNaN(lat))?' · '+haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
+    const lugar=[colonia,localidad].filter(Boolean).join(', ');
+    return `${nombre}${tipo?' · '+tipo:''}${lugar?' · '+lugar:''}${dist}`;
+  }).join('   |   ');
+
+  const extra=results.length>4?`  +${results.length-4} más`:'';
+
+  el.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:3px;width:100%;">
+      <div style="font-size:11px;color:rgba(255,255,255,.95);font-weight:600;">${resumen}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lista}${extra}</div>
+    </div>`;
+  el.style.maxHeight='52px';
+  el.style.padding='6px 14px';
+}
   // Construir lista: nombre · localidad · km
   const lineas=results.slice(0,6).map(s=>{
     const cfg=s.config||{};
@@ -2007,15 +2043,34 @@ function _mostrarPinsBusqueda(stores){
     bounds.push([lat,lng]);
     const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
     const color=s.isExternal?'#f97316':'#1a73e8';
+    const nombre=s.nombre_tienda||s.name||'Tienda';
+    const tipo=cfg.tipoNegocio||cfg.businessType||cfg.tipo||'';
+    const colonia=cfg.colonia||'';
+    const localidad=cfg.localidad||cfg.city||'';
+    const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
+
     const pinHTML=`<div style="position:relative;">
       <div style="position:absolute;top:-6px;left:-6px;width:68px;height:68px;border-radius:50%;background:rgba(255,220,0,.3);border:2px solid rgba(255,200,0,.8);animation:pulsePin .9s ease-in-out infinite alternate;"></div>
       ${logoUrl
         ?`<img src="${logoUrl}" style="width:52px;height:52px;border-radius:50%;border:4px solid ${color};object-fit:cover;box-shadow:0 3px 12px rgba(0,0,0,.4);position:relative;" onerror="this.style.display='none'">`
         :`<div style="width:52px;height:52px;background:${color};color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.4);position:relative;">🏪</div>`
       }</div>`;
+
     const icon=L.divIcon({html:pinHTML,className:'pin-marker',iconSize:[56,56],iconAnchor:[28,56]});
-    L.marker([lat,lng],{icon,zIndexOffset:600}).addTo(_searchLayer).on('click',()=>openPopup(s.storeId));
+
+    const tooltipHtml=`<div style="font-family:Inter,sans-serif;text-align:center;line-height:1.4;">
+      <div style="font-weight:700;font-size:11px;color:#111;">${nombre}</div>
+      ${tipo?`<div style="font-size:9px;color:#555;">${tipo}</div>`:''}
+      ${(colonia||localidad)?`<div style="font-size:8px;color:#888;">📍 ${[colonia,localidad].filter(Boolean).join(', ')}</div>`:''}
+      ${dist?`<div style="font-size:9px;color:#16a34a;font-weight:600;">${dist}</div>`:''}
+    </div>`;
+
+    L.marker([lat,lng],{icon,zIndexOffset:600})
+      .addTo(_searchLayer)
+      .bindTooltip(tooltipHtml,{direction:'top',offset:[0,-36],permanent:true,opacity:1,className:'pin-label'})
+      .on('click',()=>openPopup(s.storeId));
   });
+
   if(bounds.length){
     if(userLat&&userLng)bounds.push([userLat,userLng]);
     map.fitBounds(L.latLngBounds(bounds),{padding:[60,60],maxZoom:15,animate:true});
