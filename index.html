@@ -1,4 +1,4 @@
-version busqueda con i.a mini popus
+version busqueda con i.a mini popups v1
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1915,62 +1915,44 @@ function handleSearch(val){
 
 }
 
-function clearSearch(){syncSearch('');clearBtn.style.display='none';document.getElementById('searchPanel').classList.remove('active');}
-
+function clearSearch(){syncSearch('');clearBtn.style.display='none';document.getElementById('searchPanel').classList.remove('active');if(map){map.eachLayer(l=>{if(l instanceof L.Marker){l.getElement().style.display='';}});}}
   
 
 function renderSearchResults(query){
-
   const q=query.trim().toLowerCase();
-
   function matchesQuery(s){const cfg=s.config||{};const nombre=(s.nombre_tienda||s.name||'').toLowerCase();const kwString=(cfg.keywords||'').toLowerCase();const ciudad=(cfg.directoryCity||cfg.city||cfg.localidad||'').toLowerCase();if(nombre.includes(q)||ciudad.includes(q))return true;return kwString.split(',').map(k=>k.trim()).filter(Boolean).some(k=>k.includes(q)||q.includes(k));}
-
-  const results=ALL_STORES.filter(matchesQuery);
-
+  const results=ALL_STORES.filter(s=>{if(!matchesQuery(s))return false;const cfg=s.config||{};const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;});
   const container=document.getElementById('searchResults');
-
-  if(!results.length){container.innerHTML=`<div class="sp-empty"><div style="font-size:36px;margin-bottom:12px;">🔍</div><div>Sin resultados para "<strong>${query}</strong>"</div></div>`;return;}
-
+  
+  // ⭐ REFLEJAR EN EL MAPA: ocultar todos los pines, mostrar solo los de results
+  if(map){
+    map.eachLayer(l=>{if(l instanceof L.Marker&&l.getTooltip){const tt=l.getTooltip();if(tt&&tt.getContent()!=='Tu ubicación'){l.getElement().style.display='none';}}});
+    if(results.length>0){
+      results.forEach(s=>{const cfg=s.config||{};const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);if(!isNaN(lat)&&!isNaN(lng)){map.eachLayer(l=>{if(l instanceof L.Marker){const ll=l.getLatLng();if(Math.abs(ll.lat-lat)<0.0003&&Math.abs(ll.lng-lng)<0.0003){l.getElement().style.display='';}}});}});
+    }
+  }
+  
+  if(!results.length){container.innerHTML=`<div class="sp-empty"><div style="font-size:36px;margin-bottom:12px;">🔍</div><div>Sin resultados para "<strong>${query}</strong>" en ${RADIO_KM} km</div></div>`;return;}
   container.innerHTML='';
-
   results.forEach(s=>{
-
     const cfg=s.config||{};
-
     const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
-
     const fotoUrl=s.isExternal?fixImgUrl(cfg.foto||cfg.photo||cfg.fotoUrl||cfg.image||logoUrl||''):logoUrl;
-
     const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-
     const dist=userLat&&!isNaN(lat)?haversineKm(userLat,userLng,lat,lng).toFixed(1):null;
-
     const nearby=dist&&parseFloat(dist)<=RADIO_KM;
-
     const item=document.createElement('div');item.className='sp-item';
-
     item.innerHTML=`
-
       <div class="sp-logo">${fotoUrl?`<img src="${fotoUrl}" alt="${s.nombre_tienda||s.name}">`:'🏪'}</div>
-
       <div class="sp-info">
-
         <h3>${s.nombre_tienda||s.name||'Tienda'}${s.isExternal?'<span style="font-size:10px;background:#fff3e0;color:#e65100;padding:1px 7px;border-radius:20px;font-weight:700;margin-left:4px;">🏪 Externa</span>':''}</h3>
-
         ${dist?`<div class="sp-dist">📍 ${dist} km${nearby?'<span class="sp-badge">Cercana</span>':''}</div>`:''}
-
         <div class="sp-desc">${cfg.description||[cfg.colonia,cfg.localidad||cfg.city].filter(Boolean).join(', ')||'Tienda externa'}</div>
-
       </div>`;
-
     item.onclick=()=>{clearSearch();if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],16,{animate:true});setTimeout(()=>openPopup(s.storeId),350);};
-
     container.appendChild(item);
-
   });
-
 }
-
 /* ══ FULLSCREEN ══ */
 
 function toggleFullscreen(){isFsMode=!isFsMode;document.body.classList.toggle('fs-mode',isFsMode);document.getElementById('fs-expand').style.display=isFsMode?'none':'block';document.getElementById('fs-compress').style.display=isFsMode?'block':'none';setTimeout(()=>{map.invalidateSize();if(isFsMode)fitToNearestStore();},160);try{if(isFsMode&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();else if(!isFsMode&&document.exitFullscreen)document.exitFullscreen();}catch(e){}}
