@@ -1,306 +1,226 @@
-// ═══════════════════════════════════════════════════════════════════
-// PARCHE IA v2 — Búsqueda inteligente + Chips scroll + Pines reactivos
-// USO: <script src="parche_ia_busqueda.js"></script> antes de </body>
-// ═══════════════════════════════════════════════════════════════════
+
+// PARCHE IA v3 — strip discreto + pines sutiles
+// <script src="parche_ia_busqueda.js"></script> antes de </body>
 
 (function(){
 
 /* ── ESTILOS ── */
 var css = document.createElement('style');
-css.textContent = [
-  '@keyframes fadeInSum{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}',
-  '@keyframes sdot{0%,100%{opacity:.2}50%{opacity:.8}}',
+css.textContent =
+  '@keyframes fadeStrip{from{opacity:0}to{opacity:1}}' +
 
-  /* panel contenedor — pegado debajo del buscador, oculto por defecto */
-  '#ai-strip{',
-    'display:none;',
-    'padding:0 16px 8px;',
-    'animation:fadeInSum .25s ease;',
-  '}',
+  /* contenedor — altura fija pequeña, pegado bajo el buscador */
+  '#ai-strip{' +
+    'display:none;' +
+    'height:26px;' +
+    'padding:0 12px;' +
+    'animation:fadeStrip .2s ease;' +
+  '}' +
 
-  /* scroll horizontal sin scrollbar visible */
-  '#ai-strip-inner{',
-    'display:flex;',
-    'gap:6px;',
-    'overflow-x:auto;',
-    'overflow-y:hidden;',
-    '-webkit-overflow-scrolling:touch;',
-    'scrollbar-width:none;',      /* Firefox */
-    'padding-bottom:2px;',
-  '}',
-  '#ai-strip-inner::-webkit-scrollbar{display:none;}',
+  /* scroll horizontal limpio */
+  '#ai-row{' +
+    'display:flex;' +
+    'align-items:center;' +
+    'gap:5px;' +
+    'height:100%;' +
+    'overflow-x:auto;' +
+    'overflow-y:hidden;' +
+    '-webkit-overflow-scrolling:touch;' +
+    'scrollbar-width:none;' +
+  '}' +
+  '#ai-row::-webkit-scrollbar{display:none;}' +
 
-  /* chip base */
-  '.ai-chip{',
-    'display:inline-flex;',
-    'align-items:center;',
-    'gap:4px;',
-    'flex-shrink:0;',
-    'border-radius:20px;',
-    'padding:3px 10px;',
-    'font-size:10px;',
-    'font-weight:600;',
-    'font-family:Inter,sans-serif;',
-    'white-space:nowrap;',
-    'cursor:pointer;',
-    'transition:opacity .2s;',
-    'border:1px solid transparent;',
-  '}',
-  '.ai-chip:active{opacity:.7;}',
+  /* chip — muy pequeño, semitransparente */
+  '.aic{' +
+    'display:inline-flex;' +
+    'align-items:center;' +
+    'gap:3px;' +
+    'flex-shrink:0;' +
+    'border-radius:20px;' +
+    'padding:2px 8px;' +
+    'font-size:9.5px;' +
+    'font-weight:600;' +
+    'font-family:Inter,sans-serif;' +
+    'white-space:nowrap;' +
+    'cursor:pointer;' +
+    'opacity:.82;' +
+    'border:1px solid rgba(255,255,255,.12);' +
+    'background:rgba(255,255,255,.08);' +
+    'color:rgba(255,255,255,.75);' +
+    'transition:opacity .15s;' +
+  '}' +
+  '.aic:active{opacity:.5;}' +
+  '.aic.near{border-color:rgba(74,222,128,.3);color:#4ade80;}' +
+  '.aic .cs{opacity:.5;font-weight:400;}' +
 
-  /* variantes */
-  '.ai-chip.c-label{',
-    'background:rgba(26,115,232,.12);',
-    'border-color:rgba(26,115,232,.25);',
-    'color:#93c5fd;',
-    'cursor:default;',
-  '}',
-  '.ai-chip.c-near{',
-    'background:rgba(22,163,74,.12);',
-    'border-color:rgba(22,163,74,.3);',
-    'color:#4ade80;',
-  '}',
-  '.ai-chip.c-far{',
-    'background:rgba(249,115,22,.12);',
-    'border-color:rgba(249,115,22,.25);',
-    'color:#fdba74;',
-  '}',
+  /* anillo de highlight en el pin — NO desplaza nada */
+  '.pin-hl > div{' +
+    'box-shadow:0 0 0 3px rgba(255,255,255,.9), 0 0 0 5px rgba(26,115,232,.7)!important;' +
+    'transition:box-shadow .25s;' +
+  '}' +
 
-  /* sub-texto dentro del chip */
-  '.ai-chip .csub{opacity:.55;font-weight:400;margin-left:2px;}',
+  /* punto de carga */
+  '@keyframes sdot{0%,100%{opacity:.2}50%{opacity:.9}}' +
+  '.ai-dot{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.5);animation:sdot .9s ease-in-out infinite;flex-shrink:0;}' +
+  '.ai-dot:nth-child(2){animation-delay:.15s}' +
+  '.ai-dot:nth-child(3){animation-delay:.3s}';
 
-  /* loading dots */
-  '.ai-dots{display:flex;align-items:center;gap:4px;padding:4px 16px;}',
-  '.ai-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.4);animation:sdot 1s ease-in-out infinite;}',
-  '.ai-dot:nth-child(2){animation-delay:.18s}',
-  '.ai-dot:nth-child(3){animation-delay:.36s}',
-
-  /* pin apagado cuando hay filtro activo */
-  '.pin-dimmed{opacity:.22!important;filter:grayscale(80%);transition:opacity .3s,filter .3s;}',
-
-].join('');
 document.head.appendChild(css);
 
-/* ── INYECTAR PANEL DEBAJO DE .search-wrap ── */
+/* ── PANEL ── */
 function insertPanel(){
   var wrap = document.querySelector('.search-wrap');
-  if(!wrap){ setTimeout(insertPanel, 200); return; }
-  var panel = document.createElement('div');
-  panel.id = 'ai-strip';
-  panel.innerHTML = '<div id="ai-strip-inner"></div>';
-  wrap.insertAdjacentElement('afterend', panel);
+  if(!wrap){ setTimeout(insertPanel,200); return; }
+  var d = document.createElement('div');
+  d.id = 'ai-strip';
+  d.innerHTML = '<div id="ai-row"></div>';
+  wrap.insertAdjacentElement('afterend', d);
 }
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', insertPanel);
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',insertPanel);
 else insertPanel();
 
-/* ── CACHE Y ESTADO ── */
-var _cache   = {};
-var _lastQ   = '';
-var _timer   = null;
-var _dimmed  = [];   // markers actualmente apagados
+/* ── ESTADO ── */
+var _cache={}, _lastQ='', _timer=null, _hlPins=[];
 
-/* ── WRAP DE handleSearch ── */
-function wrapHandlers(){
-  var origHandle = window.handleSearch;
-  var origClear  = window.clearSearch;
+/* ── WRAP handleSearch ── */
+function wrap(){
+  var oh = window.handleSearch;
+  var oc = window.clearSearch;
 
   window.handleSearch = function(val){
-    if(origHandle) origHandle(val);
+    if(oh) oh(val);
     clearTimeout(_timer);
-    var strip = document.getElementById('ai-strip');
-    if(!val || val.trim().length < 3){
-      hideStrip();
-      undimAll();
-      return;
-    }
-    // loading inmediato
-    showLoading();
-    _timer = setTimeout(function(){ runAI(val.trim()); }, 460);
+    if(!val||val.trim().length<3){ hide(); clearHL(); return; }
+    showDots();
+    _timer = setTimeout(function(){ runAI(val.trim()); }, 500);
   };
 
   window.clearSearch = function(){
-    if(origClear) origClear();
-    _lastQ = '';
-    hideStrip();
-    undimAll();
+    if(oc) oc();
+    _lastQ=''; hide(); clearHL();
   };
 }
-if(typeof window.handleSearch === 'function') wrapHandlers();
-else window.addEventListener('load', wrapHandlers);
+if(typeof window.handleSearch==='function') wrap();
+else window.addEventListener('load', wrap);
 
-/* ── LOADING ── */
-function showLoading(){
-  var strip = document.getElementById('ai-strip');
-  var inner = document.getElementById('ai-strip-inner');
-  if(!strip||!inner) return;
-  inner.innerHTML = '<div class="ai-dots">'
-    +'<div class="ai-dot"></div>'
-    +'<div class="ai-dot"></div>'
-    +'<div class="ai-dot"></div>'
-    +'</div>';
-  strip.style.display = '';
+function showDots(){
+  var strip=document.getElementById('ai-strip');
+  var row=document.getElementById('ai-row');
+  if(!strip||!row) return;
+  row.innerHTML='<div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>';
+  strip.style.display='';
+}
+function hide(){
+  var s=document.getElementById('ai-strip');
+  if(s) s.style.display='none';
 }
 
-function hideStrip(){
-  var strip = document.getElementById('ai-strip');
-  if(strip) strip.style.display = 'none';
+/* ── HAVERSINE ── */
+function hv(a,b,c,d){
+  var R=6371,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;
+  var x=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)*Math.sin(dN/2);
+  return (R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))).toFixed(1);
 }
 
-/* ── HAVERSINE LOCAL ── */
-function hv(la1,ln1,la2,ln2){
-  var R=6371,dL=(la2-la1)*Math.PI/180,dN=(ln2-ln1)*Math.PI/180;
-  var a=Math.sin(dL/2)*Math.sin(dL/2)
-      +Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dN/2)*Math.sin(dN/2);
-  return (R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
-}
+/* ── IA ── */
+async function runAI(q){
+  if(q===_lastQ&&_cache[q]){ render(_cache[q]); return; }
+  _lastQ=q;
+  if(_cache[q]){ render(_cache[q]); return; }
 
-/* ── MAIN IA ── */
-async function runAI(query){
-  if(query === _lastQ && _cache[query]){ render(_cache[query]); return; }
-  _lastQ = query;
-  if(_cache[query]){ render(_cache[query]); return; }
-
-  var stores = (window.nearbyStores && window.nearbyStores.length)
-    ? window.nearbyStores : (window.ALL_STORES || []);
-
-  var ctx = stores.slice(0,50).map(function(s){
-    var cfg = s.config||{};
-    var lat = parseFloat(cfg.locationLat), lng = parseFloat(cfg.locationLng);
-    var dist = (window.userLat&&!isNaN(lat))? hv(window.userLat,window.userLng,lat,lng)+' km' : '';
-    return {
-      id       : s.storeId || s.id || '',
-      nombre   : s.nombre_tienda||s.name||'',
-      tipo     : cfg.tipoNegocio||cfg.businessType||cfg.tipo||'',
-      localidad: cfg.localidad||cfg.city||'',
-      keywords : cfg.keywords||'',
-      dist     : dist,
-      lat      : isNaN(lat)?'':lat,
-      lng      : isNaN(lng)?'':lng
-    };
+  var stores=(window.nearbyStores&&window.nearbyStores.length)?window.nearbyStores:(window.ALL_STORES||[]);
+  var ctx=stores.slice(0,50).map(function(s){
+    var cfg=s.config||{};
+    var la=parseFloat(cfg.locationLat),ln=parseFloat(cfg.locationLng);
+    var dist=(window.userLat&&!isNaN(la))?hv(window.userLat,window.userLng,la,ln)+' km':'';
+    return {id:s.storeId||'',nombre:s.nombre_tienda||s.name||'',tipo:cfg.tipoNegocio||cfg.tipo||'',
+            localidad:cfg.localidad||cfg.city||'',keywords:cfg.keywords||'',dist:dist,
+            lat:isNaN(la)?'':''+la,lng:isNaN(ln)?'':''+ln};
   });
 
-  var prompt =
-    'Directorio de negocios Querétaro México. El usuario busca: "'+query+'".\n\n'+
-    'Tiendas disponibles:\n'+JSON.stringify(ctx)+'\n\n'+
-    'Responde SOLO con JSON válido sin markdown:\n'+
-    '{"mensaje":"máx 5 palabras","top":[{"id":"","nombre":"","tipo":"","localidad":"","dist":"","lat":"","lng":""}]}\n'+
-    'top: máx 4 tiendas más relevantes. Si no hay coincidencias top=[].';
+  var p='Directorio Querétaro. Usuario busca:"'+q+'". Tiendas:'+JSON.stringify(ctx)+
+        '\nResponde SOLO JSON sin markdown:{"top":[{"id":"","nombre":"","tipo":"","localidad":"","dist":"","lat":"","lng":""}]}'+
+        '\ntop máx 4 más relevantes. Si no hay coincidencias top=[].';
 
   try{
-    var resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:500,
-        messages:[{role:'user',content:prompt}]
-      })
+    var r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,
+        messages:[{role:'user',content:p}]})
     });
-    var data = await resp.json();
-    var text = (data.content||[]).map(function(b){return b.text||'';}).join('');
-    text = text.replace(/```json|```/g,'').trim();
-    var result = JSON.parse(text);
-    _cache[query] = result;
-    render(result);
-  }catch(e){
-    hideStrip();
-    undimAll();
-  }
+    var d=await r.json();
+    var t=(d.content||[]).map(function(b){return b.text||'';}).join('');
+    t=t.replace(/```json|```/g,'').trim();
+    var res=JSON.parse(t);
+    _cache[q]=res;
+    render(res);
+  }catch(e){ hide(); clearHL(); }
 }
 
-/* ── RENDER CHIPS + PINES ── */
-function render(result){
-  var strip = document.getElementById('ai-strip');
-  var inner = document.getElementById('ai-strip-inner');
-  if(!strip||!inner) return;
+/* ── RENDER ── */
+function render(res){
+  var strip=document.getElementById('ai-strip');
+  var row=document.getElementById('ai-row');
+  if(!strip||!row) return;
 
-  var top = result.top||[];
+  var top=res.top||[];
+  if(!top.length){ hide(); clearHL(); return; }
 
-  if(!top.length){
-    hideStrip();
-    undimAll();
-    return;
-  }
-
-  var html = '';
-
-  // chip resumen (sin cursor)
-  if(result.mensaje){
-    html += '<span class="ai-chip c-label">🤖 '+result.mensaje+'</span>';
-  }
-
-  // chip por tienda
-  top.forEach(function(t, i){
-    var cls = (t.dist && parseFloat(t.dist)<2) ? 'c-near' : 'c-far';
-    var sub = [t.tipo, t.localidad, t.dist].filter(Boolean).join(' · ');
-    html += '<span class="ai-chip '+cls+'" '
-          + 'onclick="window._aiChipClick(\''+t.lat+'\',\''+t.lng+'\',\''+t.id+'\')" '
-          + 'title="Ver en mapa">'
-          + (t.nombre||'Tienda')
-          + (sub ? '<span class="csub">'+sub+'</span>' : '')
-          + '</span>';
+  var html='';
+  top.forEach(function(t){
+    var near=t.dist&&parseFloat(t.dist)<2;
+    var sub=[t.tipo,t.localidad,t.dist].filter(Boolean).join(' · ');
+    html+='<span class="aic'+(near?' near':'')+'" '
+         +'onclick="window._aiGo(\''+t.lat+'\',\''+t.lng+'\',\''+t.id+'\')">'
+         +(t.nombre||'Tienda')
+         +(sub?'<span class="cs"> '+sub+'</span>':'')
+         +'</span>';
   });
 
-  inner.innerHTML = html;
-  strip.style.display = '';
+  row.innerHTML=html;
+  strip.style.display='';
 
-  // Actualizar pines del mapa
-  dimMarkersExcept(top);
+  // resaltar pines coincidentes
+  highlightPins(top);
 }
 
-/* ── DIMMING DE PINES ── */
-function dimMarkersExcept(top){
-  undimAll();
-  if(!window.map) return;
-
-  // Coordenadas de las tiendas encontradas
-  var found = top.filter(function(t){ return t.lat && t.lng; }).map(function(t){
-    return { lat: parseFloat(t.lat), lng: parseFloat(t.lng) };
+/* ── HIGHLIGHT PINES (solo anillo, sin opacar nada) ── */
+function highlightPins(top){
+  clearHL();
+  if(!window.map||!window.L) return;
+  var found=top.filter(function(t){return t.lat&&t.lng;}).map(function(t){
+    return {lat:parseFloat(t.lat),lng:parseFloat(t.lng)};
   });
   if(!found.length) return;
-
-  var L = window.L;
-  if(!L) return;
-
   window.map.eachLayer(function(layer){
-    if(!(layer instanceof L.Marker)) return;
-    // Nunca apagar el marcador "Tu ubicación"
-    try{
-      var tt = layer.getTooltip ? layer.getTooltip() : null;
-      if(tt && tt.getContent && tt.getContent()==='Tu ubicación') return;
+    if(!(layer instanceof window.L.Marker)) return;
+    try{ var tt=layer.getTooltip&&layer.getTooltip();
+      if(tt&&tt.getContent&&tt.getContent()==='Tu ubicación') return;
     }catch(e){}
-
-    var pos = layer.getLatLng();
-    var isMatch = found.some(function(f){
-      return Math.abs(pos.lat - f.lat) < 0.0002 && Math.abs(pos.lng - f.lng) < 0.0002;
+    var pos=layer.getLatLng();
+    var match=found.some(function(f){
+      return Math.abs(pos.lat-f.lat)<0.0002&&Math.abs(pos.lng-f.lng)<0.0002;
     });
-
-    if(!isMatch){
-      var el = layer.getElement ? layer.getElement() : null;
-      if(el){
-        el.classList.add('pin-dimmed');
-        _dimmed.push(el);
-      }
+    if(match){
+      var el=layer.getElement&&layer.getElement();
+      if(el){ el.classList.add('pin-hl'); _hlPins.push(el); }
     }
   });
 }
 
-function undimAll(){
-  _dimmed.forEach(function(el){ if(el) el.classList.remove('pin-dimmed'); });
-  _dimmed = [];
+function clearHL(){
+  _hlPins.forEach(function(el){if(el)el.classList.remove('pin-hl');});
+  _hlPins=[];
 }
 
-/* ── CLICK EN CHIP → volar al mapa ── */
-window._aiChipClick = function(lat, lng, id){
-  if(!window.map || !lat || !lng) return;
-  var L = window.L;
-  var la = parseFloat(lat), ln = parseFloat(lng);
+/* ── CLICK CHIP → volar al pin ── */
+window._aiGo=function(lat,lng,id){
+  if(!window.map||!lat||!lng) return;
+  var la=parseFloat(lat),ln=parseFloat(lng);
   if(isNaN(la)||isNaN(ln)) return;
-  window.map.setView([la, ln], 16, {animate:true});
-  // abrir popup si existe openPopup
-  if(id && typeof window.openPopup === 'function'){
-    setTimeout(function(){ window.openPopup(id); }, 400);
-  }
+  window.map.setView([la,ln],17,{animate:true});
+  if(id&&typeof window.openPopup==='function')
+    setTimeout(function(){window.openPopup(id);},450);
 };
 
 })();
