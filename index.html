@@ -1,4 +1,4 @@
-version busqueda con i.a mini popups v1
+version busqueda con i.a mini popups v2
 <!DOCTYPE html>
 
 <html lang="es">
@@ -1915,24 +1915,51 @@ function handleSearch(val){
 
 }
 
-function clearSearch(){syncSearch('');clearBtn.style.display='none';document.getElementById('searchPanel').classList.remove('active');if(map){map.eachLayer(l=>{if(l instanceof L.Marker){l.getElement().style.display='';}});}}
-  
+function clearSearch(){
+  syncSearch('');
+  clearBtn.style.display='none';
+  document.getElementById('searchPanel').classList.remove('active');
+  // Restaurar todos los pines
+  if(map){
+    map.eachLayer(l=>{
+      if(l instanceof L.Marker){
+        const el=l.getElement&&l.getElement();
+        if(el){el.style.display='';el.style.opacity='1';}
+      }
+    });
+  }
+}  
 
 function renderSearchResults(query){
   const q=query.trim().toLowerCase();
-  function matchesQuery(s){const cfg=s.config||{};const nombre=(s.nombre_tienda||s.name||'').toLowerCase();const kwString=(cfg.keywords||'').toLowerCase();const ciudad=(cfg.directoryCity||cfg.city||cfg.localidad||'').toLowerCase();if(nombre.includes(q)||ciudad.includes(q))return true;return kwString.split(',').map(k=>k.trim()).filter(Boolean).some(k=>k.includes(q)||q.includes(k));}
-  const results=ALL_STORES.filter(s=>{if(!matchesQuery(s))return false;const cfg=s.config||{};const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;});
-  const container=document.getElementById('searchResults');
-  
-  // ⭐ REFLEJAR EN EL MAPA: ocultar todos los pines, mostrar solo los de results
-  if(map){
-    map.eachLayer(l=>{if(l instanceof L.Marker&&l.getTooltip){const tt=l.getTooltip();if(tt&&tt.getContent()!=='Tu ubicación'){l.getElement().style.display='none';}}});
-    if(results.length>0){
-      results.forEach(s=>{const cfg=s.config||{};const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);if(!isNaN(lat)&&!isNaN(lng)){map.eachLayer(l=>{if(l instanceof L.Marker){const ll=l.getLatLng();if(Math.abs(ll.lat-lat)<0.0003&&Math.abs(ll.lng-lng)<0.0003){l.getElement().style.display='';}}});}});
-    }
+  function matchesQuery(s){
+    const cfg=s.config||{};
+    const nombre=(s.nombre_tienda||s.name||'').toLowerCase();
+    const kwString=(cfg.keywords||'').toLowerCase();
+    const ciudad=(cfg.directoryCity||cfg.city||cfg.localidad||'').toLowerCase();
+    if(nombre.includes(q)||ciudad.includes(q))return true;
+    return kwString.split(',').map(k=>k.trim()).filter(Boolean).some(k=>k.includes(q)||q.includes(k));
   }
   
-  if(!results.length){container.innerHTML=`<div class="sp-empty"><div style="font-size:36px;margin-bottom:12px;">🔍</div><div>Sin resultados para "<strong>${query}</strong>" en ${RADIO_KM} km</div></div>`;return;}
+  // Filtrar SOLO tiendas que coinciden Y están dentro de RADIO_KM
+  const results=ALL_STORES.filter(s=>{
+    if(!matchesQuery(s))return false;
+    const cfg=s.config||{};
+    const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
+    if(isNaN(lat)||isNaN(lng))return false;
+    const dist=haversineKm(userLat,userLng,lat,lng);
+    return dist<=RADIO_KM;
+  });
+  
+  // Actualizar pines en el mapa
+  updateMapPins(results);
+  
+  // Renderizar resultados en el panel
+  const container=document.getElementById('searchResults');
+  if(!results.length){
+    container.innerHTML=`<div class="sp-empty"><div style="font-size:36px;margin-bottom:12px;">🔍</div><div>Sin resultados para "<strong>${query}</strong>" en ${RADIO_KM} km</div></div>`;
+    return;
+  }
   container.innerHTML='';
   results.forEach(s=>{
     const cfg=s.config||{};
@@ -1951,6 +1978,35 @@ function renderSearchResults(query){
       </div>`;
     item.onclick=()=>{clearSearch();if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],16,{animate:true});setTimeout(()=>openPopup(s.storeId),350);};
     container.appendChild(item);
+  });
+}
+
+// Nueva función para actualizar pines
+function updateMapPins(matchedStores){
+  if(!map)return;
+  
+  // Crear conjunto de IDs de tiendas coincidentes
+  const matchedIds=new Set(matchedStores.map(s=>s.storeId));
+  const matchedCoords=matchedStores.map(s=>{
+    const cfg=s.config||{};
+    return {lat:parseFloat(cfg.locationLat),lng:parseFloat(cfg.locationLng)};
+  }).filter(c=>!isNaN(c.lat)&&!isNaN(c.lng));
+  
+  // Mostrar/ocultar pines según coincidencia
+  map.eachLayer(l=>{
+    if(!(l instanceof L.Marker))return;
+    try{
+      const tt=l.getTooltip&&l.getTooltip();
+      if(tt&&tt.getContent&&tt.getContent()==='Tu ubicación')return;
+    }catch(e){}
+    
+    const pos=l.getLatLng();
+    const match=matchedCoords.some(c=>Math.abs(pos.lat-c.lat)<0.0003&&Math.abs(pos.lng-c.lng)<0.0003);
+    const el=l.getElement&&l.getElement();
+    if(el){
+      el.style.display=match?'':'none';
+      el.style.opacity=match?'1':'0';
+    }
   });
 }
 /* ══ FULLSCREEN ══ */
