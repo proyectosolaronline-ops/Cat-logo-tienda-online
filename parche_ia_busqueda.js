@@ -1,4 +1,4 @@
-// PARCHE IA v7 — Selector popup + visualizador mapa, sin romper directorio
+// PARCHE IA v8 — popup selector sincronizado con barra + mapa en tiempo real
 // <script src="parche_ia_busqueda.js"></script> antes de </body>
 (function(){
 
@@ -53,45 +53,50 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 else insertBox();
 
 /* ══════════════════════════════════════════════
-   ESTADO INTERNO — no toca nada del directorio
+   ESTADO INTERNO
 ══════════════════════════════════════════════ */
-var _cache     = {};
-var _lastQ     = '';
-var _timer     = null;
-var _hiddenLayers = []; // layers ocultados por búsqueda
-var _modoFiltro   = false; // true = hay filtro activo
+var _cache        = {};
+var _lastQ        = '';
+var _timer        = null;
+var _hiddenEls    = [];
+var _grayEls      = [];
+var _matchIds     = [];
 
 /* ══════════════════════════════════════════════
-   ESCUCHAR INPUTS — sin pisar handleSearch
+   ESCUCHAR INPUT DEL POPUP (searchInput2)
+   → sincroniza CADA caracter hacia searchInput
+   → handleSearch del directorio corre normal
+   → parche actúa en paralelo sobre el mapa
 ══════════════════════════════════════════════ */
 window.addEventListener('load', function(){
-  var i1 = document.getElementById('searchInput');
   var i2 = document.getElementById('searchInput2');
-  if(i1) i1.addEventListener('input', function(e){ onInput(e.target.value); });
-  if(i2) i2.addEventListener('input', function(e){ onInput(e.target.value); });
+  if(!i2) return;
 
-  // Resetear al borrar / cerrar
-  var closeBtn = document.querySelector('.sp-close');
-  if(closeBtn) closeBtn.addEventListener('click', function(){ resetFiltro(); });
+  i2.addEventListener('input', function(e){
+    var val = e.target.value;
 
-  // Detectar cuando clearSearch vacía el input (click en ✕)
-  var clearBtn = document.getElementById('clearBtn');
-  if(clearBtn) clearBtn.addEventListener('click', function(){ resetFiltro(); });
+    // 1. Sincronizar barra principal (directorio corre su lógica normal)
+    var i1 = document.getElementById('searchInput');
+    if(i1 && i1.value !== val){
+      i1.value = val;
+      // disparar handleSearch original del directorio
+      if(typeof window.handleSearch === 'function') window.handleSearch(val);
+    }
+
+    // 2. Parche actúa en paralelo sobre el mapa
+    clearTimeout(_timer);
+    if(!val || val.trim().length < 3){
+      hideBox();
+      resetMapa();
+      return;
+    }
+    showLoad();
+    _timer = setTimeout(function(){ runAI(val.trim()); }, 500);
+  });
 });
 
-function onInput(val){
-  clearTimeout(_timer);
-  if(!val || val.trim().length < 3){
-    hideBox();
-    resetFiltro();
-    return;
-  }
-  showLoad();
-  _timer = setTimeout(function(){ runAI(val.trim()); }, 500);
-}
-
 /* ══════════════════════════════════════════════
-   UI DEL BOX
+   UI BOX
 ══════════════════════════════════════════════ */
 function showLoad(){
   var box = document.getElementById('ai-box');
@@ -118,163 +123,146 @@ function hv(a,b,c,d){
 }
 
 /* ══════════════════════════════════════════════
-   IA — busca en nearbyStores (radio 20km activo)
+   IA — nearbyStores respeta radio 20km
 ══════════════════════════════════════════════ */
 async function runAI(q){
-  if(_cache[q]){ render(_cache[q], q); return; }
+  if(_cache[q]){ _lastQ=q; render(_cache[q]); return; }
   _lastQ = q;
 
-  // SIEMPRE usa nearbyStores — respeta el radio 20km del directorio
   var stores = (window.nearbyStores && window.nearbyStores.length)
-    ? window.nearbyStores
-    : (window.ALL_STORES || []);
+    ? window.nearbyStores : (window.ALL_STORES || []);
 
   var ctx = stores.map(function(s){
-    var cfg = s.config || {};
-    var la  = parseFloat(cfg.locationLat), ln = parseFloat(cfg.locationLng);
-    var dist= (window.userLat && !isNaN(la))
-              ? hv(window.userLat, window.userLng, la, ln) + ' km' : '';
+    var cfg=s.config||{};
+    var la=parseFloat(cfg.locationLat), ln=parseFloat(cfg.locationLng);
+    var dist=(window.userLat&&!isNaN(la))
+      ? hv(window.userLat,window.userLng,la,ln)+' km':'';
     return {
-      id       : s.storeId || '',
-      nombre   : s.nombre_tienda || s.name || '',
-      tipo     : cfg.tipoNegocio || cfg.tipo || '',
-      localidad: cfg.localidad || cfg.city || '',
-      keywords : cfg.keywords || '',
+      id       : s.storeId||'',
+      nombre   : s.nombre_tienda||s.name||'',
+      tipo     : cfg.tipoNegocio||cfg.tipo||'',
+      localidad: cfg.localidad||cfg.city||'',
+      keywords : cfg.keywords||'',
       dist     : dist,
-      lat      : isNaN(la) ? '' : '' + la,
-      lng      : isNaN(ln) ? '' : '' + ln
+      lat      : isNaN(la)?'':''+la,
+      lng      : isNaN(ln)?'':''+ln
     };
   });
 
   var prompt =
-    'Directorio Querétaro. Busca:"' + q + '". Tiendas:' + JSON.stringify(ctx) +
-    '\nSolo JSON sin texto extra:' +
-    '{"top":[{"id":"","nombre":"","tipo":"","localidad":"","dist":"","lat":"","lng":""}]}' +
-    '\ntop máx 4 más relevantes dentro del radio. Si no hay coincidencias, top=[].';
+    'Directorio Querétaro. Busca:"'+q+'". Tiendas:'+JSON.stringify(ctx)+
+    '\nSolo JSON sin texto extra:'+
+    '{"top":[{"id":"","nombre":"","tipo":"","localidad":"","dist":"","lat":"","lng":""}]}'+
+    '\ntop máx 4 más relevantes. Si no hay, top=[].';
 
   try{
     var r = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model      : 'claude-sonnet-4-20250514',
-        max_tokens : 400,
-        messages   : [{role:'user', content: prompt}]
+        model     :'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        messages  :[{role:'user', content:prompt}]
       })
     });
     var d   = await r.json();
-    var txt = (d.content||[]).map(function(b){ return b.text||''; }).join('');
+    var txt = (d.content||[]).map(function(b){return b.text||'';}).join('');
     txt = txt.replace(/```json|```/g,'').trim();
     var res = JSON.parse(txt);
     _cache[q] = res;
-    render(res, q);
-  } catch(e){
-    hideBox();
-    resetFiltro();
-  }
+    render(res);
+  }catch(e){ hideBox(); resetMapa(); }
 }
 
 /* ══════════════════════════════════════════════
-   PASO 2+3 — RENDER popup + filtrar mapa
+   PASO 2 — RENDER popup + filtrar mapa en tiempo real
 ══════════════════════════════════════════════ */
-function render(res, q){
-  var top = res.top || [];
+function render(res){
+  var top = res.top||[];
   var box = document.getElementById('ai-box');
   if(!box) return;
 
-  if(!top.length){
-    hideBox();
-    resetFiltro();
-    return;
-  }
+  if(!top.length){ hideBox(); resetMapa(); return; }
 
-  // Pintar filas del popup (selector)
+  // Popup: lista de resultados (selector)
   box.innerHTML = top.map(function(t){
-    var near  = t.dist && parseFloat(t.dist) < 2;
+    var near  = t.dist && parseFloat(t.dist)<2;
     var color = near ? '#16a34a' : '#1a73e8';
-    var sub   = [t.tipo, t.localidad].filter(Boolean).join(' · ');
-    var lat   = t.lat || '', lng = t.lng || '', id = t.id || '';
-    return '<div class="ai-row" onclick="window._aiSeleccionar(\'' + lat + '\',\'' + lng + '\',\'' + id + '\')">' +
-      '<div class="ai-dot-c" style="background:' + color + ';"></div>' +
-      '<div style="flex:1;min-width:0;">' +
-      '<div class="ai-name">' + (t.nombre || 'Tienda') + '</div>' +
-      (sub ? '<div class="ai-sub">' + sub + '</div>' : '') +
-      '</div>' +
-      '<div class="ai-km" style="color:' + color + ';">' + (t.dist || '') + '</div>' +
+    var sub   = [t.tipo,t.localidad].filter(Boolean).join(' · ');
+    var lat=t.lat||'', lng=t.lng||'', id=t.id||'';
+    return '<div class="ai-row" onclick="window._aiSeleccionar(\''+lat+'\',\''+lng+'\',\''+id+'\')">'+
+      '<div class="ai-dot-c" style="background:'+color+';"></div>'+
+      '<div style="flex:1;min-width:0;">'+
+      '<div class="ai-name">'+(t.nombre||'Tienda')+'</div>'+
+      (sub?'<div class="ai-sub">'+sub+'</div>':'')+
+      '</div>'+
+      '<div class="ai-km" style="color:'+color+';">'+(t.dist||'')+'</div>'+
       '</div>';
   }).join('');
   box.style.display = '';
 
-  // PASO 2 — mapa muestra SOLO pins coincidentes (en gris, esperando click)
-  filtrarMapa(top, null);
+  // Mapa: solo coincidentes visibles en gris
+  _matchIds = top.map(function(t){ return t.id; });
+  aplicarFiltroMapa(_matchIds, null);
 }
 
 /* ══════════════════════════════════════════════
-   FILTRAR MAPA
-   matchIds  = ids que coinciden con búsqueda
-   selectedId = id seleccionado por usuario (paso 4)
+   FILTRO MAPA
+   Solo manipula display/opacity/filter
+   NO toca tooltips ni estructura del marker
 ══════════════════════════════════════════════ */
-function filtrarMapa(top, selectedId){
-  // Restaurar primero sin tocar estructura
-  _restaurarLayers();
-  _modoFiltro = true;
+function aplicarFiltroMapa(matchIds, selectedId){
+  resetMapa(); // limpia estado anterior sin resetear nearbyStores
 
   if(!window.map || !window.L) return;
-
-  var matchIds = top.map(function(t){ return t.id; });
 
   window.map.eachLayer(function(layer){
     if(!(layer instanceof window.L.Marker)) return;
 
-    // Nunca tocar marcador de ubicación del usuario
+    // Nunca tocar marcador usuario
     try{
       var tt = layer.getTooltip && layer.getTooltip();
-      if(tt && tt.getContent && tt.getContent() === 'Tu ubicación') return;
+      if(tt && tt.getContent && tt.getContent()==='Tu ubicación') return;
     }catch(e){}
 
     var el = layer.getElement && layer.getElement();
     if(!el) return;
 
-    // Identificar a qué tienda pertenece este layer
-    var storeId = _getLayerStoreId(layer);
+    var sid = _getStoreId(layer);
 
-    if(!storeId || matchIds.indexOf(storeId) === -1){
+    if(!sid || matchIds.indexOf(sid)===-1){
       // No coincide → ocultar
       el.style.display = 'none';
-      _hiddenLayers.push(el);
+      _hiddenEls.push(el);
+    } else if(selectedId && sid === selectedId){
+      // PASO 4 — seleccionada: totalmente normal
+      el.style.opacity   = '1';
+      el.style.filter    = '';
+      el.style.transform = '';
     } else {
-      // Coincide → mostrar en gris si no es la seleccionada
-      if(selectedId && storeId === selectedId){
-        // PASO 4 — pin seleccionado: normal (sin tocar estilos originales)
-        el.style.opacity   = '';
-        el.style.filter    = '';
-        el.style.transform = '';
-      } else {
-        // PASO 2/3 — coincide pero no seleccionada: gris, esperando click
-        el.style.opacity   = '0.45';
-        el.style.filter    = 'grayscale(1)';
-        el.style.transition= 'opacity .2s, filter .2s';
-      }
+      // PASO 2/3 — coincide, esperando click: gris
+      el.style.opacity   = '0.45';
+      el.style.filter    = 'grayscale(1)';
+      el.style.transition= 'opacity .2s,filter .2s';
+      _grayEls.push(el);
     }
   });
 }
 
 /* ══════════════════════════════════════════════
-   OBTENER storeId de un layer
-   Busca por coordenadas en nearbyStores/ALL_STORES
+   OBTENER storeId por coordenadas del marker
 ══════════════════════════════════════════════ */
-function _getLayerStoreId(layer){
-  var pos = layer.getLatLng();
+function _getStoreId(layer){
+  var pos    = layer.getLatLng();
   var stores = (window.nearbyStores && window.nearbyStores.length)
-    ? window.nearbyStores : (window.ALL_STORES || []);
-  var found = null;
+    ? window.nearbyStores : (window.ALL_STORES||[]);
+  var found  = null;
   stores.forEach(function(s){
-    var cfg = s.config || {};
-    var la  = parseFloat(cfg.locationLat);
-    var ln  = parseFloat(cfg.locationLng);
-    if(!isNaN(la) && !isNaN(ln) &&
-       Math.abs(pos.lat - la) < 0.0003 &&
-       Math.abs(pos.lng - ln) < 0.0003){
+    var cfg=s.config||{};
+    var la=parseFloat(cfg.locationLat), ln=parseFloat(cfg.locationLng);
+    if(!isNaN(la)&&!isNaN(ln)&&
+       Math.abs(pos.lat-la)<0.0003&&
+       Math.abs(pos.lng-ln)<0.0003){
       found = s.storeId;
     }
   });
@@ -282,76 +270,75 @@ function _getLayerStoreId(layer){
 }
 
 /* ══════════════════════════════════════════════
-   RESTAURAR todos los layers al estado original
-   Solo display, opacity, filter, transform
-   SIN tocar tooltips ni estructura
+   RESETEAR MAPA — restaura pins 20km sin tocar
+   estructura ni tooltips del directorio
 ══════════════════════════════════════════════ */
-function _restaurarLayers(){
-  // Restaurar ocultos
-  _hiddenLayers.forEach(function(el){
+function resetMapa(){
+  _hiddenEls.forEach(function(el){
     if(el) el.style.display = '';
   });
-  _hiddenLayers = [];
-
-  // Restaurar grises (todos los markers visibles)
-  if(window.map && window.L){
-    window.map.eachLayer(function(layer){
-      if(!(layer instanceof window.L.Marker)) return;
-      var el = layer.getElement && layer.getElement();
-      if(!el) return;
+  _grayEls.forEach(function(el){
+    if(el){
       el.style.opacity   = '';
       el.style.filter    = '';
       el.style.transform = '';
       el.style.transition= '';
-    });
-  }
-  _modoFiltro = false;
+    }
+  });
+  _hiddenEls = [];
+  _grayEls   = [];
 }
 
 /* ══════════════════════════════════════════════
-   RESET COMPLETO — al borrar texto
-   Restaura pins 20km, limpia box
-══════════════════════════════════════════════ */
-function resetFiltro(){
-  hideBox();
-  _restaurarLayers();
-  _lastQ = '';
-}
-
-/* ══════════════════════════════════════════════
-   PASO 3+4 — Usuario selecciona tienda en popup
-   Pin seleccionado normal, resto grises, abre popup
+   PASO 3+4 — Usuario selecciona en popup
+   → pin seleccionado normal
+   → resto coincidentes siguen gris
+   → abre popup tienda del directorio
 ══════════════════════════════════════════════ */
 window._aiSeleccionar = function(lat, lng, id){
   if(!window.map) return;
-  var la = parseFloat(lat), ln = parseFloat(lng);
-  if(isNaN(la) || isNaN(ln)) return;
+  var la=parseFloat(lat), ln=parseFloat(lng);
+  if(isNaN(la)||isNaN(ln)) return;
 
-  // Reconstruir top del cache para mantener el filtro
-  var q   = _lastQ;
-  var res = _cache[q] || {top:[]};
-  var top = res.top || [];
+  // Actualizar mapa: seleccionada normal, resto gris
+  aplicarFiltroMapa(_matchIds, id);
 
-  // PASO 4 — actualizar mapa: seleccionada normal, resto grises
-  filtrarMapa(top, id);
+  // Volar al pin
+  window.map.setView([la, ln], 17, {animate:true});
 
-  // Volar al pin seleccionado
-  window.map.setView([la, ln], 17, {animate: true});
-
-  // Abrir popup del directorio sin tocarlo
-  if(id && typeof window.openPopup === 'function'){
+  // Abrir popup del directorio (sin tocarlo)
+  if(id && typeof window.openPopup==='function'){
     setTimeout(function(){ window.openPopup(id); }, 420);
   }
 };
 
 /* ══════════════════════════════════════════════
-   PASO 5 — Escuchar clearSearch original
-   Cuando el usuario borra → reset completo
+   PASO 5 — Detectar borrado en AMBAS barras
+   → reset completo pins 20km
 ══════════════════════════════════════════════ */
-var _origClearSearch = window.clearSearch;
-window.clearSearch = function(){
-  resetFiltro();
-  if(typeof _origClearSearch === 'function') _origClearSearch();
-};
+window.addEventListener('load', function(){
+  var i1 = document.getElementById('searchInput');
+  var i2 = document.getElementById('searchInput2');
+
+  function checkReset(val){
+    if(!val || val.trim().length < 3){
+      hideBox();
+      resetMapa();
+      _lastQ   = '';
+      _matchIds= [];
+    }
+  }
+
+  if(i1) i1.addEventListener('input', function(e){ checkReset(e.target.value); });
+  if(i2) i2.addEventListener('input', function(e){ checkReset(e.target.value); });
+
+  // Botón X de la barra principal
+  var clearBtn = document.getElementById('clearBtn');
+  if(clearBtn) clearBtn.addEventListener('click', function(){ hideBox(); resetMapa(); _lastQ=''; _matchIds=[]; });
+
+  // Botón X del searchPanel
+  var closeBtn = document.querySelector('.sp-close');
+  if(closeBtn) closeBtn.addEventListener('click', function(){ hideBox(); resetMapa(); _lastQ=''; _matchIds=[]; });
+});
 
 })();
