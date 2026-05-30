@@ -1,4 +1,4 @@
-2 ver
+3 ver
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -893,12 +893,14 @@ function _mostrarPins(stores){
 function _restaurarPins(){
   if(_sLayer)_sLayer.clearLayers();
 }
-
 function _seleccionarTienda(s){
   _limpiarDropdown();
   const cfg=s.config||{};
   const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-  if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],15,{animate:true});
+  if(!isNaN(lat)&&!isNaN(lng)){
+    map.setView([lat,lng],15,{animate:true});
+    setTimeout(()=>openPopup(s.storeId),400);
+  }
 }
 /* ── Mini dropdown debajo del buscador ── */
 function _mostrarDropdown(stores,q){
