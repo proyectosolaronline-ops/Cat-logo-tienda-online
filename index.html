@@ -2057,9 +2057,13 @@ function _aiSeleccionar(lat,lng,id,nombre){
 /* ══════════════════════════════════════════════
    handleSearch — ORIGINAL INTACTO + IA al final
 ══════════════════════════════════════════════ */
+
+ 
+ /* ══════════════════════════════════════════════
+   handleSearch — Barra controla IA
+══════════════════════════════════════════════ */
 function handleSearch(val){
   syncSearch(val);
-  clearBtfunction handleSearch(val){
   clearBtn.style.display = val ? 'block' : 'none';
 
   // Limpiar IA si menos de 3 caracteres
@@ -2086,7 +2090,7 @@ function handleSearch(val){
   // Disparar IA con debounce 500ms
   _aiTimer = setTimeout(function(){ _aiRunIA(val.trim()); }, 500);
 }
-  /* ── IA enganchada AL FINAL — no toca nada arriba ── */
+ /* ── IA enganchada AL FINAL — no toca nada arriba ── */
   clearTimeout(_aiTimer);
   if(!val||val.trim().length<3){
     var box=document.getElementById('ai-box');
