@@ -1,4 +1,4 @@
-ver.07
+ver.08
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -927,11 +927,12 @@ function _seleccionarTienda(s){
       const cfg=s.config||{};
       const slat=parseFloat(cfg.locationLat),slng=parseFloat(cfg.locationLng);
       const esEste=Math.abs(pos.lat-slat)<0.0003&&Math.abs(pos.lng-slng)<0.0003;
-      if(esEste){
+if(esEste){
         el.style.opacity='1';
         el.style.filter='';
-        el.style.transform='scale(1.2)';
-        el.style.transition='transform .2s';
+        el.style.transform='';
+        el.style.transition='';
+      }
       } else {
         el.style.opacity='0';
         el.style.transition='opacity .2s';
