@@ -1,4 +1,4 @@
-version busqueda parche insertado v3
+version busqueda parche insertado v4
 <!DOCTYPE html>
 
 <html lang="es">
@@ -2090,22 +2090,7 @@ function handleSearch(val){
   // Disparar IA con debounce 500ms
   _aiTimer = setTimeout(function(){ _aiRunIA(val.trim()); }, 500);
 }
- /* ── IA enganchada AL FINAL — no toca nada arriba ── */
-  clearTimeout(_aiTimer);
-  if(!val||val.trim().length<3){
-    var box=document.getElementById('ai-box');
-    if(box){box.style.display='none';box.innerHTML='';}
-    _aiResetMapa();
-    _aiMatchIds=[];
-    return;
-  }
-  var box=document.getElementById('ai-box');
-  if(box){
-    box.style.display='';
-    box.innerHTML='<div class="ai-load"><div class="ald"></div><div class="ald"></div><div class="ald"></div><span>Buscando con IA…</span></div>';
-  }
-  _aiTimer=setTimeout(function(){_aiRunIA(val.trim());},500);
-}
+
 
                                                                                                                                  
   
