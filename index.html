@@ -1,4 +1,4 @@
-ver.05
+ver.06
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -916,10 +916,9 @@ function _restaurarPins(){
 }
 
 function _seleccionarTienda(s){
-  /* Dejar solo ese pin visible, ocultar resto */
   _limpiarDropdown();
 
-  /* Atenuar todos menos el seleccionado */
+  /* Dejar solo el pin seleccionado visible, los demás del searchLayer a opacity 0 */
   if(_sLayer){
     _sLayer.eachLayer(function(l){
       const el=l.getElement&&l.getElement();
@@ -928,19 +927,27 @@ function _seleccionarTienda(s){
       const cfg=s.config||{};
       const slat=parseFloat(cfg.locationLat),slng=parseFloat(cfg.locationLng);
       const esEste=Math.abs(pos.lat-slat)<0.0003&&Math.abs(pos.lng-slng)<0.0003;
-      if(esEste){el.style.opacity='1';el.style.filter='';el.style.transform='scale(1.15)';}
-      else{el.style.opacity='0';el.style.transition='opacity .2s';}
+      if(esEste){
+        el.style.opacity='1';
+        el.style.filter='';
+        el.style.transform='scale(1.2)';
+        el.style.transition='transform .2s';
+      } else {
+        el.style.opacity='0';
+        el.style.transition='opacity .2s';
+      }
     });
   }
 
-  /* Centrar */
+  /* Centrar mapa en la tienda seleccionada */
   const cfg=s.config||{};
   const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-  if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],17,{animate:true});
+  if(!isNaN(lat)&&!isNaN(lng)) map.setView([lat,lng],15,{animate:true});
 
-  /* Abrir popup */
-  setTimeout(()=>openPopup(s.storeId),350);
+  /* NO abrir popup — el usuario puede tocar el pin si quiere ver detalles */
 }
+
+ 
 
 /* ── Mini dropdown debajo del buscador ── */
 function _mostrarDropdown(stores,q){
