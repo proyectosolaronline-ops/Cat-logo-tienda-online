@@ -1,4 +1,4 @@
-version busqueda parche insertado v1
+version busqueda parche insertado v2
 <!DOCTYPE html>
 
 <html lang="es">
@@ -888,28 +888,7 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
   📋 Ser parte del directorio
 </button>
 
-<div id="searchPanel">
-  <div class="sp-header">
 
-    <div class="sp-search-inner">
-
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5">
-
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-
-      </svg>
-
-      <input type="text" id="searchInput2" placeholder="¿Qué necesitas? Ej: zapatos, pastel, ropa..." autocomplete="off" autocorrect="off" spellcheck="false">
-
-    </div>
-
-    <button class="sp-close" onclick="clearSearch()">✕</button>
-
-  </div>
-
-  <div class="sp-results" id="searchResults"></div>
-
-</div>
 
 <!-- POPUP EASYLINK — intacto -->
 
@@ -2080,16 +2059,33 @@ function _aiSeleccionar(lat,lng,id,nombre){
 ══════════════════════════════════════════════ */
 function handleSearch(val){
   syncSearch(val);
-  clearBtn.style.display=val?'block':'none';
-  if(val.trim()){
-    stats.searches++;
-    document.getElementById('stats-searches').textContent=stats.searches;
-    document.getElementById('searchPanel').classList.add('active');
-    renderSearchResults(val);
-  } else {
-    clearSearch();
+  clearBtfunction handleSearch(val){
+  clearBtn.style.display = val ? 'block' : 'none';
+
+  // Limpiar IA si menos de 3 caracteres
+  clearTimeout(_aiTimer);
+  var box = document.getElementById('ai-box');
+
+  if(!val || val.trim().length < 3){
+    if(box){ box.style.display='none'; box.innerHTML=''; }
+    _aiResetMapa();
+    _aiMatchIds = [];
+    return;
   }
 
+  // Estadísticas
+  stats.searches++;
+  document.getElementById('stats-searches').textContent = stats.searches;
+
+  // Mostrar loading IA
+  if(box){
+    box.style.display = '';
+    box.innerHTML = '<div class="ai-load"><div class="ald"></div><div class="ald"></div><div class="ald"></div><span>Buscando con IA…</span></div>';
+  }
+
+  // Disparar IA con debounce 500ms
+  _aiTimer = setTimeout(function(){ _aiRunIA(val.trim()); }, 500);
+}
   /* ── IA enganchada AL FINAL — no toca nada arriba ── */
   clearTimeout(_aiTimer);
   if(!val||val.trim().length<3){
@@ -2119,12 +2115,17 @@ function syncSearch(v){searchInput.value=v;searchInput2.value=v;}
 
 searchInput.addEventListener('input',e=>handleSearch(e.target.value));
 
-searchInput2.addEventListener('input',e=>{syncSearch(e.target.value);renderSearchResults(e.target.value);});
 
 
 
-function clearSearch(){syncSearch('');clearBtn.style.display='none';document.getElementById('searchPanel').classList.remove('active');}
-
+function clearSearch(){
+  syncSearch('');
+  clearBtn.style.display = 'none';
+  var box = document.getElementById('ai-box');
+  if(box){ box.style.display='none'; box.innerHTML=''; }
+  _aiResetMapa();
+  _aiMatchIds = [];
+}
   
 
 function renderSearchResults(query){
