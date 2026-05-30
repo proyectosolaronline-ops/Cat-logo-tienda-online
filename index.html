@@ -1033,8 +1033,6 @@ function clearSearch(){
 }
 
 /* ══ GOOGLE PLACES (desactivado) ══ */
-const GOOGLE_PLACES_ACTIVADO=false;
-    searchInput.addEventListener('input',e=>handleSearch(e.target.value));
 
 /* ══ FULLSCREEN ══ */
 function toggleFullscreen(){isFsMode=!isFsMode;document.body.classList.toggle('fs-mode',isFsMode);document.getElementById('fs-expand').style.display=isFsMode?'none':'block';document.getElementById('fs-compress').style.display=isFsMode?'block':'none';setTimeout(()=>{map.invalidateSize();if(isFsMode)fitToNearestStore();},160);try{if(isFsMode&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();else if(!isFsMode&&document.exitFullscreen)document.exitFullscreen();}catch(e){}}
