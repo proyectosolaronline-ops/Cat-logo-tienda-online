@@ -1,4 +1,4 @@
-ver.01
+ver.02
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -882,7 +882,18 @@ const searchInput=document.getElementById('searchInput');
 const clearBtn=document.getElementById('clearBtn');
 
 function handleSearch(val){
+  syncSearch(val);
   clearBtn.style.display=val?'block':'none';
+  
+  if(val.trim()){
+    stats.searches++;
+    document.getElementById('stats-searches').textContent=stats.searches;
+    document.getElementById('searchPanel').classList.add('active');
+    renderSearchResults(val);
+  } else {
+    clearSearch();
+  }
+
   clearTimeout(_aiTimer);
   var box=document.getElementById('ai-box');
   if(!val||val.trim().length<3){
@@ -891,15 +902,12 @@ function handleSearch(val){
     _aiMatchIds=[];
     return;
   }
-  stats.searches++;
-  document.getElementById('stats-searches').textContent=stats.searches;
   if(box){
     box.style.display='';
     box.innerHTML='<div class="ai-load"><div class="ald"></div><div class="ald"></div><div class="ald"></div><span>Buscando con IA…</span></div>';
   }
   _aiTimer=setTimeout(function(){_aiRunIA(val.trim());},500);
 }
-
 function clearSearch(){
   searchInput.value='';
   clearBtn.style.display='none';
