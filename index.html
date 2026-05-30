@@ -1,4 +1,4 @@
-version busqueda parche insertado
+version busqueda parche insertado v1
 <!DOCTYPE html>
 
 <html lang="es">
@@ -2021,8 +2021,7 @@ function _aiRender(res){
     var color=near?'#16a34a':'#1a73e8';
     var sub=[t.tipo,t.localidad].filter(Boolean).join(' · ');
     var lat=t.lat||'',lng=t.lng||'',id=t.id||'';
-    return '<div class="ai-row" onclick="_aiSeleccionar(\''+lat+'\',\''+lng+'\',\''+id+'\')">'
-      +'<div class="ai-dot-c" style="background:'+color+';"></div>'
+return '<div class="ai-row" onclick="_aiSeleccionar(\''+lat+'\',\''+lng+'\',\''+id+'\',\''+(t.nombre||'Tienda').replace(/'/g,"\\'")+'\')">'      +'<div class="ai-dot-c" style="background:'+color+';"></div>'
       +'<div style="flex:1;min-width:0;">'
       +'<div class="ai-name">'+(t.nombre||'Tienda')+'</div>'
       +(sub?'<div class="ai-sub">'+sub+'</div>':'')
@@ -2059,15 +2058,23 @@ async function _aiRunIA(q){
 }
 
 /* ── SELECCIONAR desde popup ── */
-function _aiSeleccionar(lat,lng,id){
+function _aiSeleccionar(lat,lng,id,nombre){
   if(!map) return;
   var la=parseFloat(lat),ln=parseFloat(lng);
   if(isNaN(la)||isNaN(ln)) return;
   _aiFiltrarMapa(_aiMatchIds,id);
   map.setView([la,ln],17,{animate:true});
+  
+  /* ── HEREDAR nombre a la barra ── */
+  if(nombre){
+    var i1=document.getElementById('searchInput');
+    var i2=document.getElementById('searchInput2');
+    if(i1)i1.value=nombre;
+    if(i2)i2.value=nombre;
+  }
+  
   if(id&&typeof openPopup==='function') setTimeout(function(){openPopup(id);},420);
 }
-
 /* ══════════════════════════════════════════════
    handleSearch — ORIGINAL INTACTO + IA al final
 ══════════════════════════════════════════════ */
