@@ -1,4 +1,4 @@
-ver.08
+ver.09
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -918,7 +918,6 @@ function _restaurarPins(){
 function _seleccionarTienda(s){
   _limpiarDropdown();
 
-  /* Dejar solo el pin seleccionado visible, los demás del searchLayer a opacity 0 */
   if(_sLayer){
     _sLayer.eachLayer(function(l){
       const el=l.getElement&&l.getElement();
@@ -927,27 +926,22 @@ function _seleccionarTienda(s){
       const cfg=s.config||{};
       const slat=parseFloat(cfg.locationLat),slng=parseFloat(cfg.locationLng);
       const esEste=Math.abs(pos.lat-slat)<0.0003&&Math.abs(pos.lng-slng)<0.0003;
-if(esEste){
+      if(esEste){
         el.style.opacity='1';
         el.style.filter='';
         el.style.transform='';
         el.style.transition='';
-      }
-      } else {
+      }else{
         el.style.opacity='0';
         el.style.transition='opacity .2s';
       }
     });
   }
 
-  /* Centrar mapa en la tienda seleccionada */
   const cfg=s.config||{};
   const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-  if(!isNaN(lat)&&!isNaN(lng)) map.setView([lat,lng],15,{animate:true});
-
-  /* NO abrir popup — el usuario puede tocar el pin si quiere ver detalles */
+  if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],15,{animate:true});
 }
-
  
 
 /* ── Mini dropdown debajo del buscador ── */
