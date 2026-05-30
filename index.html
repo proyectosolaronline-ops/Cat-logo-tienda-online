@@ -1,4 +1,4 @@
-ver.09
+1 ver
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -850,23 +850,17 @@ function _mostrarPins(stores){
   if(!_sLayer){_sLayer=L.layerGroup().addTo(map);}
   _sLayer.clearLayers();
 
-  /* Atenuar pines normales */
-  map.eachLayer(function(l){
-    if(!(l instanceof L.Marker))return;
-    if(l instanceof L.CircleMarker)return;
-    const tt=l.getTooltip?l.getTooltip():null;
-    if(tt&&tt.getContent&&tt.getContent()==='Tu ubicación')return;
-    if(_sLayer&&_sLayer.hasLayer(l))return;
-    const el=l.getElement&&l.getElement();
-    if(el){el.style.opacity='0.18';el.style.filter='grayscale(1)';el.style.transition='opacity .2s,filter .2s';}
-  });
-
   stores.forEach(s=>{
     const cfg=s.config||{};
     const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
     if(isNaN(lat)||isNaN(lng))return;
     const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
     const color=s.isExternal?'#f97316':'#1a73e8';
+    const nombre=s.nombre_tienda||s.name||'Tienda';
+    const tipo=cfg.tipoNegocio||cfg.businessType||cfg.tipo||'';
+    const colonia=cfg.colonia||'';
+    const localidad=cfg.localidad||cfg.city||'';
+    const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
     const pinHTML=`<div style="position:relative;">
       <div style="position:absolute;top:-5px;left:-5px;width:66px;height:66px;border-radius:50%;
         background:rgba(255,220,0,.25);border:2px solid rgba(255,200,0,.7);
@@ -876,11 +870,6 @@ function _mostrarPins(stores){
         :`<div style="width:52px;height:52px;background:${color};color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:4px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.4);position:relative;">🏪</div>`
       }</div>`;
     const icon=L.divIcon({html:pinHTML,className:'pin-marker',iconSize:[56,56],iconAnchor:[28,56]});
-    const nombre=s.nombre_tienda||s.name||'Tienda';
-    const tipo=cfg.tipoNegocio||cfg.businessType||cfg.tipo||'';
-    const colonia=cfg.colonia||'';
-    const localidad=cfg.localidad||cfg.city||'';
-    const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
     const tip=`<div style="font-family:Inter,sans-serif;text-align:center;line-height:1.4;">
       <div style="font-weight:700;font-size:11px;color:#111;">${nombre}</div>
       ${tipo?`<div style="font-size:9px;color:#555;">${tipo}</div>`:''}
@@ -893,7 +882,6 @@ function _mostrarPins(stores){
       .on('click',()=>_seleccionarTienda(s));
   });
 
-  /* Ajustar vista */
   const bounds=[];
   stores.forEach(s=>{const c=s.config||{};const la=parseFloat(c.locationLat),ln=parseFloat(c.locationLng);if(!isNaN(la)&&!isNaN(ln))bounds.push([la,ln]);});
   if(bounds.length){
@@ -903,47 +891,15 @@ function _mostrarPins(stores){
 }
 
 function _restaurarPins(){
-  map.eachLayer(function(l){
-    if(!(l instanceof L.Marker))return;
-    if(l instanceof L.CircleMarker)return;
-    const tt=l.getTooltip?l.getTooltip():null;
-    if(tt&&tt.getContent&&tt.getContent()==='Tu ubicación')return;
-    if(_sLayer&&_sLayer.hasLayer(l))return;
-    const el=l.getElement&&l.getElement();
-    if(el){el.style.opacity='';el.style.filter='';el.style.transition='';}
-  });
-  _limpiarCapa();
+  if(_sLayer)_sLayer.clearLayers();
 }
 
 function _seleccionarTienda(s){
   _limpiarDropdown();
-
-  if(_sLayer){
-    _sLayer.eachLayer(function(l){
-      const el=l.getElement&&l.getElement();
-      if(!el)return;
-      const pos=l.getLatLng();
-      const cfg=s.config||{};
-      const slat=parseFloat(cfg.locationLat),slng=parseFloat(cfg.locationLng);
-      const esEste=Math.abs(pos.lat-slat)<0.0003&&Math.abs(pos.lng-slng)<0.0003;
-      if(esEste){
-        el.style.opacity='1';
-        el.style.filter='';
-        el.style.transform='';
-        el.style.transition='';
-      }else{
-        el.style.opacity='0';
-        el.style.transition='opacity .2s';
-      }
-    });
-  }
-
   const cfg=s.config||{};
   const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
   if(!isNaN(lat)&&!isNaN(lng))map.setView([lat,lng],15,{animate:true});
 }
- 
-
 /* ── Mini dropdown debajo del buscador ── */
 function _mostrarDropdown(stores,q){
   let dd=document.getElementById('_srDrop');
