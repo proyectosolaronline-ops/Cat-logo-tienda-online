@@ -2066,34 +2066,32 @@ function handleSearch(val){
   syncSearch(val);
   clearBtn.style.display = val ? 'block' : 'none';
 
-  // Limpiar IA si menos de 3 caracteres
-  clearTimeout(_aiTimer);
-  var box = document.getElementById('ai-box');
+  if(val.trim()){
+    // Búsqueda normal - ABRE PANEL
+    stats.searches++;
+    document.getElementById('stats-searches').textContent = stats.searches;
+    document.getElementById('searchPanel').classList.add('active');
+    renderSearchResults(val);
+  } else {
+    clearSearch();
+  }
 
+  // IA en paralelo
+  clearTimeout(_aiTimer);
   if(!val || val.trim().length < 3){
+    var box = document.getElementById('ai-box');
     if(box){ box.style.display='none'; box.innerHTML=''; }
     _aiResetMapa();
     _aiMatchIds = [];
     return;
   }
-
-  // Estadísticas
-  stats.searches++;
-  document.getElementById('stats-searches').textContent = stats.searches;
-
-  // Mostrar loading IA
+  var box = document.getElementById('ai-box');
   if(box){
     box.style.display = '';
     box.innerHTML = '<div class="ai-load"><div class="ald"></div><div class="ald"></div><div class="ald"></div><span>Buscando con IA…</span></div>';
   }
-
-  // Disparar IA con debounce 500ms
   _aiTimer = setTimeout(function(){ _aiRunIA(val.trim()); }, 500);
-}
-
-
-                                                                                                                                 
-  
+}  
 const searchInput=document.getElementById('searchInput');
 
 const searchInput2=document.getElementById('searchInput2');
