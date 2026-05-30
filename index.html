@@ -1,4 +1,4 @@
-4 ver
+5 ver
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -930,11 +930,13 @@ function _mostrarDropdown(stores,q){
     return;
   }
 
-  const cat=_detectarCat(q);
-  const resumen=`<div style="padding:7px 14px 5px;font-size:10px;color:#1a73e8;font-weight:700;border-bottom:1px solid #f0f0f0;">
-    🤖 ${stores.length} resultado${stores.length>1?'s':''} ${cat?'de '+cat:''} ${stores.filter(s=>{const c=s.config||{};const la=parseFloat(c.locationLat),ln=parseFloat(c.locationLng);return userLat&&!isNaN(la)&&haversineKm(userLat,userLng,la,ln)<=RADIO_KM;}).length} cerca
-  </div>`;
-
+const cat=_detectarCat(q);
+const resumen=`<div style="padding:7px 14px 5px;font-size:10px;color:#1a73e8;font-weight:700;border-bottom:1px solid #f0f0f0;">
+  🤖 ${stores.length} resultado${stores.length>1?'s':''} ${cat?'de '+cat:''} · ${stores.filter(s=>{const c=s.config||{};
+    const la=parseFloat(c.locationLat),ln=parseFloat(c.locationLng);
+    return userLat&&!isNaN(la)&&haversineKm(userLat,userLng,la,ln)<=RADIO_KM;}).length} cerca · <span style="color:#f97316;font-weight:800;">
+    👆 toca el pin en el mapa para ver detalles</span>
+</div>`;
   const filas=stores.slice(0,6).map(s=>{
     const cfg=s.config||{};
     const nombre=s.nombre_tienda||s.name||'Tienda';
