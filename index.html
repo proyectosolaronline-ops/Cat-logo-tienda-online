@@ -1,4 +1,4 @@
-multiestados gps
+multiestados gps v1
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -490,9 +490,11 @@ window.addEventListener('load',async()=>{
 async function cargarTiendasConUbicacion(){  
     if(window._quitarMensajeBuscando){window._quitarMensajeBuscando();window._quitarMensajeBuscando=null;}
 const estadoUsuario=await obtenerEstadoUsuario(userLat,userLng);
+actualizarPlaceholderEstado(estadoUsuario);actualizarPlaceholderEstado(estadoUsuario);
 nearbyStores=ALL_STORES.filter(s=>{
   const cfg=s.config||{};
   const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
+    
   if(isNaN(lat)||isNaN(lng))return false;
   if(haversineKm(userLat,userLng,lat,lng)>RADIO_KM)return false;
   if(estadoUsuario){
@@ -593,7 +595,13 @@ async function obtenerEstadoUsuario(lat,lng){
     return (d.address.state||d.address.region||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   }catch(e){return '';}
 }
-    
+ function actualizarPlaceholderEstado(estado){
+  const inp=document.getElementById('searchInput');
+  if(inp&&estado){
+    const nombre=estado.charAt(0).toUpperCase()+estado.slice(1);
+    inp.placeholder=`¿Qué necesitas en ${nombre}?`;
+  }
+}   
 function initMap(){
   map=L.map('map',{zoomControl:false}).setView([userLat,userLng],13);
   var calle=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
