@@ -1,4 +1,4 @@
-6 ver
+7 ver
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -918,7 +918,7 @@ function _mostrarDropdown(stores,q){
   if(!dd){
     dd=document.createElement('div');
     dd.id='_srDrop';
-    dd.style.cssText='position:absolute;left:12px;right:12px;z-index:1055;background:#fff;border-radius:0 0 14px 14px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-height:38vh;overflow-y:auto;font-family:Inter,sans-serif;';
+ dd.style.cssText='position:absolute;left:12px;right:12px;z-index:1055;background:#fff;border-radius:0 0 12px 12px;box-shadow:0 6px 18px rgba(0,0,0,.15);max-height:22vh;overflow-y:auto;font-family:Inter,sans-serif;';
     /* Insertarlo justo después del search-wrap */
     const sw=document.querySelector('.search-wrap');
     sw.style.position='relative';
@@ -931,35 +931,32 @@ function _mostrarDropdown(stores,q){
   }
 
 const cat=_detectarCat(q);
-const resumen=`<div style="padding:7px 14px 5px;font-size:10px;color:#1a73e8;font-weight:700;border-bottom:1px solid #f0f0f0;">
-  🤖 ${stores.length} resultado${stores.length>1?'s':''} ${cat?'de '+cat:''} · ${stores.filter(s=>{const c=s.config||{};
-    const la=parseFloat(c.locationLat),ln=parseFloat(c.locationLng);
-    return userLat&&!isNaN(la)&&haversineKm(userLat,userLng,la,ln)<=RADIO_KM;}).length} cerca · <span style="color:#f97316;font-weight:800;">
-    👆 toca el pin en el mapa para ver detalles</span>
+const resumen=`<div style="padding:4px 10px 3px;font-size:9px;color:#1a73e8;font-weight:700;border-bottom:1px solid #f0f0f0;">
+  🤖 ${stores.length} resultado${stores.length>1?'s':''} ${cat?'de '+cat:''} · ${stores.filter(s=>{const c=s.config||{};const la=parseFloat(c.locationLat),ln=parseFloat(c.locationLng);return userLat&&!isNaN(la)&&haversineKm(userLat,userLng,la,ln)<=RADIO_KM;}).length} cerca · <span style="color:#f97316;font-weight:800;">👆 toca el pin para ver detalles</span>
 </div>`;
-  const filas=stores.slice(0,6).map(s=>{
-    const cfg=s.config||{};
-    const nombre=s.nombre_tienda||s.name||'Tienda';
-    const tipo=cfg.tipoNegocio||cfg.businessType||cfg.tipo||'';
-    const localidad=cfg.localidad||cfg.city||'';
-    const colonia=cfg.colonia||'';
-    const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-    const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
-    const cerca=dist&&parseFloat(dist)<=RADIO_KM;
-    const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
-    return `<div onclick="_centrarTienda(window.__srStores['${s.storeId}'])"
-      style="display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-bottom:1px solid #f5f5f5;transition:background .15s;"
-      onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background=''">
-      <div style="width:36px;height:36px;border-radius:9px;overflow:hidden;background:#e8f0fe;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;">
-        ${logoUrl?`<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.textContent='🏪'">`:'🏪'}
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nombre}</div>
-        <div style="font-size:10px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${[tipo,colonia,localidad].filter(Boolean).join(' · ')}</div>
-      </div>
-      <div style="font-size:11px;font-weight:700;color:${cerca?'#16a34a':'#999'};flex-shrink:0;">${dist}</div>
-    </div>`;
-  }).join('');
+    const filas=stores.slice(0,6).map(s=>{
+  const cfg=s.config||{};
+  const nombre=s.nombre_tienda||s.name||'Tienda';
+  const tipo=cfg.tipoNegocio||cfg.businessType||cfg.tipo||'';
+  const localidad=cfg.localidad||cfg.city||'';
+  const colonia=cfg.colonia||'';
+  const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
+  const dist=(userLat&&!isNaN(lat))?haversineKm(userLat,userLng,lat,lng).toFixed(1)+' km':'';
+  const cerca=dist&&parseFloat(dist)<=RADIO_KM;
+  const logoUrl=fixImgUrl(cfg.logo||cfg.logoUrl||'');
+  return `<div onclick="_centrarTienda(window.__srStores['${s.storeId}'])"
+    style="display:flex;align-items:center;gap:8px;padding:5px 10px;cursor:pointer;border-bottom:1px solid #f5f5f5;"
+    onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background=''">
+    <div style="width:28px;height:28px;border-radius:7px;overflow:hidden;background:#e8f0fe;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;">
+      ${logoUrl?`<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.textContent='🏪'">`:'🏪'}
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:11px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nombre}</div>
+      <div style="font-size:9px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${[tipo,colonia,localidad].filter(Boolean).join(' · ')}</div>
+    </div>
+    <div style="font-size:10px;font-weight:700;color:${cerca?'#16a34a':'#999'};flex-shrink:0;">${dist}</div>
+  </div>`;
+}).join('');
 
   const extra=stores.length>6?`<div style="padding:8px;text-align:center;font-size:11px;color:#999;">+${stores.length-6} más en el mapa</div>`:'';
 
