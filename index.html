@@ -1,4 +1,4 @@
-7 ver
+multiestados gps
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -487,12 +487,20 @@ window.addEventListener('load',async()=>{
     ALL_STORES=[...sl,...se].map(s=>{s.config=typeof s.config==='string'?JSON.parse(s.config):(s.config||{});return s;});
   }catch(e){console.warn('Error:',e);}
 
-  function cargarTiendasConUbicacion(){
+async function cargarTiendasConUbicacion(){  
     if(window._quitarMensajeBuscando){window._quitarMensajeBuscando();window._quitarMensajeBuscando=null;}
-    nearbyStores=ALL_STORES.filter(s=>{
-      const cfg=s.config||{},lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
-      return !isNaN(lat)&&!isNaN(lng)&&haversineKm(userLat,userLng,lat,lng)<=RADIO_KM;
-    });
+const estadoUsuario=await obtenerEstadoUsuario(userLat,userLng);
+nearbyStores=ALL_STORES.filter(s=>{
+  const cfg=s.config||{};
+  const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
+  if(isNaN(lat)||isNaN(lng))return false;
+  if(haversineKm(userLat,userLng,lat,lng)>RADIO_KM)return false;
+  if(estadoUsuario){
+    const et=_norm(cfg.directoryCity||cfg.state||cfg.estado||cfg.localidad||cfg.city||'');
+    if(!et.includes(estadoUsuario)&&!estadoUsuario.includes(et))return false;
+  }
+  return true;
+});
     map.eachLayer(l=>{
       if(l instanceof L.Marker&&l.getTooltip){
         const tt=l.getTooltip();
@@ -578,7 +586,14 @@ function mostrarMensajeBuscando(){
   window._quitarMensajeBuscando=quitarMsg;
   setTimeout(quitarMsg,6000);
 }
-
+async function obtenerEstadoUsuario(lat,lng){
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`);
+    const d=await r.json();
+    return (d.address.state||d.address.region||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  }catch(e){return '';}
+}
+    
 function initMap(){
   map=L.map('map',{zoomControl:false}).setView([userLat,userLng],13);
   var calle=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
@@ -590,8 +605,7 @@ function initMap(){
   promotorControl.addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
   L.circleMarker([userLat,userLng],{radius:9,color:'#16a34a',fillColor:'#fff',weight:3,fillOpacity:1,zIndexOffset:1000}).addTo(map).bindTooltip('Tu ubicación',{permanent:false,direction:'top'});
-  nearbyStores=ALL_STORES.slice(0,20);
-  addMarkersToMap(nearbyStores);
+  nearbyStores=[];
   map.whenReady(()=>setTimeout(fitToNearestStore,250));
   buildPromosFromCatalogs(nearbyStores);
   mostrarMensajeBuscando();
