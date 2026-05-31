@@ -604,6 +604,9 @@ async function obtenerEstadoUsuario(lat,lng){
 }   
 function initMap(){
   map=L.map('map',{zoomControl:false}).setView([userLat,userLng],13);
+    map.on('click',function(){
+  _limpiarDropdown();
+});
   var calle=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
   var satelite=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
   calle.addTo(map);
@@ -1021,6 +1024,11 @@ function clearSearch(){
   _limpiarDropdown();
   _restaurarPins();
   if(userLat&&userLng)map.setView([userLat,userLng],14,{animate:true});
+  const inp=document.getElementById('searchInput');
+  if(inp)inp.placeholder='📍 Mostrando tiendas cercanas a ti...';
+  setTimeout(()=>{
+    if(inp)inp.placeholder=`¿Qué necesitas aquí?`;
+  },2500);
 }
 /* ══ GOOGLE PLACES (desactivado) ══ */
 
