@@ -1,4 +1,4 @@
-multiestados gps v3
+multiestados gps v4
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -875,6 +875,17 @@ function _mostrarPins(stores){
   if(!_sLayer){_sLayer=L.layerGroup().addTo(map);}
   _sLayer.clearLayers();
 
+  /* Ocultar pines normales */
+  map.eachLayer(function(l){
+    if(!(l instanceof L.Marker))return;
+    if(l instanceof L.CircleMarker)return;
+    const tt=l.getTooltip?l.getTooltip():null;
+    if(tt&&tt.getContent&&tt.getContent()==='Tu ubicación')return;
+    if(_sLayer&&_sLayer.hasLayer(l))return;
+    const el=l.getElement&&l.getElement();
+    if(el)el.style.display='none';
+  });
+
   stores.forEach(s=>{
     const cfg=s.config||{};
     const lat=parseFloat(cfg.locationLat),lng=parseFloat(cfg.locationLng);
@@ -914,8 +925,16 @@ function _mostrarPins(stores){
     map.fitBounds(L.latLngBounds(bounds),{padding:[60,60],maxZoom:15,animate:true});
   }
 }
-
 function _restaurarPins(){
+  map.eachLayer(function(l){
+    if(!(l instanceof L.Marker))return;
+    if(l instanceof L.CircleMarker)return;
+    const tt=l.getTooltip?l.getTooltip():null;
+    if(tt&&tt.getContent&&tt.getContent()==='Tu ubicación')return;
+    if(_sLayer&&_sLayer.hasLayer(l))return;
+    const el=l.getElement&&l.getElement();
+    if(el)el.style.display='';
+  });
   if(_sLayer)_sLayer.clearLayers();
 }
 function _seleccionarTienda(s){
