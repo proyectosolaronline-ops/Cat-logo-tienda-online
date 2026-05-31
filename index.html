@@ -1,4 +1,4 @@
-multiestados gps v2
+multiestados gps v3
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -460,7 +460,7 @@ body.fs-mode .fab-group{bottom:18px;right:12px;}
 const BACKEND         = 'https://script.google.com/macros/s/AKfycbwUhTHQkBhLIvF9KgP2bHpVeufIEaPCXZWo9-azz7mYrEEA79BPFCQxE68YQQxE5iw/exec';
 const BACKEND_MAESTRO = 'https://script.google.com/macros/s/AKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik/exec';
 const STORE_BASE      = 'https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html';
-let RADIO_KM = 20;
+let RADIO_KM = 10;
 const MAX_PROMO_FETCH = 8;
 let ALL_STORES=[],map,userLat=null,userLng=null,nearbyStores=[];
 let qrInstance=null,isFsMode=false;
@@ -603,7 +603,7 @@ async function obtenerEstadoUsuario(lat,lng){
   }
 }   
 function initMap(){
-  map=L.map('map',{zoomControl:false}).setView([userLat,userLng],13);
+  map=L.map('map',{zoomControl:false}).setView([userLat,userLng],12);
     map.on('click',function(){
   _limpiarDropdown();
 });
@@ -1023,7 +1023,8 @@ function clearSearch(){
   clearBtn.style.display='none';
   _limpiarDropdown();
   _restaurarPins();
-  if(userLat&&userLng)map.setView([userLat,userLng],14,{animate:true});
+  if(userLat&&userLng)map.setView([userLat,userLng],12,{animate:true});
+    
   const inp=document.getElementById('searchInput');
   if(inp)inp.placeholder='📍 Mostrando tiendas cercanas a ti...';
   setTimeout(()=>{
