@@ -1,4 +1,4 @@
-multiestados gps v1
+multiestados gps v2
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1020,8 +1020,8 @@ function clearSearch(){
   clearBtn.style.display='none';
   _limpiarDropdown();
   _restaurarPins();
+  if(userLat&&userLng)map.setView([userLat,userLng],14,{animate:true});
 }
-
 /* ══ GOOGLE PLACES (desactivado) ══ */
 
 /* ══ FULLSCREEN ══ */
